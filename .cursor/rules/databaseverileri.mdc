@@ -1,0 +1,45 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+NOTICE:  Table: public.transactions - Data: <NULL>
+NOTICE:  Table: public.users - Data: [{"id":2,"username":"mehmet","password":"$2b$10$YOUR_HASH","full_name":"Mehmet Kaya","email":"mehmet@example.com","department":"Teknik","created_at":"2025-01-31T16:37:58.152055"}, 
+ {"id":3,"username":"test","password":"$2b$10$N8Af7j4RTad22OQCI5DF0uXYgIMqlRjHaCgurZW2YUgj4uiUnVJ1K","full_name":"Test User","email":"test@example.com","department":"Satis","created_at":"2025-01-31T17:07:08.605391"}, 
+ {"id":1,"username":"ahmet","password":"$2b$10$N8Af7j4RTad22OQCI5DF0uXYgIMqlRjHaCgurZW2YUgj4uiUnVJ1K","full_name":"Ahmet Yilmaz","email":"ahmet@example.com","department":"Satis","created_at":"2025-01-31T16:37:58.152055"}, 
+ {"id":6,"username":"kemal","password":"$2b$10$s5HEw01M0ZFJpGR41aLLT.9mgsbgcRjWie/C0si/hcq3R3FMjfKSu","full_name":"Kemal Sunal","email":"kemal@test.com.tr","department":"Satis","created_at":"2025-02-02T21:19:45.307875"}, 
+ {"id":11,"username":"adsız","password":"123456","full_name":"Adsız Kayıt","email":"adsız@test.com","department":"Satis","created_at":"2025-02-03T13:52:25.71245"}, 
+ {"id":12,"username":"kimse","password":"$2b$10$mdDQMtwj/l26H0.KmYU67.0usyfNmoZwOMn2P5k2rHHYFQnyp6ANy","full_name":"Kimse Değil","email":"kimse@sasfa.com","department":"Satis","created_at":"2025-02-03T15:16:31.801196"}, 
+ {"id":13,"username":"aslan","password":"$2b$10$OV03aufum8Edqshj3AiSO.01yp1FRSgTEW50.EB.uel1C4gMLcnNu","full_name":"Aslan Öztürk","email":"aslan@test.com","department":"Satis","created_at":"2025-02-04T15:52:08.802062"}, 
+ {"id":14,"username":"yıldız","password":"$2b$10$pHMQbfaiIVfMrhuPWoTgAuQfSz13IYQuRXV4SDQJCUKQFkTTvVr7G","full_name":"Yıldız Sönmez","email":"yıldız@test.com","department":"Satis","created_at":"2025-02-04T17:32:49.847032"}, 
+ {"id":15,"username":"adnan","password":"$2b$10$tCQch2ZASfPM3owg.ZCWX.TG7fxI1xh2i6Jby8GTSitUn9UaZbgoi","full_name":"Adnan Selim","email":"adnan@test.com","department":"Satis","created_at":"2025-02-04T17:34:24.609947"}, 
+ {"id":16,"username":"furkan","password":"$2b$10$BCVv04tCFEfXJzjbQD6Svef7WJxWU8TLD376MeztRsbbAmp5fpOl6","full_name":"Furkan Yaman","email":"furkan@test.com.tr","department":"Satis","created_at":"2025-02-06T09:05:09.234857"}, 
+ {"id":18,"username":"qwrqwr","password":"$2b$10$JtW4F3.AFnH22o64s7L1/.LMPPgll/Cp/vx4YWeBYZ4o6rdezSSh.","full_name":"qweqw wqrqwf","email":"qwrqw@asasf.com","department":"Satis","created_at":"2025-02-09T16:26:32.847725"}, 
+ {"id":19,"username":"qwpazxxzvz","password":"$2b$10$ibTNeZenuWsIZLlhac8A1eWqPD9NUY9x9VRwpy631yFBuRIv1Ua5e","full_name":"acaseqwğas asfasfqw","email":"zxvasdxc@saxz.com","department":"Satis","created_at":"2025-02-09T16:35:00.196693"}, 
+ {"id":20,"username":"qwfjfklşi","password":"$2b$10$jJpJSLkeuvt4tzeBYCdNnOssttoMqjhK3WTQFivfY0SDNOJSYdyFy","full_name":"askjflmas asşflqwr","email":"asfklmasf@asokfla.com","department":"Satis","created_at":"2025-02-13T17:08:50.834012"}, 
+ {"id":21,"username":"caglar","password":"$2b$10$VnDqIbGAu8nx.T.w77eeMusqlzhy8fa6qJBF/cfHzHWT0/q3NHeoq","full_name":"Çağlar Kartal","email":"caglar@test.com","department":"Satis","created_at":"2025-02-13T17:10:08.352968"}, 
+ {"id":23,"username":"Hasan","password":"$2b$10$FSpwVC1z0tzXDJPLleRJCu7Xs1Tt9Rktsi47L8H40UZuzqKBBNIIm","full_name":"Hasan Salim","email":"hasan@test.com","department":"Satis","created_at":"2025-02-13T17:43:12.893155"}, 
+ {"id":24,"username":"Testkullanici","password":"$2b$10$vbZSLLYrxgsxylCbxQb55ecrrqDg4JJLtr6sS5cv6.3b867UQSS6S","full_name":"Test User","email":"test@test.admin.com","department":"Satis","created_at":"2025-02-16T17:45:14.429038"}, 
+ {"id":25,"username":"mucahit","password":"$2b$10$j80HYxgF6/F9j5ELpWbERO4f6p8iMRA3VzFHuO46mey2sDCQlRXMG","full_name":"Mücahit EKİCİ","email":"mekici@epcas.com.tr","department":"Satis","created_at":"2025-02-18T08:46:21.873276"}, 
+ {"id":27,"username":"Ahmet","password":"$2b$10$uIRvTYxnG8lTVLZ9z6hAX.3BVdMIaw7RUbBcRvvxImlOaH2YUxtu2","full_name":"Ahmet Yılmaz","email":"ahmet@epcas.com.tr","department":"Satis","created_at":"2025-02-21T12:13:41.082701"}, 
+ {"id":28,"username":"lale","password":"$2b$10$qGgf9YM/W7YrD.7rxZPjeOOHdi1g56neH0FlesKV4q71P/FIaRamy","full_name":"Lale Lale","email":"lale@lale.com","department":"Satis","created_at":"2025-03-13T14:11:01.162814"}, 
+ {"id":30,"username":"denemeuser","password":"$2b$10$FA6mdCwJKZxD0eDkWAh.meCAmY3rXFhkDVOrhS2lnpVgEWoCbOtuu","full_name":"Deneme User","email":"denemeuser@test.com","department":"Teknik","created_at":"2025-03-14T16:42:17.482687"}]
+NOTICE:  Table: public.quotes - Data: [{"id":12,"number":"TKF153","customer_id":null,"prepared_by":"Kemal Sunal","details":"1as32asf","total_price":43576.72,"status":"ONAYLANDI","items_json":null,"created_at":"2025-03-13T16:33:15.29794","updated_at":"2025-03-14T16:44:29.7943","date":"2025-03-13T16:33:15","items":null}, 
+ {"id":4,"number":"QQQQQQQQQQQ\"","customer_id":null,"prepared_by":"Kemal Sunal","details":"452133as5213a","total_price":5208.00,"status":"ONAYLANDI","items_json":null,"created_at":"2025-02-25T15:04:21.396309","updated_at":"2025-02-25T15:04:45.792276","date":"2025-02-25T15:04:21","items":null}, 
+ {"id":13,"number":"koıuy7tyıuo","customer_id":null,"prepared_by":"Ahmet Yilmaz","details":"uyghıjoj","total_price":2474.34,"status":"ONAYLANDI","items_json":null,"created_at":"2025-03-16T23:49:36.126566","updated_at":"2025-03-18T16:16:08.06892","date":"2025-03-16T23:49:35","items":null}, 
+ {"id":3,"number":"aaaaa","customer_id":null,"prepared_by":"Ahmet Yilmaz","details":"aaaaaa","total_price":9493.76,"status":"ONAYLANDI","items_json":[{"cost": 1483.4, "total1": 1780.0800000000002, "total2": 2373.44, "margin1": 1.2, "margin2": 1.6, "product": "SD3P Series - SD3024-40", "quantity": 1, "totalCost": 1483.4}, {"cost": 1483.4, "total1": 1780.0800000000002, "total2": 2373.44, "margin1": 1.2, "margin2": 1.6, "product": "SD3P Series - SD3024-40", "quantity": 1, "totalCost": 1483.4}, {"cost": 1483.4, "total1": 1780.0800000000002, "total2": 2373.44, "margin1": 1.2, "margin2": 1.6, "product": "SD3P Series - SD3024-40", "quantity": 1, "totalCost": 1483.4}, {"cost": 1483.4, "total1": 1780.0800000000002, "total2": 2373.44, "margin1": 1.2, "margin2": 1.6, "product": "SD3P Series - SD3024-40", "quantity": 1, "totalCost": 1483.4}],"created_at":"2025-02-25T14:49:43.266386","updated_at":"2025-02-25T15:11:41.738393","date":"2025-02-25T14:49:43.266386","items":null}, 
+ {"id":14,"number":"aaaaawwqq","customer_id":null,"prepared_by":"Ahmet Yilmaz","details":"qwqwqwqwessad","total_price":8675.60,"status":"HAZIRLANDI","items_json":null,"created_at":"2025-03-18T16:55:11.546458","updated_at":"2025-03-18T16:55:11.546458","date":"2025-03-18T16:55:11","items":null}, 
+ {"id":6,"number":"qwrokkjqnwlrşq","customer_id":null,"prepared_by":"Ahmet Yilmaz","details":"ağplslmgöç.af","total_price":13847.68,"status":"ONAYLANDI","items_json":null,"created_at":"2025-02-25T15:29:04.757754","updated_at":"2025-02-27T11:28:15.7008","date":"2025-02-25T15:29:04","items":null}, 
+ {"id":7,"number":"aaaaaaaaaaaaaaaaaa2","customer_id":null,"prepared_by":"Ahmet Yilmaz","details":"aaaaaaaaaaaaa2","total_price":1852.80,"status":"ONAYLANDI","items_json":null,"created_at":"2025-02-26T09:27:17.502567","updated_at":"2025-02-27T11:28:18.801341","date":"2025-02-26T09:27:17","items":null}, 
+ {"id":5,"number":"qw56r23saf","customer_id":null,"prepared_by":"Ahmet Yilmaz","details":"5a46s23cz5f23qw","total_price":8675.60,"status":"ONAYLANDI","items_json":null,"created_at":"2025-02-25T15:11:25.68827","updated_at":"2025-02-27T11:28:21.638922","date":"2025-02-25T15:11:25","items":null}, 
+ {"id":10,"number":"safasfa","customer_id":null,"prepared_by":"Ahmet Yilmaz","details":"sfasfas","total_price":22604.80,"status":"ONAYLANDI","items_json":null,"created_at":"2025-03-13T12:09:05.774841","updated_at":"2025-03-13T15:19:13.534864","date":"2025-03-13T12:09:05","items":null}, 
+ {"id":9,"number":"sssssssssss","customer_id":null,"prepared_by":"Ahmet Yilmaz","details":"sssssssssssssss","total_price":6506.70,"status":"ONAYLANDI","items_json":null,"created_at":"2025-03-04T10:14:57.972796","updated_at":"2025-03-13T15:19:14.103184","date":"2025-03-04T10:14:57","items":null}, 
+ {"id":8,"number":"aasssaa","customer_id":null,"prepared_by":"Ahmet Yilmaz","details":"aaaaaa","total_price":7912.96,"status":"ONAYLANDI","items_json":null,"created_at":"2025-02-28T16:55:12.88772","updated_at":"2025-03-13T15:19:14.653446","date":"2025-02-28T16:55:12","items":null}, 
+ {"id":11,"number":"aaaa","customer_id":null,"prepared_by":"Ahmet Yilmaz","details":"aaaaaaa","total_price":6927.35,"status":"ONAYLANDI","items_json":null,"created_at":"2025-03-13T15:08:40.130942","updated_at":"2025-03-13T15:19:20.598572","date":"2025-03-13T15:08:40","items":null}]
+NOTICE:  Table: public.customers - Data: <NULL>
+NOTICE:  Table: public.customer_meetings - Data: <NULL>
+NOTICE:  Table: public.customer_notes - Data: <NULL>
+NOTICE:  Table: public.quote_revisions - Data: <NULL>
+DO
+
+Query returned successfully in 184 msec.

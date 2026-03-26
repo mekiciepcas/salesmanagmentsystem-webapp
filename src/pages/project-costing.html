@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Proje Maliyetlendirme - Pricing Pro</title>
+    <link rel="stylesheet" href="../styles/anasayfa.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="../scripts/web-api.js"></script>
+    <style>
+      .costing-layout {
+        padding: 24px;
+        max-width: 720px;
+        margin: 0 auto;
+        min-height: calc(100vh - 40px);
+      }
+      .costing-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 22px;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-soft);
+        margin-bottom: 18px;
+      }
+      .costing-card h2 {
+        margin: 0 0 12px;
+        font-size: 1.05rem;
+      }
+      .costing-meta {
+        font-size: 13px;
+        color: var(--text-secondary);
+        line-height: 1.6;
+      }
+      .costing-meta strong {
+        color: var(--text-primary);
+      }
+      .steps-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .steps-list li {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        font-size: 13px;
+        margin-bottom: 8px;
+        background: var(--surface, #f9fafb);
+        border: 1px solid var(--border-color);
+      }
+      .steps-list li.is-current {
+        border-color: var(--accent, #ea580c);
+        background: rgba(234, 88, 12, 0.06);
+      }
+      .steps-list li.is-done {
+        opacity: 0.75;
+      }
+      .step-badge {
+        font-size: 11px;
+        font-weight: 700;
+        min-width: 22px;
+        text-align: center;
+      }
+      .costing-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 18px;
+        justify-content: flex-end;
+      }
+      .btn-costing-secondary {
+        font-family: var(--font-family);
+        font-size: 13px;
+        font-weight: 600;
+        padding: 10px 16px;
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        background: #fff;
+        cursor: pointer;
+      }
+      .costing-grid-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        margin-top: 10px;
+      }
+      .costing-grid-table th,
+      .costing-grid-table td {
+        border-bottom: 1px solid var(--border-color);
+        padding: 8px 6px;
+        text-align: left;
+      }
+      .costing-grid-table input {
+        width: 100%;
+        max-width: 140px;
+        padding: 6px 8px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 13px;
+        box-sizing: border-box;
+      }
+      .costing-grid-table input.input-cost-note {
+        max-width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="window-frame">
+      <div class="window-title">Pricing Pro — Maliyetlendirme</div>
+      <div class="window-controls">
+        <button
+          class="action-button secondary"
+          type="button"
+          onclick="location.href='anasayfa.html'"
+        >
+          Ana Sayfa
+        </button>
+        <button
+          class="action-button secondary"
+          type="button"
+          onclick="location.href='prepare-quote.html'"
+        >
+          Teklif Hazırla
+        </button>
+        <div class="window-control-divider"></div>
+        <button class="window-control minimize" onclick="">
+          <span>_</span>
+        </button>
+        <button class="window-control close" onclick="">
+          <span>×</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="costing-layout">
+      <div class="costing-card" id="emptyState" style="display: none">
+        <h2>Proje bulunamadı</h2>
+        <p class="costing-meta">
+          Maliyetlendirme kuyruğu yok. Lütfen ana sayfadan teklif projesi
+          oluşturun.
+        </p>
+        <div class="costing-actions" style="justify-content: flex-start">
+          <button
+            type="button"
+            class="btn-offer-primary"
+            onclick="location.href='anasayfa.html'"
+          >
+            Ana Sayfaya Dön
+          </button>
+        </div>
+      </div>
+
+      <div id="mainCostingContent">
+        <div class="costing-card">
+          <h2>Proje özeti</h2>
+          <div class="costing-meta" id="projectSummary"></div>
+        </div>
+
+        <div class="costing-card" id="costingGridCard">
+          <h2>Maliyet satırları (düzenlenebilir)</h2>
+          <p class="costing-meta">
+            Tahmini not ve tutarları girin; kayıt oturumda saklanır ve teklif
+            kaydında <code>quote_documents</code> meta alanına eklenir.
+          </p>
+          <table class="costing-grid-table" id="costingGridTable">
+            <thead>
+              <tr>
+                <th>Kalem</th>
+                <th>Route</th>
+                <th>Adet</th>
+                <th>Not</th>
+                <th>Tahmini tutar</th>
+              </tr>
+            </thead>
+            <tbody id="costingGridBody"></tbody>
+          </table>
+        </div>
+
+        <div class="costing-card">
+          <h2>Maliyetlendirme sırası</h2>
+          <p class="costing-meta" id="stepsProgress"></p>
+          <ol class="steps-list" id="stepsList"></ol>
+          <div class="costing-actions">
+            <button
+              type="button"
+              class="btn-costing-secondary"
+              id="btnBackAnasayfa"
+            >
+              Ana Sayfa
+            </button>
+            <button type="button" class="btn-offer-primary" id="btnNextPricing">
+              Sıradaki kaleme git
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="../scripts/project-costing.js"></script>
+  </body>
+</html>

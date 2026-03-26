@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hesaplama Kayıtları</title>
+    <link rel="stylesheet" href="../styles/styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="records-page">
+    <div class="window-frame">
+      <div class="window-title">Hesaplama Kayıtları</div>
+      <div class="window-controls">
+        <button class="window-control minimize">−</button>
+        <button class="window-control close">×</button>
+      </div>
+    </div>
+
+    <div class="content-wrapper">
+      <!-- Filtreler -->
+      <div class="filters-section">
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Ara..."
+          class="search-input"
+        />
+        <div class="filter-buttons">
+          <button class="filter-btn active" data-filter="all">Tümü</button>
+          <button class="filter-btn" data-filter="draft">Taslaklar</button>
+          <button class="filter-btn" data-filter="saved">Kaydedilenler</button>
+        </div>
+      </div>
+
+      <!-- Hesaplama Kayıtları -->
+      <div class="records-grid">
+        <!-- Kayıtlar dinamik olarak buraya eklenecek -->
+      </div>
+    </div>
+
+    <!-- Detay Modal -->
+    <div id="detailModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Hesaplama Detayı</h2>
+          <button class="close-modal">×</button>
+        </div>
+        <div class="modal-body">
+          <!-- Detaylar dinamik olarak buraya eklenecek -->
+        </div>
+      </div>
+    </div>
+
+    <script src="../scripts/calculationRecords.js"></script>
+  </body>
+</html>

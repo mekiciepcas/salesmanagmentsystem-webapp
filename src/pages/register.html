@@ -1,0 +1,132 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Pricing Pro - Kayıt</title>
+    <link rel="stylesheet" href="../styles/styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="../scripts/web-api.js"></script>
+  </head>
+  <body>
+    <div class="window-frame">
+      <div class="window-title">Pricing Pro - Kayıt</div>
+      <div class="window-controls">
+        <button class="window-control minimize" onclick="">
+          <span>_</span>
+        </button>
+        <button class="window-control close" onclick="">
+          <span>×</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- Sol Panel -->
+      <div class="left-panel">
+        <div class="logo-container">
+          <img
+            src="../assets/images/EPC_logo1.png"
+            alt="EPC Logo"
+            class="animated-logo"
+          />
+        </div>
+      </div>
+
+      <!-- Sağ Panel (Kayıt Formu) -->
+      <div class="login-frame">
+        <h1 class="title">Hesap Oluştur</h1>
+        <p class="subtitle">Lütfen bilgilerinizi girin</p>
+
+        <form id="registerForm" novalidate>
+          <div class="input-container">
+            <svg viewBox="0 0 24 24" class="input-icon">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <input
+              required
+              type="text"
+              name="username"
+              placeholder="Kullanıcı Adı"
+              class="modern-input"
+            />
+            <label class="input-label">Kullanıcı Adı</label>
+          </div>
+
+          <div class="input-container">
+            <svg viewBox="0 0 24 24" class="input-icon">
+              <path
+                d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+              ></path>
+              <polyline points="22,6 12,13 2,6"></polyline>
+            </svg>
+            <input
+              required
+              type="email"
+              name="email"
+              placeholder="E-posta"
+              class="modern-input"
+            />
+            <label class="input-label">E-posta</label>
+          </div>
+
+          <div class="input-container">
+            <svg viewBox="0 0 24 24" class="input-icon">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <input
+              required
+              type="password"
+              name="password"
+              placeholder="Şifre"
+              class="modern-input"
+            />
+            <label class="input-label">Şifre</label>
+          </div>
+
+          <div class="input-container">
+            <svg viewBox="0 0 24 24" class="input-icon">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <input
+              required
+              type="text"
+              name="fullName"
+              placeholder="Ad Soyad"
+              class="modern-input"
+            />
+            <label class="input-label">Ad Soyad</label>
+          </div>
+
+          <div class="input-container">
+            <select required name="department" class="modern-input">
+              <option value="">Departman Seçin</option>
+              <option value="Satis">Satış</option>
+              <option value="Teknik">Teknik</option>
+              <option value="Finans">Finans</option>
+            </select>
+            <label class="input-label">Departman</label>
+          </div>
+
+          <div id="error-message" class="error-message"></div>
+
+          <button type="submit" class="login-button">Kayıt Ol</button>
+          <button
+            type="button"
+            class="back-button"
+            onclick="location.href='login.html'"
+          >
+            Giriş Sayfasına Dön
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <script src="../scripts/register.js" type="module"></script>
+  </body>
+</html>

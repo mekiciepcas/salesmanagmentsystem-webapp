@@ -1,0 +1,49 @@
+appId: com.epc.pricing
+productName: EPC Managment Application
+copyright: Copyright © 2025 Mücahit EKİCİ
+
+directories:
+  output: dist
+  buildResources: build
+
+files:
+  - '**/*'
+  - '!{.git,.github,docs,test,tests,__tests__}'
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: build/icon.ico
+  publisherName: Mücahit EKİCİ
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: EPC Managment Application
+
+mac:
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+  icon: build/icon.icns
+  category: public.app-category.business
+
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+  icon: build/icon.png
+  category: Office
+
+publish:
+  provider: generic
+  url: http://10.0.0.3/guncellemeler
+  channel: latest
+  releaseType: release

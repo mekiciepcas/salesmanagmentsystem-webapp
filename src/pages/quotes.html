@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Teklifler</title>
+    <link rel="stylesheet" href="../styles/styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Teklif Listesi</h1>
+
+      <div class="filters">
+        <select id="statusFilter">
+          <option value="">Tümü</option>
+          <option value="HAZIRLANDI">Hazırlanan</option>
+          <option value="ONAYLANDI">Onaylanan</option>
+          <option value="REDDEDILDI">Reddedilen</option>
+        </select>
+        <input type="date" id="dateFilter" />
+        <button id="clearFilters">Filtreleri Temizle</button>
+      </div>
+
+      <table class="quotes-table">
+        <thead>
+          <tr>
+            <th>Teklif No</th>
+            <th>Tarih</th>
+            <th>Toplam-1</th>
+            <th>Toplam-2</th>
+            <th>Durum</th>
+            <th>İşlemler</th>
+          </tr>
+        </thead>
+        <tbody id="quotesList">
+          <!-- Teklifler buraya JavaScript ile eklenecek -->
+        </tbody>
+      </table>
+    </div>
+
+    <script type="module" src="../scripts/quotes.js"></script>
+  </body>
+</html>

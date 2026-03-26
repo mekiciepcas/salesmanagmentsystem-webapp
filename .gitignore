@@ -1,0 +1,10 @@
+node_modules/
+dist/
+build/
+
+.env
+.env.*
+!.env.example
+
+src/config/credentials.json
+credentials.json

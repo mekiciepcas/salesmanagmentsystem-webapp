@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rectifier Konfigürasyonu — EPC Pricing Pro</title>
+    <link rel="stylesheet" href="../styles/rectifier-wizard.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="../scripts/web-api.js"></script>
+  </head>
+  <body class="wizard-page">
+
+    <!-- SOL SİDEBAR -->
+    <aside class="wizard-sidebar">
+      <div class="sidebar-brand">
+        <img src="../assets/images/EPC_logo1.png" alt="EPC" class="sidebar-logo" onerror="this.style.display='none'" />
+        <span class="sidebar-brand-text">Pricing Pro</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="anasayfa.html" class="sidebar-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Ana Sayfa
+        </a>
+        <a href="anasayfa.html" class="sidebar-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Teklif Geçişleri
+        </a>
+        <a href="dashboard.html" class="sidebar-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+          Admin Dashboard
+        </a>
+        <a href="customers.html" class="sidebar-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Müşteri Yönetimi
+        </a>
+      </nav>
+
+      <div class="sidebar-product-info">
+        <div class="sidebar-product-badge">RECTIFIER</div>
+        <div class="sidebar-quote-ref" id="sidebarQuoteRef">—</div>
+        <div class="sidebar-customer" id="sidebarCustomer">—</div>
+      </div>
+    </aside>
+
+    <!-- SAĞ: WIZARD İÇERİĞİ -->
+    <div class="wizard-main">
+
+      <!-- ÜST BAR -->
+      <div class="wizard-topbar">
+        <div class="wizard-topbar-left">
+          <button class="wizard-back-btn" onclick="location.href='anasayfa.html'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            Ana Sayfa
+          </button>
+          <span class="wizard-topbar-title">Rectifier Konfigürasyonu</span>
+        </div>
+        <div class="wizard-topbar-right">
+          <button class="wizard-action-btn" id="refreshDataBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            Veri Yenile
+          </button>
+          <button class="wizard-action-btn" id="logoSettingsBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            Logo
+          </button>
+        </div>
+      </div>
+
+      <!-- ADIM ÇUBUĞU -->
+      <div class="wizard-steps">
+        <div class="wizard-steps-track">
+          <div class="wizard-step active" data-step="1">
+            <div class="step-bubble">1</div>
+            <span class="step-label">Proje</span>
+          </div>
+          <div class="step-connector"></div>
+          <div class="wizard-step" data-step="2">
+            <div class="step-bubble">2</div>
+            <span class="step-label">Giriş</span>
+          </div>
+          <div class="step-connector"></div>
+          <div class="wizard-step" data-step="3">
+            <div class="step-bubble">3</div>
+            <span class="step-label">Çıkış</span>
+          </div>
+          <div class="step-connector"></div>
+          <div class="wizard-step" data-step="4">
+            <div class="step-bubble">4</div>
+            <span class="step-label">Akü</span>
+          </div>
+          <div class="step-connector"></div>
+          <div class="wizard-step" data-step="5">
+            <div class="step-bubble">5</div>
+            <span class="step-label">Mekanik</span>
+          </div>
+          <div class="step-connector"></div>
+          <div class="wizard-step" data-step="6">
+            <div class="step-bubble">6</div>
+            <span class="step-label">Arayüz</span>
+          </div>
+          <div class="step-connector"></div>
+          <div class="wizard-step" data-step="7">
+            <div class="step-bubble">7</div>
+            <span class="step-label">Haberleşme</span>
+          </div>
+          <div class="step-connector"></div>
+          <div class="wizard-step" data-step="8">
+            <div class="step-bubble">8</div>
+            <span class="step-label">Alarm</span>
+          </div>
+          <div class="step-connector"></div>
+          <div class="wizard-step" data-step="9">
+            <div class="step-bubble">9</div>
+            <span class="step-label">Ek Özellik</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADIM İÇERİKLERİ -->
+      <div class="wizard-content">
+
+        <!-- ADIM 1: Proje Bilgileri -->
+        <div class="wizard-panel active" id="step-panel-1">
+          <div class="wizard-panel-header">
+            <h2 class="wizard-panel-title">Proje Bilgileri</h2>
+            <p class="wizard-panel-sub">Müşteri, teklif referansı ve lojistik bilgileri</p>
+          </div>
+          <div class="wiz-grid">
+            <div class="wiz-section">
+              <h3 class="wiz-section-title">Genel Bilgiler</h3>
+              <div class="wiz-form-row">
+                <label for="projectCustomerName">Müşteri / Customer</label>
+                <div style="display:flex;gap:8px;">
+                  <select id="projectCustomerName" class="wiz-input" style="flex:1">
+                    <option value="">Müşteri seçiniz...</option>
+                  </select>
+                  <button type="button" id="addCustomerBtn" class="wiz-btn-sm">+ Yeni</button>
+                </div>
+              </div>
+              <div class="wiz-form-row">
+                <label for="projectQuoteRef">Teklif No / Quote Reference</label>
+                <input type="text" id="projectQuoteRef" class="wiz-input" placeholder="Örn: 25-Q0250" />
+              </div>
+              <div class="wiz-form-row">
+                <label for="projectDeviceCount">Cihaz Adedi / Quantity</label>
+                <input type="number" id="projectDeviceCount" class="wiz-input" min="1" value="1" style="max-width:120px" />
+              </div>
+              <div class="wiz-form-row">
+                <label for="projectQuoteDate">Teklif Tarihi / Quote Date</label>
+                <input type="date" id="projectQuoteDate" class="wiz-input" style="max-width:200px" />
+              </div>
+            </div>
+            <div class="wiz-section">
+              <h3 class="wiz-section-title">Lojistik ve Paketleme</h3>
+              <div class="wiz-form-row">
+                <label for="projectDeliveryWindow">Beklenen Teslim Süresi</label>
+                <select id="projectDeliveryWindow" class="wiz-input">
+                  <option value="">Seçiniz...</option>
+                  <option value="6-8">6-8 Hafta</option>
+                  <option value="8-10">8-10 Hafta</option>
+                  <option value="10-12">10-12 Hafta</option>
+                  <option value="12-14">12-14 Hafta</option>
+                  <option value="14-16">14-16 Hafta</option>
+                  <option value="16-18">16-18 Hafta</option>
+                  <option value="18-20">18-20 Hafta</option>
+                </select>
+              </div>
+              <div class="wiz-form-row">
+                <label for="projectIncoterms">Teslim Şekli / Incoterms</label>
+                <input type="text" id="projectIncoterms" class="wiz-input" placeholder="EXW, FOB, CIF vb." />
+              </div>
+              <div class="wiz-form-row">
+                <label for="projectPackingType">Paketleme Türü</label>
+                <select id="projectPackingType" class="wiz-input">
+                  <option value="">Seçiniz...</option>
+                  <option value="Karton Kutu / Standard Packing">Karton Kutu / Standard Packing</option>
+                  <option value="Kontra / Overseas Packing">Kontra / Overseas Packing</option>
+                  <option value="Mühürlü Kontra / Sealed Overseas Packing">Mühürlü Kontra / Sealed Overseas Packing</option>
+                </select>
+              </div>
+            </div>
+            <div class="wiz-section">
+              <h3 class="wiz-section-title">Ek Tanımlayıcılar</h3>
+              <div class="wiz-form-row">
+                <label for="projectBrand">Marka / Brand</label>
+                <input type="text" id="projectBrand" class="wiz-input" placeholder="EPC, OEM vb." />
+              </div>
+              <div class="wiz-form-row">
+                <label for="projectDeviceLanguage">Cihaz Dili / Device Language</label>
+                <input type="text" id="projectDeviceLanguage" class="wiz-input" placeholder="TR, EN vb." />
+              </div>
+              <div class="wiz-form-row">
+                <label for="projectPreparedBy">Formu Hazırlayan</label>
+                <input type="text" id="projectPreparedBy" class="wiz-input" readonly />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADIM 2: Giriş Bilgileri -->
+        <div class="wizard-panel" id="step-panel-2">
+          <div class="wizard-panel-header">
+            <h2 class="wizard-panel-title">Cihaz Giriş Bilgileri</h2>
+            <p class="wizard-panel-sub">AC giriş parametreleri ve tolerans değerleri</p>
+          </div>
+          <div class="wiz-grid">
+            <div class="wiz-section">
+              <h3 class="wiz-section-title">Nominal Giriş Parametreleri</h3>
+              <div class="wiz-form-row">
+                <label for="inputVoltageNominal">Nominal Giriş Gerilimi (AC)</label>
+                <select id="inputVoltageNominal" class="wiz-input" style="max-width:200px">
+                  <option value="">Seçiniz...</option>
+                  <option value="66">66V</option>
+                  <option value="115">115V</option>
+                  <option value="120">120V</option>
+                  <option value="220">220V</option>
+                  <option value="230">230V</option>
+                  <option value="240">240V</option>
+                  <option value="280">280V</option>
+                  <option value="380">380V</option>
+                  <option value="400" selected>400V</option>
+                  <option value="415">415V</option>
+                  <option value="440">440V</option>
+                  <option value="480">480V</option>
+                  <option value="600">600V</option>
+                </select>
+              </div>
+              <div class="wiz-form-row">
+                <label for="inputVoltageTolerance">Giriş Gerilimi Toleransı</label>
+                <select id="inputVoltageTolerance" class="wiz-input" style="max-width:200px">
+                  <option value="+/-5%">+/-5%</option>
+                  <option value="+/-10%" selected>+/-10%</option>
+                  <option value="+/-15%">+/-15%</option>
+                  <option value="-5% +10%">-5% +10%</option>
+                  <option value="-10% +5%">-10% +5%</option>
+                  <option value="-15% +10%">-15% +10%</option>
+                  <option value="-10% +15%">-10% +15%</option>
+                </select>
+              </div>
+              <div class="wiz-form-row">
+                <label for="inputPhase">Giriş Faz Sayısı</label>
+                <select id="inputPhase" class="wiz-input" style="max-width:150px">
+                  <option value="1">1 Faz</option>
+                  <option value="3" selected>3 Faz</option>
+                </select>
+              </div>
+              <div class="wiz-form-row">
+                <label for="inputNeutral">Giriş Nötr Bağlantısı</label>
+                <select id="inputNeutral" class="wiz-input" style="max-width:280px">
+                  <option value="Nötr Var / Neutral Exist">Nötr Var / Neutral Exist</option>
+                  <option value="Nötr Yok / No Neutral" selected>Nötr Yok / No Neutral</option>
+                </select>
+              </div>
+              <div class="wiz-form-row">
+                <label for="systemFrequency">Giriş Frekansı</label>
+                <select id="systemFrequency" class="wiz-input" style="max-width:150px">
+                  <option value="50" selected>50Hz</option>
+                  <option value="60">60Hz</option>
+                  <option value="400">400Hz</option>
+                </select>
+              </div>
+              <div class="wiz-form-row">
+                <label for="acPowerFactor">AC Güç Faktörü (otomatik)</label>
+                <input type="number" id="acPowerFactor" class="wiz-input" step="0.01" readonly style="max-width:120px" />
+              </div>
+              <div class="wiz-form-row">
+                <label for="acInputCurrentTHD">AC Giriş Akımı THD (%)</label>
+                <input type="number" id="acInputCurrentTHD" class="wiz-input" step="0.1" style="max-width:120px" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADIM 3: Çıkış Bilgileri -->
+        <div class="wizard-panel" id="step-panel-3">
+          <div class="wizard-panel-header">
+            <h2 class="wizard-panel-title">Cihaz Çıkış Bilgileri</h2>
+            <p class="wizard-panel-sub">DC çıkış parametreleri, topoloji ve dağıtım</p>
+          </div>
+          <div class="wiz-grid">
+            <div class="wiz-section">
+              <h3 class="wiz-section-title">Nominal Çıkış Parametreleri</h3>
+              <div class="wiz-form-row">
+                <label for="outputVoltage">Nominal Çıkış Gerilimi (DC) (V)</label>
+                <input type="number" id="outputVoltage" class="wiz-input" placeholder="48" step="0.1" style="max-width:150px" />
+              </div>
+              <div class="wiz-form-row">
+                <label for="outputCurrent">Nominal Çıkış Akımı (DC) (A)</label>
+                <input type="number" id="outputCurrent" class="wiz-input" placeholder="100" step="0.1" style="max-width:150px" />
+              </div>
+              <div class="wiz-form-row">
+                <label for="topology">Topoloji / Circuit Type</label>
+                <select id="topology" class="wiz-input" style="max-width:300px">
+                  <option value="B6C" selected>B6C (6 darbe / 6 pulse)</option>
+                  <option value="B12C">B12C (12 darbe / 12 pulse)</option>
+                  <option value="SNMPS">SNMPS</option>
+                  <option value="IGBT Doğrultucu">IGBT Doğrultucu / IGBT Rectifier</option>
+                </select>
+              </div>
+              <div class="wiz-form-row">
+                <label for="dcRipple">DC Bara Dalgalılığı — Aküsüz (%)</label>
+                <input type="number" id="dcRipple" class="wiz-input" step="0.1" style="max-width:120px" />
+              </div>
+              <div class="wiz-form-row">
+                <label for="extraLoadOutput">Ek Yük Çıkışı</label>
+                <select id="extraLoadOutput" class="wiz-input" style="max-width:150px">
+                  <option value="Yok" selected>Yok</option>
+                  <option value="Var">Var</option>
+                </select>
+              </div>
+              <div class="wiz-form-row">
+                <label for="diodeDropper">Diyot Dropper</label>
+                <select id="diodeDropper" class="wiz-input" style="max-width:280px">
+                  <option value="Yok / No" selected>Yok / No</option>
+                  <option value="1 kademe / 1 Stage">1 Kademe / 1 Stage</option>
+                  <option value="2 kademe / 2 Stage">2 Kademe / 2 Stage</option>
+                  <option value="3 kademe / 3 Stage">3 Kademe / 3 Stage</option>
+                  <option value="4 kademe / 4 Stage">4 Kademe / 4 Stage</option>
+                  <option value="DC-DC kıyıcılı / DC-DC Chopper">DC-DC Kıyıcılı / DC-DC Chopper</option>
+                </select>
+              </div>
+              <div class="wiz-form-row">
+                <label for="internalDistribution">Dahili DC Yük Dağıtımı</label>
+                <select id="internalDistribution" class="wiz-input" style="max-width:150px">
+                  <option value="Yok / No" selected>Yok / No</option>
+                  <option value="Var / Yes">Var / Yes</option>
+                </select>
+              </div>
+              <div class="wiz-form-row" id="internalDistributionDetails" style="display:none">
+                <label>Dahili Dağıtım Detayları</label>
+                <div id="internalDistributionList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
+                <div style="display:flex;gap:8px">
+                  <input type="number" id="internalDistributionQuantity" class="wiz-input" placeholder="Adet" min="1" style="max-width:100px" />
+                  <input type="text" id="internalDistributionBreakerPoleCurrent" class="wiz-input" placeholder="Kesici (örn: 3x15A)" />
+                  <button type="button" id="addInternalDistributionBtn" class="wiz-btn-sm">+ Ekle</button>
+                </div>
+              </div>
+              <div class="wiz-form-row">
+                <label for="batteryLVD">Akü LVD</label>
+                <select id="batteryLVD" class="wiz-input" style="max-width:150px">
+                  <option value="Yok / No" selected>Yok / No</option>
+                  <option value="Var / Yes">Var / Yes</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADIM 4: Akü Bilgileri -->
+        <div class="wizard-panel" id="step-panel-4">
+          <div class="wizard-panel-header">
+            <h2 class="wizard-panel-title">Akü Bilgileri</h2>
+            <p class="wizard-panel-sub">Akü tipi, gerilim ve şarj parametreleri</p>
+          </div>
+          <div class="wiz-grid">
+            <div class="wiz-section">
+              <h3 class="wiz-section-title">Akü Konfigürasyonu</h3>
+              <div class="wiz-form-row">
+                <label for="batteryType">Akü Tipi</label>
+                <select id="batteryType" class="wiz-input" style="max-width:180px">
+                  <option value="VRLA" selected>VRLA</option>
+                  <option value="Ni-CD">Ni-CD</option>
+                  <option value="Li-ion">Li-ion</option>
+                </select>
+              </div>
+              <div class="wiz-form-row">
+                <label for="batteryVoltage">Batarya Voltajı (V)</label>
+                <input type="number" id="batteryVoltage" class="wiz-input" placeholder="110" step="0.1" style="max-width:120px" />
+              </div>
+              <div class="wiz-form-row">
+                <label for="batteryInCabinet">Kutu İçinde Dahili Akü</label>
+                <select id="batteryInCabinet" class="wiz-input" style="max-width:150px">
+                  <option value="Yok / No" selected>Yok / No</option>
+                  <option value="Var / Yes">Var / Yes</option>
+                </select>
+              </div>
+              <div class="wiz-form-row" id="internalBatteryDetails" style="display:none">
+                <label for="internalBatteryQuantity">Dahili Akü Adedi</label>
+                <input type="number" id="internalBatteryQuantity" class="wiz-input" min="1" value="1" style="max-width:120px" />
+              </div>
+              <div class="wiz-form-row" id="internalBatteryNameRow" style="display:none">
+                <label for="internalBatteryName">Dahili Akü Adı</label>
+                <input type="text" id="internalBatteryName" class="wiz-input" placeholder="Akü adını girin..." />
+              </div>
+            </div>
+            <div class="wiz-section">
+              <h3 class="wiz-section-title">Şarj Parametreleri</h3>
+              <div class="wiz-form-row">
+                <label for="batteryCellCount">Toplam Hücre Sayısı (otomatik)</label>
+                <input type="number" id="batteryCellCount" class="wiz-input" readonly style="max-width:120px" />
+              </div>
+              <div class="wiz-form-row">
+                <label for="batteryVoltagePerCell">Hücre Başı Gerilim (V) (otomatik)</label>
+                <input type="number" id="batteryVoltagePerCell" class="wiz-input" readonly style="max-width:120px" />
+              </div>
+              <div class="wiz-form-row">
+                <label for="floatVoltagePerCell">Float Gerilimi — Hücre Başı (V)</label>
+                <input type="number" id="floatVoltagePerCell" class="wiz-input" step="0.01" style="max-width:120px" />
+              </div>
+              <div class="wiz-form-row">
+                <label for="equalizationVoltagePerCell">Dengeleme Gerilimi — Hücre Başı (V)</label>
+                <input type="number" id="equalizationVoltagePerCell" class="wiz-input" step="0.01" style="max-width:120px" />
+              </div>
+              <div class="wiz-form-row">
+                <label for="boostVoltagePerCell">Boost Gerilimi — Hücre Başı (V)</label>
+                <input type="number" id="boostVoltagePerCell" class="wiz-input" step="0.01" style="max-width:120px" />
+              </div>
+              <div class="wiz-form-row">
+                <label for="floatVoltage">Toplam Float Gerilimi (V) (otomatik)</label>
+                <input type="number" id="floatVoltage" class="wiz-input" readonly style="max-width:120px" />
+              </div>
+              <div class="wiz-form-row">
+                <label for="equalizationVoltage">Toplam Dengeleme Gerilimi (V) (otomatik)</label>
+                <input type="number" id="equalizationVoltage" class="wiz-input" readonly style="max-width:120px" />
+              </div>
+              <div class="wiz-form-row">
+                <label for="boostVoltage">Toplam Boost Gerilimi (V) (otomatik)</label>
+                <input type="number" id="boostVoltage" class="wiz-input" readonly style="max-width:120px" />
+              </div>
+              <div class="wiz-form-row">
+                <label for="batteryNotes">Ek Notlar</label>
+                <textarea id="batteryNotes" class="wiz-input" rows="2" placeholder="Ek notlar..."></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADIM 5: Mekanik Bilgiler -->
+        <div class="wizard-panel" id="step-panel-5">
+          <div class="wizard-panel-header">
+            <h2 class="wizard-panel-title">Mekanik Bilgiler</h2>
+            <p class="wizard-panel-sub">Kutu tipi, boyutlar, koruma sınıfı ve soğutma</p>
+          </div>
+          <div class="wiz-grid">
+            <div class="wiz-section">
+              <h3 class="wiz-section-title">Kutu Tipi ve Boyutları</h3>
+              <div class="wiz-form-row">
+                <label for="cabinetType">Kutu Tipi</label>
+                <select id="cabinetType" class="wiz-input">
+                  <option value="Dikili Tip / Standing Type" selected>Dikili Tip / Standing Type</option>
+                  <option value="Duvar Montaj / Wall Mount">Duvar Montaj / Wall Mount</option>
+                  <option value="Rack Montaj / Rack Mount">Rack Montaj / Rack Mount</option>
+                  <option value="Özel tasarım / Custom Design">Özel Tasarım / Custom Design</option>
+                </select>
+              </div>
+              <div class="wiz-form-row" id="customCabinetDesignRow" style="display:none">
+                <label for="customCabinetDesign">Özel Tasarım Açıklaması</label>
+                <textarea id="customCabinetDesign" class="wiz-input" rows="2" placeholder="Özel tasarım detayları..."></textarea>
+              </div>
+              <div class="wiz-form-row">
+                <label for="cabinetSize">Kutu Boyutları</label>
+                <select id="cabinetSize" class="wiz-input">
+                  <option value="SR1 450*500*1000mm">SR1 — 450×500×1000mm</option>
+                  <option value="SR2 600*600*1300mm">SR2 — 600×600×1300mm</option>
+                  <option value="SR3 750*700*1600mm">SR3 — 750×700×1600mm</option>
+                  <option value="Özel Boyutlar">Özel Boyutlar</option>
+                </select>
+              </div>
+              <div class="wiz-form-row" id="customCabinetSizeRow" style="display:none">
+                <label>Özel Boyutlar (mm)</label>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+                  <div><label style="font-size:11px;color:#666">Genişlik</label><input type="number" id="customCabinetWidth" class="wiz-input" placeholder="W" /></div>
+                  <div><label style="font-size:11px;color:#666">Derinlik</label><input type="number" id="customCabinetDepth" class="wiz-input" placeholder="D" /></div>
+                  <div><label style="font-size:11px;color:#666">Yükseklik</label><input type="number" id="customCabinetHeight" class="wiz-input" placeholder="H" /></div>
+                </div>
+              </div>
+              <div class="wiz-form-row">
+                <label for="protectionClass">Koruma Sınıfı / IP</label>
+                <select id="protectionClass" class="wiz-input" style="max-width:120px">
+                  <option value="IP00">IP00</option><option value="IP20" selected>IP20</option><option value="IP21">IP21</option><option value="IP22">IP22</option><option value="IP23">IP23</option><option value="IP30">IP30</option><option value="IP31">IP31</option><option value="IP40">IP40</option><option value="IP42">IP42</option><option value="IP44">IP44</option><option value="IP54">IP54</option><option value="IP55">IP55</option><option value="IP56">IP56</option><option value="IP65">IP65</option><option value="IP66">IP66</option><option value="IP67">IP67</option>
+                </select>
+              </div>
+              <div class="wiz-form-row">
+                <label for="cabinetColor">Kutu Rengi / RAL</label>
+                <select id="cabinetColor" class="wiz-input" style="max-width:150px">
+                  <option value="RAL7035" selected>RAL7035</option>
+                  <option value="RAL7032">RAL7032</option>
+                  <option value="RAL7040">RAL7040</option>
+                  <option value="RAL7047">RAL7047</option>
+                  <option value="RAL1013">RAL1013</option>
+                  <option value="RAL9005">RAL9005</option>
+                </select>
+              </div>
+            </div>
+            <div class="wiz-section">
+              <h3 class="wiz-section-title">Kablo ve Soğutma</h3>
+              <div class="wiz-form-row">
+                <label for="cableEntry">Kablo Girişi</label>
+                <select id="cableEntry" class="wiz-input">
+                  <option value="Alttan / Bottom" selected>Alttan / Bottom</option>
+                  <option value="Üstten / Top">Üstten / Top</option>
+                  <option value="Üstten ve Alttan / Top and Bottom">Üstten ve Alttan</option>
+                  <option value="Önden / Front">Önden / Front</option>
+                  <option value="Arkadan / Rear">Arkadan / Rear</option>
+                </select>
+              </div>
+              <div class="wiz-form-row">
+                <label for="sheetType">Sac Tipi</label>
+                <select id="sheetType" class="wiz-input">
+                  <option value="Galvaniz Sac 1.5mm / Galvanized Steel 1.5mm" selected>Galvaniz 1.5mm</option>
+                  <option value="Galvaniz Sac 2mm / Galvanized Steel 2mm">Galvaniz 2mm</option>
+                  <option value="Galvaniz Sac 3mm / Galvanized Steel 3mm">Galvaniz 3mm</option>
+                </select>
+              </div>
+              <div class="wiz-form-row">
+                <label for="cooling">Soğutma</label>
+                <select id="cooling" class="wiz-input">
+                  <option value="">Seçiniz...</option>
+                  <option value="Hava Zorlamalı / Fan Forced" selected>Hava Zorlamalı / Fan Forced</option>
+                  <option value="Doğal / Natural">Doğal / Natural</option>
+                  <option value="Sulu / Water Cooling">Sulu / Water Cooling</option>
+                </select>
+              </div>
+              <div class="wiz-form-row">
+                <label for="airflowDirection">Hava Akış Yönü</label>
+                <select id="airflowDirection" class="wiz-input">
+                  <option value="">Seçiniz...</option>
+                  <option value="Üstten / Top">Üstten / Top</option>
+                  <option value="Arkadan / Rear" selected>Arkadan / Rear</option>
+                  <option value="Yanlardan / Sides">Yanlardan / Sides</option>
+                  <option value="Önden arkaya / Front to Rear">Önden Arkaya</option>
+                </select>
+              </div>
+              <div class="wiz-form-row">
+                <label for="operatingTemperature">Çalışma Sıcaklığı</label>
+                <select id="operatingTemperature" class="wiz-input" style="max-width:200px">
+                  <option value="-5C/45C" selected>-5°C / 45°C</option>
+                  <option value="0C/ 45C">0°C / 45°C</option>
+                  <option value="-5C/40C">-5°C / 40°C</option>
+                  <option value="-5C/50C">-5°C / 50°C</option>
+                  <option value="-10C/40C">-10°C / 40°C</option>
+                  <option value="-10C/45C">-10°C / 45°C</option>
+                  <option value="-10C/50C">-10°C / 50°C</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADIM 6: Kullanıcı Arayüzü -->
+        <div class="wizard-panel" id="step-panel-6">
+          <div class="wizard-panel-header">
+            <h2 class="wizard-panel-title">Kullanıcı Arayüzü</h2>
+            <p class="wizard-panel-sub">Ön panel ve ölçü aletleri</p>
+          </div>
+          <div class="wiz-grid">
+            <div class="wiz-section">
+              <h3 class="wiz-section-title">Ön Panel</h3>
+              <div class="wiz-form-row">
+                <label for="frontPanel">Ön Panel Tipi</label>
+                <select id="frontPanel" class="wiz-input">
+                  <option value="">Seçiniz...</option>
+                  <option value="LCD+ LED Panel" selected>LCD + LED Panel</option>
+                  <option value="LCD">LCD</option>
+                  <option value='Dokunmatik 7" renkli / Touch Screen 7" Color'>Dokunmatik 7" Renkli</option>
+                  <option value="Mimic Panel">Mimic Panel</option>
+                  <option value="LCD+Led Panel+Mimic Panel">LCD + LED + Mimic Panel</option>
+                </select>
+              </div>
+            </div>
+            <div class="wiz-section">
+              <h3 class="wiz-section-title">Ölçü Aletleri</h3>
+              <div class="wiz-form-row">
+                <label>Ölçü Aletleri Listesi</label>
+                <div id="measurementInstrumentsList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <select id="measurementInstrumentType" class="wiz-input" style="flex:1;min-width:140px">
+                    <option value="">Tip Seçiniz...</option>
+                    <option value="Analog / Analog">Analog</option>
+                    <option value="Dijital / Digital">Dijital</option>
+                    <option value="Multimetre / Multimeter">Multimetre</option>
+                    <option value="Enerji analizörü / Energy Analyzer">Enerji Analizörü</option>
+                  </select>
+                  <select id="measurementPoint" class="wiz-input" style="flex:1;min-width:140px">
+                    <option value="">Ölçüm Noktası...</option>
+                    <option value="Yük gerilimi / Load Voltage">Yük Gerilimi</option>
+                    <option value="Yük akımı / Load Current">Yük Akımı</option>
+                    <option value="Akü gerilimi / Battery Voltage">Akü Gerilimi</option>
+                    <option value="Akü akımı / Battery Current">Akü Akımı</option>
+                    <option value="Giriş gerilimler / Input Voltages">Giriş Gerilimler</option>
+                    <option value="Giriş akımlar / Input Currents">Giriş Akımlar</option>
+                  </select>
+                  <button type="button" id="addMeasurementInstrumentBtn" class="wiz-btn-sm">+ Ekle</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADIM 7: Haberleşme -->
+        <div class="wizard-panel" id="step-panel-7">
+          <div class="wizard-panel-header">
+            <h2 class="wizard-panel-title">Haberleşme Arayüzü</h2>
+            <p class="wizard-panel-sub">Protokol, kuru kontak alarm çıkışları ve paralel çalışma</p>
+          </div>
+          <div class="wiz-grid">
+            <div class="wiz-section">
+              <h3 class="wiz-section-title">Haberleşme Protokolü</h3>
+              <div class="wiz-form-row">
+                <label for="communicationProtocol">Protokol</label>
+                <select id="communicationProtocol" class="wiz-input">
+                  <option value="">Seçiniz...</option>
+                  <option value="Modbus RTU RS232" selected>Modbus RTU RS232</option>
+                  <option value="Modbus RTU RS485">Modbus RTU RS485</option>
+                  <option value="Modbus RTU RS232 + Modbus RTU RS485">Modbus RTU RS232 + RS485</option>
+                  <option value="Modbus TCP / IP">Modbus TCP/IP</option>
+                  <option value="IEC61850">IEC61850</option>
+                  <option value="Modbus RTU RS485 + IEC61850">Modbus RS485 + IEC61850</option>
+                  <option value="Profinet">Profinet</option>
+                  <option value="Profibus">Profibus</option>
+                </select>
+              </div>
+              <div class="wiz-form-row">
+                <label for="relayAlarmOutputs">Röle Kuru Kontak Alarm Çıkışları</label>
+                <select id="relayAlarmOutputs" class="wiz-input">
+                  <option value="">Seçiniz...</option>
+                  <option value="Programlanabilir Kuru Kontak Alarm Çıkışı 4 Adet / Programmable Dry Contact Alarm Output 4 Pcs" selected>4 Adet Programlanabilir Kuru Kontak</option>
+                  <option value="Programlanabilir Kuru Kontak Alarm Çıkışı 8 Adet / Programmable Dry Contact Alarm Output 8 Pcs">8 Adet Programlanabilir Kuru Kontak</option>
+                  <option value="Programlanabilir Kuru Kontak Alarm Çıkışı 12 Adet / Programmable Dry Contact Alarm Output 12 Pcs">12 Adet Programlanabilir Kuru Kontak</option>
+                  <option value="Programlanabilir Kuru Kontak Alarm Çıkışı 16 Adet / Programmable Dry Contact Alarm Output 16 Pcs">16 Adet Programlanabilir Kuru Kontak</option>
+                </select>
+              </div>
+              <div class="wiz-form-row">
+                <label for="parallelOperation">Paralel Çalışma</label>
+                <select id="parallelOperation" class="wiz-input" style="max-width:280px">
+                  <option value="Pasif (standart) / Passive (Standard)" selected>Pasif (Standart)</option>
+                  <option value="Yok / No">Yok / No</option>
+                  <option value="Aktif / Active">Aktif / Active</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADIM 8: Alarm & Koruma -->
+        <div class="wizard-panel" id="step-panel-8">
+          <div class="wizard-panel-header">
+            <h2 class="wizard-panel-title">Alarm &amp; Koruma</h2>
+            <p class="wizard-panel-sub">Standart alarmlar ve ek alarm tanımlamaları</p>
+          </div>
+          <div class="wiz-grid">
+            <div class="wiz-section" style="flex:1 1 100%">
+              <h3 class="wiz-section-title">Standart Alarmlar (Tümü Aktif)</h3>
+              <div class="alarm-grid">
+                <label class="alarm-item"><input type="checkbox" id="alarmLineFailure" checked disabled><span>Şebeke Yok / Line Failure</span></label>
+                <label class="alarm-item"><input type="checkbox" id="alarmDCLow" checked disabled><span>DC Düşük / DC Low</span></label>
+                <label class="alarm-item"><input type="checkbox" id="alarmDCHigh" checked disabled><span>DC Yüksek / DC High</span></label>
+                <label class="alarm-item"><input type="checkbox" id="alarmOverTemp" checked disabled><span>Aşırı Sıcaklık / Over Temperature</span></label>
+                <label class="alarm-item"><input type="checkbox" id="alarmCurrentLimit" checked disabled><span>Akım Sınırlama / Current Limiting</span></label>
+                <label class="alarm-item"><input type="checkbox" id="alarmBatteryLow" checked disabled><span>Akü Düşük / Battery Low</span></label>
+                <label class="alarm-item"><input type="checkbox" id="alarmBatteryTooLow" checked disabled><span>Akü Çok Düşük / Battery Too Low</span></label>
+                <label class="alarm-item"><input type="checkbox" id="alarmBreakerOpen" checked disabled><span>Kesici Açık / Breaker Open</span></label>
+                <label class="alarm-item"><input type="checkbox" id="alarmEarthFault" checked disabled><span>Toprak Kaçağı / Earth Fault</span></label>
+                <label class="alarm-item"><input type="checkbox" id="alarmTProbeFailure" checked disabled><span>Sıcaklık Probu Yok / T. Probe Failure</span></label>
+                <label class="alarm-item"><input type="checkbox" id="alarmEmergencyStop" checked disabled><span>Acil Durdurma / Emergency Stop</span></label>
+              </div>
+              <h3 class="wiz-section-title" style="margin-top:20px">Ek Alarmlar</h3>
+              <div id="additionalAlarmsList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
+              <div style="display:flex;gap:8px">
+                <input type="text" id="additionalAlarmInput" class="wiz-input" placeholder="Ek alarm adını girin..." />
+                <button type="button" id="addAdditionalAlarmBtn" class="wiz-btn-sm">+ Ekle</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADIM 9: Ek Özellikler -->
+        <div class="wizard-panel" id="step-panel-9">
+          <div class="wizard-panel-header">
+            <h2 class="wizard-panel-title">Ek Özellikler</h2>
+            <p class="wizard-panel-sub">İsteğe bağlı ek özellik seçimi</p>
+          </div>
+          <div class="wiz-grid">
+            <div class="wiz-section" style="flex:1 1 100%">
+              <div class="wiz-form-row">
+                <label for="featureSearchInput">Ara</label>
+                <input type="text" id="featureSearchInput" class="wiz-input" placeholder="Özellik ara..." style="max-width:320px" />
+              </div>
+              <div id="featuresListContainer" style="display:flex;flex-direction:column;gap:8px;max-height:420px;overflow-y:auto;margin-top:12px">
+                <!-- JS ile doldurulacak -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /wizard-content -->
+
+      <!-- ALT NAVİGASYON -->
+      <div class="wizard-footer">
+        <div class="wizard-footer-left">
+          <button class="wiz-nav-btn wiz-nav-btn--secondary" id="prevStepBtn" disabled>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            Geri
+          </button>
+        </div>
+        <div class="wizard-footer-center">
+          <span class="wizard-step-label" id="wizardStepLabel">Adım 1 / 9</span>
+        </div>
+        <div class="wizard-footer-right">
+          <button class="wiz-nav-btn wiz-nav-btn--secondary" id="saveCalcBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Kaydet
+          </button>
+          <button class="wiz-nav-btn wiz-nav-btn--primary" id="nextStepBtn">
+            İleri
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <button class="wiz-nav-btn wiz-nav-btn--success" id="calculateCostsBtn" style="display:none">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Maliyetleri Hesapla
+          </button>
+        </div>
+      </div>
+
+      <!-- SONUÇ ve PARÇA LİSTESİ -->
+      <div class="calculation-section" id="calculationSection" style="display:none">
+        <h2 class="wiz-results-title">Hesaplama Sonuçları</h2>
+        <div class="results-grid">
+          <div class="result-card"><h4>Trafo Gücü</h4><div class="result-value" id="transformerPower">-</div><div class="result-unit">kVA</div></div>
+          <div class="result-card"><h4>Giriş Akımı</h4><div class="result-value" id="inputCurrent">-</div><div class="result-unit">A</div></div>
+          <div class="result-card"><h4>Float Gerilimi</h4><div class="result-value" id="floatVoltageDisplay">-</div><div class="result-unit">V</div></div>
+          <div class="result-card"><h4>Boost Gerilimi</h4><div class="result-value" id="boostVoltageDisplay">-</div><div class="result-unit">V</div></div>
+          <div class="result-card"><h4>DC Şok Endüktansı</h4><div class="result-value" id="dcChokeInductance">-</div><div class="result-unit">mH</div></div>
+          <div class="result-card"><h4>DC Kapasitör Adedi</h4><div class="result-value" id="dcCapacitorCount">-</div><div class="result-unit">adet</div></div>
+        </div>
+      </div>
+
+      <div class="components-section" id="componentsSection" style="display:none">
+        <h2 class="wiz-results-title">Seçilen Parçalar ve Maliyetler</h2>
+        <div class="wiz-results-actions">
+          <button id="saveCalculationBtn" class="wiz-nav-btn wiz-nav-btn--secondary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Hesaplamayı Kaydet
+          </button>
+          <button id="generatePdfBtn" class="wiz-nav-btn wiz-nav-btn--secondary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            PDF Oluştur
+          </button>
+        </div>
+        <div class="components-table-wrapper">
+          <table class="components-table">
+            <thead>
+              <tr>
+                <th>No</th><th>Parça Adı</th><th>Ürün Adı</th><th>Özellikler</th>
+                <th>Adet</th><th>Birim Fiyat (TL)</th><th>Toplam (TL)</th><th>Stok Kodu</th>
+              </tr>
+            </thead>
+            <tbody id="componentsTableBody"></tbody>
+            <tfoot>
+              <tr class="total-row">
+                <td colspan="6" style="text-align:right;font-weight:700">TOPLAM MALİYET:</td>
+                <td id="totalCost" style="font-weight:700;font-size:1.1em">0.00 TL</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /wizard-main -->
+
+    <!-- Fiyat Düzenleme Modal -->
+    <div id="priceEditModal" class="modal" style="display:none">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Fiyat Düzenle</h3>
+          <button class="modal-close" id="closePriceModal">×</button>
+        </div>
+        <div class="modal-body"><div id="priceEditForm"></div></div>
+        <div class="modal-footer">
+          <button id="savePricesBtn" class="btn btn-primary">Kaydet</button>
+          <button id="cancelPriceEditBtn" class="btn btn-secondary">İptal</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display:none">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Hesaplanıyor...</div>
+    </div>
+
+    <script src="../scripts/pricing-queue-after-cart.js"></script>
+    <script src="../scripts/rectifier-pricing.js"></script>
+    <script src="../scripts/rectifier-flex-pricing.js"></script>
+    <script src="../scripts/rectifier-wizard.js"></script>
+  </body>
+</html>

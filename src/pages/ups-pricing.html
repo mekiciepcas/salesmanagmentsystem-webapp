@@ -1,0 +1,199 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>UPS Pricing</title>
+    <link rel="stylesheet" href="../styles/pricing.css" />
+    <script src="../scripts/web-api.js"></script>
+  </head>
+  <body>
+    <div class="menubar">
+      <div class="menubar-left">
+        <div class="menubar-item">
+          <button
+            class="menubar-button"
+            onclick="location.href='anasayfa.html'"
+          >
+            ← Ana Sayfa
+          </button>
+        </div>
+        <div class="menubar-item">
+          <button class="menubar-button" id="fileMenuBtn">Dosya</button>
+          <div class="menubar-dropdown" id="fileMenu">
+            <button class="menubar-dropdown-item" id="exportExcelBtn">
+              <span>📊 Excel'e Aktar</span>
+            </button>
+          </div>
+        </div>
+        <div class="menubar-item">
+          <button class="menubar-button" id="toolsMenuBtn">Araçlar</button>
+          <div class="menubar-dropdown" id="toolsMenu">
+            <button class="menubar-dropdown-item" id="systemCalcBtn">
+              <span>⚡ Sistem Hesaplama</span>
+            </button>
+            <button class="menubar-dropdown-item" id="batteryCalcBtn">
+              <span>🔋 Batarya Hesaplama</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="menubar-right" id="system-config-bar">
+        <div class="form-group">
+          <label for="systemNameInput">Sistem Adı:</label>
+          <input
+            type="text"
+            id="systemNameInput"
+            value="UPS System"
+            class="form-input"
+          />
+        </div>
+        <div class="form-group">
+          <label for="systemQuantityInput">Adet:</label>
+          <input
+            type="number"
+            id="systemQuantityInput"
+            value="1"
+            min="1"
+            class="form-input"
+            style="width: 80px"
+          />
+        </div>
+        <button class="action-button primary-action" id="addToQuoteBtn">
+          <span>Teklife Ekle</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="controls">
+        <div class="search-combobox" id="productCombobox">
+          <input
+            type="text"
+            class="search-combobox-input"
+            id="productSearch"
+            placeholder="Ürün ara veya seç..."
+            autocomplete="off"
+          />
+          <button type="button" class="search-combobox-toggle">▼</button>
+          <div class="search-combobox-dropdown"></div>
+          <input type="hidden" id="productSelect" />
+        </div>
+        <select id="subtypeSelect">
+          <option value="">Alt Tip Seçiniz...</option>
+        </select>
+        <input type="number" id="quantityInput" value="1" min="1" />
+        <button id="addButton" class="action-button">➕ Ekle</button>
+        <button id="manualAddButton" class="action-button">
+          ✏️ Manuel Ekle
+        </button>
+        <button id="deleteButton" class="action-button">
+          🗑️ Satırları Sil
+        </button>
+        <button id="showTotalsButton" class="action-button">
+          💰 Toplamları Göster
+        </button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 16px"></th>
+            <th style="width: 50px">No</th>
+            <th style="width: 200px">Ürün</th>
+            <th style="width: 100px">Maliyet</th>
+            <th style="width: 80px">Adet</th>
+            <th style="width: 120px">Toplam</th>
+            <th style="width: 100px">Margin-2</th>
+            <th style="width: 120px">Toplam-2</th>
+          </tr>
+        </thead>
+        <tbody id="priceTable"></tbody>
+      </table>
+    </div>
+
+    <!-- Batarya Hesaplama Paneli -->
+    <div id="batteryCalcPanel" class="calculator-panel">
+      <div class="panel-header">
+        <h3>🔋 Batarya Hesaplama</h3>
+        <button class="panel-close-btn">×</button>
+      </div>
+      <div class="panel-content">
+        <div class="calc-form">
+          <div class="form-group">
+            <label>Güç (kVA)</label
+            ><input
+              type="number"
+              id="powerInput"
+              class="calc-input"
+              placeholder="10"
+            />
+          </div>
+          <div class="form-group">
+            <label>Akü Sayısı</label
+            ><input
+              type="number"
+              id="batteryCount"
+              class="calc-input"
+              placeholder="30"
+            />
+          </div>
+          <div class="form-group">
+            <label>Cell</label
+            ><input
+              type="number"
+              id="cellCount"
+              class="calc-input"
+              placeholder="6"
+            />
+          </div>
+          <div class="form-group">
+            <label>String</label
+            ><input
+              type="number"
+              id="stringCount"
+              class="calc-input"
+              placeholder="1"
+            />
+          </div>
+          <div class="form-group">
+            <label>Power Factor</label
+            ><input
+              type="number"
+              id="powerFactorBat"
+              class="calc-input"
+              value="0.8"
+            />
+          </div>
+          <div class="form-group">
+            <label>Efficiency (%)</label
+            ><input
+              type="number"
+              id="efficiencyBat"
+              class="calc-input"
+              value="90"
+            />
+          </div>
+          <button class="calc-button" id="calculateBattery">Hesapla</button>
+        </div>
+        <div class="calc-results" id="batteryResults">
+          <div class="result-item">
+            <span class="result-label">W/Block:</span
+            ><span id="wBlockResult" class="result-value">0 W</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">W/Cell:</span
+            ><span id="wCellResult" class="result-value">0 W</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Boş Panel (Gelecekteki Kullanımlar İçin) -->
+    <div id="emptyPanel" class="calculator-panel">
+      <!-- ... içerik ... -->
+    </div>
+
+    <script src="../scripts/pricing-queue-after-cart.js"></script>
+    <script src="../scripts/ups-pricing.js"></script>
+  </body>
+</html>

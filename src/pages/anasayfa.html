@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pricing Pro - Ana Sayfa</title>
+    <link rel="stylesheet" href="../styles/anasayfa.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="../scripts/web-api.js"></script>
+  </head>
+  <body>
+
+    <!-- NAVBAR -->
+    <nav class="app-navbar">
+      <div class="navbar-brand">
+        <img src="../assets/images/EPC_logo1.png" alt="EPC" class="navbar-logo" onerror="this.style.display='none'" />
+        <span class="navbar-title">Pricing Pro</span>
+      </div>
+      <div class="navbar-actions">
+        <span class="currency-pill" id="currencyPill">USD</span>
+        <button class="nav-btn nav-btn--outline" onclick="location.href='dashboard.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+            <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+          </svg>
+          Dashboard
+        </button>
+        <button class="nav-btn nav-btn--ghost" id="logoutBtn" title="Çıkış yap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </button>
+      </div>
+    </nav>
+
+    <!-- ANA İÇERİK -->
+    <div class="page-container">
+
+      <!-- YENİ TEKLİF PROJESİ — Tam genişlik üstte -->
+      <section class="card offer-form-card" aria-labelledby="offerProjectHeading">
+        <h2 id="offerProjectHeading" class="card-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14"></path>
+          </svg>
+          Yeni Teklif Projesi
+        </h2>
+
+        <div class="offer-form-body">
+          <!-- Sol: Teklif bilgileri + Proje kalemleri -->
+          <div class="offer-form-left">
+            <div class="form-row form-row--3">
+              <div class="form-field">
+                <label for="quoteNumberInput">Teklif No <span class="req">*</span></label>
+                <input type="text" id="quoteNumberInput" placeholder="Ör: 25-T0250" autocomplete="off" />
+              </div>
+              <div class="form-field">
+                <label for="customerSelect">Müşteri</label>
+                <select id="customerSelect">
+                  <option value="">— Müşteri Seçiniz —</option>
+                </select>
+              </div>
+              <div class="form-field form-field--narrow">
+                <label for="currencySelect">Para Birimi</label>
+                <select id="currencySelect">
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="TRY">TRY</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Proje Kalemleri -->
+            <div class="offer-lines">
+              <h3 class="offer-lines__heading">Proje Kalemleri</h3>
+              <div class="offer-lines__toolbar">
+                <div class="form-field offer-lines__product-wrap">
+                  <label for="lineProductSelect">Ürün Tipi</label>
+                  <select id="lineProductSelect"></select>
+                </div>
+                <div class="form-field form-field--qty">
+                  <label for="lineQtyInput">Adet</label>
+                  <input type="number" id="lineQtyInput" min="1" value="1" />
+                </div>
+                <button type="button" class="btn-outline" id="addLineBtn">+ Kalem Ekle</button>
+              </div>
+
+              <div class="offer-lines__table-wrap">
+                <table class="offer-lines__table" id="offerLinesTable">
+                  <thead>
+                    <tr>
+                      <th>Ürün</th>
+                      <th>Adet</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="offerLinesBody"></tbody>
+                </table>
+                <p class="offer-lines__empty" id="offerLinesEmpty">Henüz kalem eklenmedi.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sağ: Başlat butonu -->
+          <div class="offer-form-right">
+            <button type="button" class="btn-primary btn-start-costing" id="startCostingBtn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+              Maliyetlendirmeye<br>Başla
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- TEKLİF GEÇMİŞİ — Tam genişlik altta -->
+      <section class="card" id="homeQuotesSection" aria-labelledby="homeQuotesHeading">
+        <div class="home-quotes-toolbar">
+          <h2 id="homeQuotesHeading" class="card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+            Teklif Geçmişim
+          </h2>
+          <button type="button" class="btn-outline btn-sm" id="homeWeeklyExcelBtn" title="Son 7 günün teklifleri (Excel)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Son 7 Gün — Excel
+          </button>
+        </div>
+        <p class="home-quotes-hint" id="homeQuotesLoginHint"></p>
+        <div class="home-quotes-table-wrap">
+          <table class="home-quotes-table" id="homeQuotesTable">
+            <thead>
+              <tr>
+                <th>Teklif No</th>
+                <th>Tarih</th>
+                <th>Müşteri</th>
+                <th>Detay</th>
+                <th>Hazırlayan</th>
+                <th>Durum</th>
+                <th>Sipariş</th>
+              </tr>
+            </thead>
+            <tbody id="homeQuotesBody">
+              <tr><td colspan="7" class="table-loading">Yükleniyor...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div><!-- /page-container -->
+
+    <script src="../scripts/anasayfa.js"></script>
+  </body>
+</html>

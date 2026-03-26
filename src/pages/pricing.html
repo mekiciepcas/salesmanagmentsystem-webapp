@@ -1,0 +1,175 @@
+<!-- Örnek maliyetlendirme HTML sayfası -->
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Pricing Pro - Fiyat Hesaplama</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../styles/pricing.css" />
+    <script src="../scripts/web-api.js"></script>
+  </head>
+  <body>
+    <div class="window-frame">
+      <div class="window-title">Fiyat Hesaplama</div>
+      <div class="window-controls">
+        <button class="window-button minimize" onclick="">
+          <span>_</span>
+        </button>
+        <button class="window-button close" onclick="">
+          <span>×</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Başlık çubuğu altına ekleyelim -->
+
+    <!-- Geri dönüş butonu -->
+    <button class="back-button" onclick="window.location.href='anasayfa.html'">
+      ← Anasayfaya Dön
+    </button>
+
+    <!-- VSCode benzeri menubar -->
+    <div class="menubar">
+      <div class="menubar-item">
+        <button class="menubar-button">Dosya</button>
+        <div class="menubar-dropdown">
+          <button class="menubar-dropdown-item" id="saveQuoteBtn">
+            <span>💾 Teklif Kaydet</span>
+          </button>
+          <button class="menubar-dropdown-item" id="exportExcelBtn">
+            <span>📊 Excel'e Aktar</span>
+          </button>
+        </div>
+      </div>
+      <div class="menubar-item">
+        <button class="menubar-button">Araçlar</button>
+        <div class="menubar-dropdown">
+          <button class="menubar-dropdown-item" id="systemCalcBtn">
+            <span>⚡ Sistem Hesaplama</span>
+          </button>
+          <button class="menubar-dropdown-item" id="batteryCalcBtn">
+            <span>🔋 Batarya Hesaplama</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="controls">
+        <select id="productSelect">
+          <option value="">Ürün Seçiniz...</option>
+          <option value="SD1">SD-1 Serisi</option>
+          <option value="SD3">SD-3 Serisi</option>
+          <option value="SDM">SDM Serisi</option>
+        </select>
+
+        <select id="subtypeSelect" class="subtype-select">
+          <option value="">Alt Tip Seçiniz...</option>
+        </select>
+
+        <input
+          type="number"
+          id="quantityInput"
+          placeholder="Adet Giriniz..."
+          min="1"
+        />
+
+        <button class="action-button" id="addButton">➕ Opsiyon Ekle</button>
+        <button class="action-button" id="manualAddButton">
+          ✏️ Manuel Ekle
+        </button>
+        <button class="action-button" id="deleteButton">
+          🗑️ Satırları Sil
+        </button>
+        <button class="action-button" id="showTotalsButton">
+          💰 Toplamları Göster
+        </button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 16px"></th>
+            <th style="width: 50px">No</th>
+            <th style="width: 200px">Ürün</th>
+            <th style="width: 120px" class="numeric">Maliyet</th>
+            <th style="width: 80px" class="numeric">Adet</th>
+            <th style="width: 120px" class="numeric">Maliyet Toplamı</th>
+            <th style="width: 100px" class="numeric">Çarpan-1</th>
+            <th style="width: 100px" class="numeric">Çarpan-2</th>
+            <th style="width: 120px" class="numeric">Toplam-1</th>
+            <th style="width: 120px" class="numeric">Toplam-2</th>
+          </tr>
+        </thead>
+        <tbody id="priceTableBody"></tbody>
+      </table>
+
+      <div class="calculator-panels">
+        <div id="systemCalculatorPanel" class="calculator-panel">
+          <div class="panel-header">
+            <h3>⚡ Sistem Hesaplama</h3>
+            <button class="panel-close-btn"></button>
+          </div>
+          <!-- Panel içeriği -->
+        </div>
+
+        <div id="batteryCalculatorPanel" class="calculator-panel">
+          <div class="panel-header">
+            <h3>🔋 Batarya Hesaplama</h3>
+            <button class="panel-close-btn"></button>
+          </div>
+          <!-- Panel içeriği -->
+        </div>
+
+        <div id="quotePanel" class="calculator-panel">
+          <div class="panel-header">
+            <h3>📝 Teklif Kaydet</h3>
+            <button class="panel-close-btn"></button>
+          </div>
+          <div class="panel-content">
+            <div class="form-group">
+              <label for="quoteNumber">Teklif Numarası</label>
+              <input
+                type="text"
+                id="quoteNumber"
+                placeholder="Örn: TKF-2024-001"
+              />
+            </div>
+            <div class="form-group">
+              <label for="quoteDetails">Teklif Detayı</label>
+              <textarea
+                id="quoteDetails"
+                rows="4"
+                placeholder="Teklif ile ilgili notları buraya ekleyebilirsiniz..."
+              ></textarea>
+            </div>
+            <div class="form-group">
+              <label>Toplam Fiyat</label>
+              <div class="total-price" id="quoteTotalPrice">0.00 TL</div>
+            </div>
+            <button class="save-quote-btn" id="saveQuoteBtn">
+              <span>💾 Teklifi Kaydet</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script
+      src="../scripts/components/ComponentRegistry.js"
+      type="module"
+    ></script>
+    <script
+      src="../scripts/calculators/UPSCalculator.js"
+      type="module"
+    ></script>
+    <script
+      src="../scripts/calculators/RectifierCalculator.js"
+      type="module"
+    ></script>
+    <script src="../scripts/pricing.js" type="module"></script>
+  </body>
+</html>

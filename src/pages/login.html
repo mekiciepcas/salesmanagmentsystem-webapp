@@ -1,0 +1,132 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Pricing Pro - Giriş</title>
+    <link rel="stylesheet" href="../styles/styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Web modu: Electron yoksa fetch tabanlı API yükle -->
+    <script src="../scripts/web-api.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Sol Panel -->
+      <div class="left-panel">
+        <div class="logo-container">
+          <img
+            src="../assets/images/EPC_logo1.png"
+            alt="EPC Logo"
+            class="animated-logo"
+          />
+        </div>
+      </div>
+
+      <!-- Sağ Panel (Giriş Formu) -->
+      <div class="login-frame">
+        <h1 class="title">Hoş Geldiniz</h1>
+        <p class="subtitle">Lütfen hesabınıza giriş yapın</p>
+
+        <form id="loginForm" novalidate>
+          <div class="input-container">
+            <svg viewBox="0 0 24 24" class="input-icon">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <input
+              required
+              type="text"
+              name="username"
+              placeholder="Kullanıcı Adı"
+              class="modern-input"
+              autocomplete="username"
+            />
+            <label class="input-label">Kullanıcı Adı</label>
+          </div>
+
+          <div class="input-container">
+            <svg viewBox="0 0 24 24" class="input-icon">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <input
+              required
+              type="password"
+              name="password"
+              placeholder="Şifre"
+              class="modern-input"
+              autocomplete="current-password"
+            />
+            <label class="input-label">Şifre</label>
+          </div>
+
+          <div id="error-message" class="error-message"></div>
+
+          <input
+            id="adminTrapInput"
+            type="text"
+            autocomplete="off"
+            tabindex="-1"
+            class="login-admin-trap"
+            aria-hidden="true"
+          />
+
+          <button type="submit" class="login-button">Giriş Yap</button>
+        </form>
+      </div>
+    </div>
+
+    <div
+      id="adminRegisterOverlay"
+      class="admin-register-overlay"
+      style="display: none"
+    >
+      <div class="admin-register-modal">
+        <button type="button" id="adminRegisterClose" class="modal-x">
+          &times;
+        </button>
+        <h2>Yeni kullanıcı</h2>
+        <form id="adminRegisterForm">
+          <input
+            required
+            type="text"
+            name="username"
+            placeholder="Kullanıcı adı"
+            class="modern-input"
+          />
+          <input
+            required
+            type="text"
+            name="fullName"
+            placeholder="Ad Soyad"
+            class="modern-input"
+          />
+          <input
+            required
+            type="email"
+            name="email"
+            placeholder="E-posta"
+            class="modern-input"
+          />
+          <input
+            required
+            type="password"
+            name="password"
+            placeholder="Şifre"
+            class="modern-input"
+          />
+          <select name="department" class="modern-input">
+            <option value="Satis">Satış</option>
+            <option value="Teknik">Teknik</option>
+            <option value="Finans">Finans</option>
+          </select>
+          <button type="submit" class="login-button">Kaydet</button>
+        </form>
+      </div>
+    </div>
+
+    <script src="../scripts/login.js"></script>
+  </body>
+</html>

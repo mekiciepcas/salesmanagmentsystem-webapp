@@ -1,0 +1,997 @@
+{
+  "version": "1.0",
+  "description": "Rectifier Pricing sistemi için Excel dosyaları ve parça eşleştirme kuralları konfigürasyonu",
+  "excelFiles": {
+    "terminals": {
+      "fileName": "Rectifier.xlsx",
+      "sheetName": "Terminals",
+      "description": "Klemens ve Bara fiyat listesi",
+      "columns": {
+        "productType": "Product Type",
+        "productName": "Product Name",
+        "currentRating": "Current Rating (A)",
+        "type": "Type",
+        "cost": "Cost",
+        "stockCode": "Stock Code"
+      },
+      "selectionRules": {
+        "outputTerminal": {
+          "description": "Çıkış klemensi seçimi",
+          "criteria": {
+            "field": "outputCurrent",
+            "method": "roundUp",
+            "matchColumn": "currentRating",
+            "condition": ">="
+          }
+        },
+        "inputTerminal": {
+          "description": "Giriş klemensi seçimi",
+          "criteria": {
+            "field": "calculatedInputCurrent",
+            "method": "roundUp",
+            "matchColumn": "currentRating",
+            "condition": ">="
+          }
+        }
+      }
+    },
+    "circuitBreakers": {
+      "fileName": "CircuitBreakers.xlsx",
+      "sheetName": "CircuitBreakers",
+      "description": "MCB ve MCCB fiyat listesi",
+      "columns": {
+        "productType": "Product Type",
+        "productName": "Product Name",
+        "poles": "Poles",
+        "currentRating": "Current Rating (A)",
+        "type": "Type",
+        "cost": "Cost",
+        "stockCode": "Stock Code"
+      },
+      "selectionRules": {
+        "outputBreaker": {
+          "description": "Çıkış kesicisi seçimi",
+          "criteria": {
+            "field": "outputCurrent",
+            "method": "roundUp",
+            "matchColumn": "currentRating",
+            "condition": ">",
+            "additionalFilters": {
+              "poles": {
+                "calculation": "outputVoltage > 48 ? 3 : 2"
+              },
+              "type": {
+                "source": "userPreference",
+                "field": "breakerType"
+              }
+            }
+          }
+        },
+        "batteryBreaker": {
+          "description": "Batarya kesicisi seçimi",
+          "criteria": {
+            "field": "outputCurrent",
+            "method": "roundUp",
+            "matchColumn": "currentRating",
+            "condition": ">",
+            "additionalFilters": {
+              "poles": {
+                "calculation": "outputVoltage > 48 ? 3 : 2"
+              },
+              "type": {
+                "source": "userPreference",
+                "field": "breakerType"
+              }
+            }
+          }
+        },
+        "inputBreaker": {
+          "description": "Giriş kesicisi seçimi",
+          "criteria": {
+            "field": "calculatedInputCurrent",
+            "method": "roundUp",
+            "matchColumn": "currentRating",
+            "condition": ">",
+            "additionalFilters": {
+              "poles": {
+                "calculation": "inputPhase === 3 ? 3 : 2"
+              },
+              "type": {
+                "source": "userPreference",
+                "field": "breakerType"
+              }
+            }
+          }
+        },
+        "internalDistributionBreaker": {
+          "description": "Dahili dağıtım kesicisi seçimi",
+          "criteria": {
+            "field": "userSelected",
+            "source": "internalDistributions",
+            "matchColumns": {
+              "poles": "breakerPoleCurrent",
+              "currentRating": "breakerPoleCurrent"
+            },
+            "parseFrom": "breakerPoleCurrent",
+            "format": "NxMA",
+            "example": "3x15A"
+          }
+        }
+      }
+    },
+    "currentReadingCards": {
+      "fileName": "CurrentReadingCards.xlsx",
+      "sheetName": "CurrentReadingCards",
+      "description": "Akım okuma kartları fiyat listesi",
+      "columns": {
+        "productType": "Product Type",
+        "productName": "Product Name",
+        "maxCurrent": "Max Current (A)",
+        "cost": "Cost",
+        "stockCode": "Stock Code"
+      },
+      "selectionRules": {
+        "batteryCurrentCard": {
+          "description": "Batarya akım okuma kartı seçimi",
+          "criteria": {
+            "field": "outputCurrent",
+            "ranges": [
+              {
+                "condition": "< 100",
+                "productName": "L100P"
+              },
+              {
+                "condition": ">= 100 && < 200",
+                "productName": "L200P"
+              },
+              {
+                "condition": ">= 200 && < 300",
+                "productName": "L300P"
+              },
+              {
+                "condition": ">= 300",
+                "action": "notifyUser",
+                "message": "Fiyat araştırması için yetkili kişi ile görüşün"
+              }
+            ]
+          }
+        },
+        "rectifierCurrentCard": {
+          "description": "Rectifier çıkış akımı okuma kartı seçimi",
+          "criteria": {
+            "field": "outputCurrent",
+            "ranges": [
+              {
+                "condition": "< 100",
+                "productName": "L100P"
+              },
+              {
+                "condition": ">= 100 && < 200",
+                "productName": "L200P"
+              },
+              {
+                "condition": ">= 200 && < 300",
+                "productName": "L300P"
+              },
+              {
+                "condition": ">= 300",
+                "action": "notifyUser",
+                "message": "Fiyat araştırması için yetkili kişi ile görüşün"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "freewheelingDiodes": {
+      "fileName": "FreewheelingDiodes.xlsx",
+      "sheetName": "FreewheelingDiodes",
+      "description": "Serbest geçiş diyotları fiyat listesi",
+      "columns": {
+        "productType": "Product Type",
+        "productName": "Product Name",
+        "currentRating": "Current Rating (A)",
+        "voltageRating": "Voltage Rating (V)",
+        "cost": "Cost",
+        "stockCode": "Stock Code"
+      },
+      "selectionRules": {
+        "freewheelingDiode": {
+          "description": "Serbest geçiş diyotu seçimi",
+          "criteria": {
+            "field": "outputCurrent",
+            "calculation": "outputCurrent * 1.5",
+            "method": "roundUp",
+            "matchColumn": "currentRating",
+            "condition": ">="
+          }
+        }
+      }
+    },
+    "thyristors": {
+      "fileName": "Thyristors.xlsx",
+      "sheetName": "Thyristors",
+      "description": "Faz kontrol tristörleri fiyat listesi",
+      "columns": {
+        "productType": "Product Type",
+        "productName": "Product Name",
+        "currentRating": "Current Rating (A)",
+        "voltageRating": "Voltage Rating (V)",
+        "cost": "Cost",
+        "stockCode": "Stock Code"
+      },
+      "selectionRules": {
+        "thyristor": {
+          "description": "Faz kontrol tristörü seçimi",
+          "criteria": {
+            "field": "outputCurrent",
+            "calculation": "(outputCurrent * 1.5) / inputPhase",
+            "method": "roundUp",
+            "matchColumn": "currentRating",
+            "condition": ">=",
+            "quantity": {
+              "B6C": 3,
+              "B12C": 6,
+              "B2H": 2,
+              "SNMPS": 0,
+              "IGBT Doğrultucu": 0
+            }
+          }
+        }
+      }
+    },
+    "transformers": {
+      "fileName": "Transformers.xlsx",
+      "sheetName": "Transformers",
+      "description": "Giriş trafoları fiyat listesi",
+      "columns": {
+        "productType": "Product Type",
+        "productName": "Product Name",
+        "powerRating": "Power Rating (kVA)",
+        "primaryVoltage": "Primary Voltage (V)",
+        "primaryPhase": "Primary Phase",
+        "secondaryVoltage": "Secondary Voltage (V)",
+        "secondaryPhase": "Secondary Phase",
+        "topology": "Topology",
+        "cost": "Cost",
+        "stockCode": "Stock Code"
+      },
+      "selectionRules": {
+        "transformer": {
+          "description": "Giriş trafosu seçimi",
+          "criteria": {
+            "powerCalculation": "(outputCurrent * outputVoltage) / (efficiency * powerFactor)",
+            "efficiency": {
+              "3": 0.9,
+              "1": 0.8
+            },
+            "powerFactor": {
+              "3": 0.8,
+              "1": 0.7
+            },
+            "primaryVoltage": {
+              "source": "inputVoltageNominal"
+            },
+            "primaryPhase": {
+              "source": "inputPhase"
+            },
+            "secondaryVoltage": {
+              "calculation": "inputPhase === 3 ? floatVoltage : boostVoltage"
+            },
+            "secondaryPhase": {
+              "source": "inputPhase"
+            },
+            "topology": {
+              "source": "topology",
+              "mapping": {
+                "B6C": "6 Pulse",
+                "B12C": "12 Pulse",
+                "B2H": "Single Phase",
+                "SNMPS": "SNMPS",
+                "IGBT Doğrultucu": "IGBT"
+              }
+            },
+            "method": "matchMultiple",
+            "matchColumns": [
+              "powerRating",
+              "primaryVoltage",
+              "primaryPhase",
+              "secondaryVoltage",
+              "topology"
+            ],
+            "tolerance": {
+              "powerRating": 0.1
+            }
+          }
+        }
+      }
+    },
+    "dcComponents": {
+      "fileName": "DCComponents.xlsx",
+      "sheetName": "DCComponents",
+      "description": "DC Şok ve DC Bara kapasitörleri",
+      "columns": {
+        "productType": "Product Type",
+        "productName": "Product Name",
+        "inductance": "Inductance (mH)",
+        "capacitance": "Capacitance (µF)",
+        "cost": "Cost",
+        "stockCode": "Stock Code"
+      },
+      "selectionRules": {
+        "dcShock": {
+          "description": "DC Şok seçimi",
+          "criteria": {
+            "calculation": "calculateLeakageInductance",
+            "targetFrequency": {
+              "B6C": "(systemFrequency * 6) / 10",
+              "B12C": "(systemFrequency * 12) / 10",
+              "B2H": "(systemFrequency * 2) / 3"
+            },
+            "method": "optimizeForFrequency",
+            "formula": "fkesme = 1 / (2 * π * √(L * C * capacitorCount))"
+          }
+        },
+        "dcCapacitor": {
+          "description": "DC Bara kapasitörü seçimi",
+          "criteria": {
+            "availableValues": [4700, 10000],
+            "unit": "µF",
+            "method": "optimizeWithDCShock",
+            "targetFrequency": {
+              "B6C": "(systemFrequency * 6) / 10",
+              "B12C": "(systemFrequency * 12) / 10",
+              "B2H": "(systemFrequency * 2) / 3"
+            }
+          }
+        }
+      }
+    },
+    "measurementInstruments": {
+      "fileName": "MeasurementInstruments.xlsx",
+      "sheetName": "MeasurementInstruments",
+      "description": "Ölçü aletleri fiyat listesi",
+      "columns": {
+        "productType": "Product Type",
+        "productName": "Product Name",
+        "instrumentType": "Instrument Type",
+        "measurementPoint": "Measurement Point",
+        "voltageRange": "Voltage Range (V)",
+        "currentRange": "Current Range (A)",
+        "cost": "Cost",
+        "stockCode": "Stock Code"
+      },
+      "selectionRules": {
+        "voltmeter": {
+          "description": "Voltmetre seçimi",
+          "criteria": {
+            "field": "measurementInstruments",
+            "filter": {
+              "instrumentType": ["Analog", "Dijital"]
+            },
+            "voltageRangeCalculation": {
+              "giriş": "inputVoltageNominal * 1.2",
+              "çıkış": "outputVoltage * 1.2",
+              "akü": "batteryVoltage * 1.2"
+            },
+            "matchColumn": "voltageRange",
+            "condition": ">=",
+            "displayFormat": "[Ölçüm Noktası] Voltmetresi 0-[Hesaplanan Voltaj]V"
+          }
+        },
+        "multimeter": {
+          "description": "Multimetre seçimi",
+          "criteria": {
+            "field": "measurementInstruments",
+            "filter": {
+              "instrumentType": "Multimetre",
+              "measurementPoint": ["Giriş", "Çıkış", "Akü"]
+            },
+            "voltageRangeCalculation": {
+              "giriş": "inputVoltageNominal * 1.2",
+              "çıkış": "outputVoltage * 1.2",
+              "akü": "batteryVoltage * 1.2"
+            }
+          }
+        },
+        "energyAnalyzer": {
+          "description": "Enerji analizörü seçimi",
+          "criteria": {
+            "field": "measurementInstruments",
+            "filter": {
+              "instrumentType": "Enerji analizörü",
+              "measurementPoint": "Giriş"
+            }
+          }
+        }
+      }
+    },
+    "communicationProtocols": {
+      "fileName": "CommunicationProtocols.xlsx",
+      "sheetName": "CommunicationProtocols",
+      "description": "Haberleşme protokolleri fiyat listesi",
+      "columns": {
+        "productType": "Product Type",
+        "productName": "Product Name",
+        "protocol": "Protocol",
+        "cost": "Cost",
+        "stockCode": "Stock Code"
+      },
+      "selectionRules": {
+        "communicationModule": {
+          "description": "Haberleşme modülü seçimi",
+          "criteria": {
+            "field": "communicationProtocol",
+            "matchColumn": "protocol",
+            "condition": "exact",
+            "note": "Bütün güçlerde ve durumlarda aynı ürünler kullanılıyor"
+          }
+        }
+      }
+    },
+    "relayAlarmOutputs": {
+      "fileName": "RelayAlarmOutputs.xlsx",
+      "sheetName": "RelayAlarmOutputs",
+      "description": "Röle kuru kontak alarm çıkışları",
+      "columns": {
+        "productType": "Product Type",
+        "productName": "Product Name",
+        "relayCount": "Relay Count",
+        "cost": "Cost",
+        "stockCode": "Stock Code"
+      },
+      "selectionRules": {
+        "relayModule": {
+          "description": "Röle modülü seçimi",
+          "criteria": {
+            "field": "relayAlarmOutputs",
+            "parseCount": true,
+            "matchColumn": "relayCount",
+            "condition": "exact",
+            "note": "Bütün güçlerde ve durumlarda aynı ürünler kullanılıyor"
+          }
+        }
+      }
+    },
+    "controlCards": {
+      "fileName": "ControlCards.xlsx",
+      "sheetName": "ControlCards",
+      "description": "Kontrol kartları (LVD, Paralelleme, Röle kontrol)",
+      "columns": {
+        "productType": "Product Type",
+        "productName": "Product Name",
+        "cardType": "Card Type",
+        "cost": "Cost",
+        "stockCode": "Stock Code"
+      },
+      "selectionRules": {
+        "lvdControlCard": {
+          "description": "LVD röle kontrol kartı",
+          "criteria": {
+            "condition": "batteryLVD === 'Var'",
+            "matchColumn": "cardType",
+            "matchValue": "LVD Control"
+          }
+        },
+        "parallelOperationCard": {
+          "description": "Paralelleme kartı",
+          "criteria": {
+            "condition": "parallelOperation === 'Aktif'",
+            "matchColumn": "cardType",
+            "matchValue": "Parallel Operation"
+          }
+        },
+        "relayControlCard": {
+          "description": "Röle kontrol kartı (Diyot Dropper için)",
+          "criteria": {
+            "condition": "diodeDropper !== '' && diodeDropper !== 'DC-DC kıyıcılı'",
+            "quantity": {
+              "source": "diodeDropper",
+              "parse": "kademe sayısı"
+            },
+            "matchColumn": "cardType",
+            "matchValue": "Relay Control"
+          }
+        }
+      }
+    },
+    "relays": {
+      "fileName": "Relays.xlsx",
+      "sheetName": "Relays",
+      "description": "Röleler",
+      "columns": {
+        "productType": "Product Type",
+        "productName": "Product Name",
+        "currentRating": "Current Rating (A)",
+        "voltageRating": "Voltage Rating (V)",
+        "cost": "Cost",
+        "stockCode": "Stock Code"
+      },
+      "selectionRules": {
+        "lvdRelay": {
+          "description": "LVD rölesi",
+          "criteria": {
+            "condition": "batteryLVD === 'Var'",
+            "calculation": "outputCurrent * 1.2",
+            "method": "roundUp",
+            "matchColumn": "currentRating",
+            "condition": ">="
+          }
+        },
+        "dropperRelay": {
+          "description": "Diyot Dropper rölesi",
+          "criteria": {
+            "condition": "diodeDropper !== '' && diodeDropper !== 'DC-DC kıyıcılı'",
+            "field": "outputCurrent",
+            "matchColumn": "currentRating",
+            "condition": "exact",
+            "quantity": {
+              "source": "diodeDropper",
+              "parse": "kademe sayısı"
+            }
+          }
+        }
+      }
+    },
+    "diodeDroppers": {
+      "fileName": "DiodeDroppers.xlsx",
+      "sheetName": "DiodeDroppers",
+      "description": "Diyot Dropper modülleri ve diyotlar",
+      "columns": {
+        "productType": "Product Type",
+        "productName": "Product Name",
+        "moduleType": "Module Type",
+        "voltageDrop": "Voltage Drop (V)",
+        "currentRating": "Current Rating (A)",
+        "cost": "Cost",
+        "stockCode": "Stock Code"
+      },
+      "selectionRules": {
+        "dropperModule": {
+          "description": "Diyot Dropper modülü",
+          "criteria": {
+            "condition": "diodeDropper !== '' && diodeDropper !== 'DC-DC kıyıcılı'",
+            "calculation": "voltageDrop / 1.5",
+            "quantityPerStage": {
+              "source": "userInput",
+              "field": "dropperStageVoltageDrop"
+            }
+          }
+        },
+        "dropperDiode": {
+          "description": "Diyot Dropper diyotu",
+          "criteria": {
+            "condition": "diodeDropper !== '' && diodeDropper !== 'DC-DC kıyıcılı'",
+            "calculation": "outputCurrent * 1.5",
+            "method": "roundUp",
+            "matchColumn": "currentRating",
+            "condition": ">="
+          }
+        }
+      }
+    },
+    "coolingComponents": {
+      "fileName": "CoolingComponents.xlsx",
+      "sheetName": "CoolingComponents",
+      "description": "Soğutucu ve fanlar",
+      "columns": {
+        "productType": "Product Type",
+        "productName": "Product Name",
+        "componentType": "Component Type",
+        "cost": "Cost",
+        "stockCode": "Stock Code"
+      },
+      "selectionRules": {
+        "dropperCooling": {
+          "description": "Diyot Dropper soğutucu",
+          "criteria": {
+            "condition": "diodeDropper !== '' && diodeDropper !== 'DC-DC kıyıcılı'",
+            "matchColumn": "componentType",
+            "matchValue": "Heatsink",
+            "quantity": {
+              "source": "diodeDropper",
+              "parse": "kademe sayısı"
+            }
+          }
+        },
+        "dropperFan": {
+          "description": "Diyot Dropper fan",
+          "criteria": {
+            "condition": "diodeDropper !== '' && diodeDropper !== 'DC-DC kıyıcılı'",
+            "matchColumn": "componentType",
+            "matchValue": "Fan",
+            "quantity": {
+              "source": "diodeDropper",
+              "parse": "kademe sayısı"
+            }
+          }
+        },
+      }
+    },
+    "cabinets": {
+      "fileName": "Cabinets.xlsx",
+      "sheetName": "Cabinets",
+      "description": "Kabinler (boyut bazlı fiyatlandırma)",
+      "columns": {
+        "productType": "Product Type",
+        "productName": "Product Name",
+        "width": "Width (mm)",
+        "depth": "Depth (mm)",
+        "height": "Height (mm)",
+        "cabinetSize": "Cabinet Size",
+        "cost": "Cost",
+        "stockCode": "Stock Code"
+      },
+      "selectionRules": {
+        "cabinet": {
+          "description": "Kabin seçimi",
+          "criteria": {
+            "standardSizes": {
+              "SR1": {
+                "width": 450,
+                "depth": 500,
+                "height": 1000
+              },
+              "SR2": {
+                "width": 600,
+                "depth": 600,
+                "height": 1300
+              },
+              "SR3": {
+                "width": 750,
+                "depth": 700,
+                "height": 1600
+              }
+            },
+            "customSize": {
+              "condition": "cabinetSize === 'Özel Boyutlar'",
+              "matchColumns": ["width", "depth", "height"],
+              "tolerance": 10,
+              "displayFormat": "Custom (W×L×H mm)"
+            },
+            "matchColumn": "cabinetSize",
+            "condition": "exact"
+          }
+        }
+      }
+    },
+    "ipProtectionClasses": {
+      "fileName": "IPProtectionClasses.xlsx",
+      "sheetName": "IPProtectionClasses",
+      "description": "IP koruma sınıfı ek maliyetleri",
+      "columns": {
+        "protectionClass": "Protection Class",
+        "additionalCost": "Additional Cost",
+        "description": "Description"
+      },
+      "selectionRules": {
+        "ipAdditionalCost": {
+          "description": "IP koruma sınıfı ek maliyeti",
+          "criteria": {
+            "field": "protectionClass",
+            "matchColumn": "protectionClass",
+            "condition": "exact",
+            "defaultIP": "IP20",
+            "note": "Standart IP sınıfından farklı seçilmişse ek maliyet eklenir"
+          }
+        }
+      }
+    },
+    "cabinetColors": {
+      "fileName": "CabinetColors.xlsx",
+      "sheetName": "CabinetColors",
+      "description": "Kabin renk değişimi ücretleri",
+      "columns": {
+        "colorCode": "Color Code",
+        "colorName": "Color Name",
+        "additionalCost": "Additional Cost",
+        "isStandard": "Is Standard"
+      },
+      "selectionRules": {
+        "colorChangeCost": {
+          "description": "Kabin renk değişimi ücreti",
+          "criteria": {
+            "field": "cabinetColor",
+            "standardColor": "RAL7035",
+            "condition": "cabinetColor !== 'RAL7035'",
+            "matchColumn": "colorCode",
+            "condition": "exact"
+          }
+        }
+      }
+    },
+    "cabinetAccessories": {
+      "fileName": "CabinetAccessories.xlsx",
+      "sheetName": "CabinetAccessories",
+      "description": "Kabin aksesuarları (Isıtıcı, Aydınlatma, Servis Prizi)",
+      "columns": {
+        "productType": "Product Type",
+        "productName": "Product Name",
+        "accessoryType": "Accessory Type",
+        "cabinetSize": "Cabinet Size",
+        "cost": "Cost",
+        "stockCode": "Stock Code"
+      },
+      "selectionRules": {
+        "cabinetHeater": {
+          "description": "Kabin ısıtıcısı",
+          "criteria": {
+            "condition": "operatingTemperatureMin <= -10",
+            "matchColumns": ["accessoryType", "cabinetSize"],
+            "matchValues": {
+              "accessoryType": "Heater",
+              "cabinetSize": "cabinetSize"
+            },
+            "autoSelectFeature": "featureCabinetHeater"
+          }
+        },
+        "cabinetLighting": {
+          "description": "Kabin içi aydınlatma",
+          "criteria": {
+            "condition": "selectedFeatures.includes('featureCabinetLighting')",
+            "matchColumns": ["accessoryType", "cabinetSize"],
+            "matchValues": {
+              "accessoryType": "Lighting",
+              "cabinetSize": "cabinetSize"
+            }
+          }
+        },
+        "servicePlug": {
+          "description": "Servis prizi",
+          "criteria": {
+            "condition": "selectedFeatures.includes('featureServicePlug')",
+            "matchColumn": "accessoryType",
+            "matchValue": "Service Plug"
+          }
+        }
+      }
+    },
+    "communicationComponents": {
+      "fileName": "CommunicationComponents.xlsx",
+      "sheetName": "CommunicationComponents",
+      "description": "Haberleşme bileşenleri (RJ45, vb.)",
+      "columns": {
+        "productType": "Product Type",
+        "productName": "Product Name",
+        "componentType": "Component Type",
+        "cost": "Cost",
+        "stockCode": "Stock Code"
+      },
+      "selectionRules": {
+        "rj45Port": {
+          "description": "RJ45 portu (Paralel çalışma için)",
+          "criteria": {
+            "condition": "parallelOperation === 'Aktif'",
+            "matchColumn": "componentType",
+            "matchValue": "RJ45 Port"
+          }
+        }
+      }
+    },
+    "options": {
+      "fileName": "Options.xlsx",
+      "sheetName": "Options",
+      "description": "Opsiyonlar (RFI Filtre, Surge Suppressor, Transducer, vb.)",
+      "columns": {
+        "productType": "Product Type",
+        "productName": "Product Name",
+        "optionType": "Option Type",
+        "inputVoltage": "Input Voltage (V)",
+        "inputPhase": "Input Phase",
+        "inputCurrent": "Input Current (A)",
+        "outputVoltage": "Output Voltage (V)",
+        "channels": "Channels",
+        "cost": "Cost",
+        "stockCode": "Stock Code"
+      },
+      "selectionRules": {
+        "inputRFIFilter": {
+          "description": "Giriş RFI Filtre",
+          "criteria": {
+            "condition": "selectedFeatures.includes('featureInputRFIFilter')",
+            "matchColumns": ["optionType", "inputVoltage", "inputPhase", "inputCurrent"],
+            "matchValues": {
+              "optionType": "Input RFI Filter",
+              "inputVoltage": "inputVoltageNominal",
+              "inputPhase": "inputPhase",
+              "inputCurrent": "calculatedInputCurrent"
+            },
+            "method": "roundUp",
+            "tolerance": {
+              "inputCurrent": 0.1
+            }
+          }
+        },
+        "inputSurgeSuppressor": {
+          "description": "Giriş Gerilim Bastırıcı",
+          "criteria": {
+            "condition": "selectedFeatures.includes('featureInputSurge')",
+            "matchColumns": ["optionType", "inputVoltage", "inputPhase"],
+            "matchValues": {
+              "optionType": "Input Surge Suppressor",
+              "inputVoltage": "inputVoltageNominal",
+              "inputPhase": "inputPhase"
+            }
+          }
+        },
+        "outputSurgeSuppressor": {
+          "description": "Çıkış Gerilim Bastırıcı",
+          "criteria": {
+            "condition": "selectedFeatures.includes('featureOutputSurge')",
+            "matchColumns": ["optionType", "outputVoltage"],
+            "matchValues": {
+              "optionType": "Output Surge Suppressor",
+              "outputVoltage": "outputVoltage"
+            }
+          }
+        },
+        "transducer4ch": {
+          "description": "Transducer 4 kanal",
+          "criteria": {
+            "condition": "selectedFeatures.includes('featureTransducer4ch')",
+            "matchColumns": ["optionType", "channels"],
+            "matchValues": {
+              "optionType": "Transducer",
+              "channels": 4
+            }
+          }
+        },
+        "transducer8ch": {
+          "description": "Transducer 8 kanal",
+          "criteria": {
+            "condition": "selectedFeatures.includes('featureTransducer8ch')",
+            "matchColumns": ["optionType", "channels"],
+            "matchValues": {
+              "optionType": "Transducer",
+              "channels": 8
+            }
+          }
+        },
+        "potentiometer": {
+          "description": "Potansiyometre",
+          "criteria": {
+            "condition": "selectedFeatures.includes('featurePotentiometer')",
+            "matchColumn": "optionType",
+            "matchValue": "Potentiometer"
+          }
+        },
+        "modeSelector": {
+          "description": "Mod Seçici Anahtar",
+          "criteria": {
+            "condition": "selectedFeatures.includes('featureModeSelector')",
+            "matchColumn": "optionType",
+            "matchValue": "Mode Selector"
+          }
+        },
+        "alarmResetButton": {
+          "description": "Alarm Sıfırlama Butonu",
+          "criteria": {
+            "condition": "selectedFeatures.includes('featureAlarmResetBtn')",
+            "matchColumn": "optionType",
+            "matchValue": "Alarm Reset Button"
+          }
+        },
+        "emergencyStopButton": {
+          "description": "Acil Durdurma Butonu",
+          "criteria": {
+            "condition": "selectedFeatures.includes('featureEmergencyStopBtn')",
+            "matchColumn": "optionType",
+            "matchValue": "Emergency Stop Button"
+          }
+        },
+        "rapidFuses": {
+          "description": "Hızlı Yarıiletken Sigortalar",
+          "criteria": {
+            "condition": "selectedFeatures.includes('featureRapidFuses')",
+            "matchColumn": "optionType",
+            "matchValue": "Rapid Fuses"
+          }
+        }
+      }
+    }
+  },
+  "calculationFormulas": {
+    "transformerPower": {
+      "formula": "(outputCurrent * outputVoltage) / (efficiency * powerFactor)",
+      "efficiency": {
+        "3": 0.9,
+        "1": 0.8
+      },
+      "powerFactor": {
+        "3": 0.8,
+        "1": 0.7
+      }
+    },
+    "inputCurrent": {
+      "formula": "transformerPower / (inputVoltageWithTolerance * Math.sqrt(inputPhase))",
+      "inputVoltageWithTolerance": {
+        "formula": "inputVoltage * (1 - voltageTolerance)"
+      }
+    },
+    "secondaryVoltage": {
+      "formula": "inputPhase === 3 ? floatVoltage : boostVoltage"
+    },
+    "leakageInductance": {
+      "steps": [
+        {
+          "step": 1,
+          "description": "V hesaplama",
+          "formula": "V = secondaryVoltage * 0.04",
+          "condition": "if inputPhase === 3: V = V / 1.732"
+        },
+        {
+          "step": 2,
+          "description": "I hesaplama",
+          "formula": "I = transformerPower / (secondaryVoltage * Math.sqrt(inputPhase))"
+        },
+        {
+          "step": 3,
+          "description": "XL hesaplama",
+          "formula": "XL = V / I"
+        },
+        {
+          "step": 4,
+          "description": "L hesaplama",
+          "formula": "L = XL / (2 * Math.PI * systemFrequency)"
+        }
+      ]
+    },
+    "cutoffFrequency": {
+      "formula": "fkesme = 1 / (2 * Math.PI * Math.sqrt(L * C * capacitorCount))",
+      "targetValues": {
+        "B6C": "(systemFrequency * 6) / 10",
+        "B12C": "(systemFrequency * 12) / 10",
+        "B2H": "(systemFrequency * 2) / 3"
+      }
+    },
+    "dropperModuleCount": {
+      "formula": "voltageDrop / 1.5",
+      "perStage": true
+    },
+    "dropperDiodeCurrent": {
+      "formula": "outputCurrent * 1.5"
+    },
+    "dropperRelayCurrent": {
+      "formula": "outputCurrent"
+    },
+    "lvdRelayCurrent": {
+      "formula": "outputCurrent * 1.2"
+    },
+    "voltmeterRange": {
+      "formula": "voltage * 1.2",
+      "voltageSource": {
+        "giriş": "inputVoltageNominal",
+        "çıkış": "outputVoltage",
+        "akü": "batteryVoltage"
+      }
+    }
+  },
+  "costListIntegration": {
+    "projectInfoSection": {
+      "position": "top",
+      "title": "Maliyetin cihaza ait bilgiler",
+      "fields": [
+        "customerName",
+        "quoteRef",
+        "deviceCount",
+        "quoteDate",
+        "deliveryWindow",
+        "incoterms",
+        "packingType"
+      ]
+    },
+    "notesSection": {
+      "position": "bottom",
+      "title": "Notlar",
+      "fields": [
+        "brand",
+        "preparedBy",
+        "deviceLanguage"
+      ]
+    },
+    "multiplier": {
+      "field": "deviceCount",
+      "description": "Cihaz adedi ile maliyet çarpılır"
+    }
+  }
+}

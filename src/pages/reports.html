@@ -1,0 +1,204 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Raporlar</title>
+    <link rel="stylesheet" href="../styles/reports.css" />
+    <link rel="stylesheet" href="../styles/styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <!-- Titlebar -->
+    <div class="titlebar">
+      <div class="titlebar-left">
+        <a href="anasayfa.html" class="home-button">
+          <i class="fas fa-arrow-left"></i>
+        </a>
+        <div class="titlebar-title">Teklif Yönetimi</div>
+      </div>
+      <div class="titlebar-right">
+        <div class="window-controls">
+          <button class="titlebar-button minimize">─</button>
+          <button class="titlebar-button maximize">□</button>
+          <button class="titlebar-button close">×</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ana içerik -->
+    <div class="main-container">
+      <!-- Tab Navigasyonu -->
+      <nav class="main-nav">
+        <button class="nav-button" data-view="overview">
+          <i class="fas fa-home"></i>
+          Genel Bakış
+        </button>
+        <button class="nav-button active" data-view="reports">
+          <i class="fas fa-chart-bar"></i>
+          Raporlar
+        </button>
+        <button class="nav-button" data-view="quotes">
+          <i class="fas fa-file-invoice"></i>
+          Teklifler
+        </button>
+      </nav>
+
+      <!-- İçerik Alanı -->
+      <div class="content-area">
+        <div class="page-header">
+          <h1>Performans Raporları</h1>
+          <div class="header-actions">
+            <div class="date-filter">
+              <input type="month" id="reportMonth" class="date-input" />
+              <button id="filterBtn" class="btn btn-primary">Filtrele</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- İstatistik Kartları -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-file-signature"></i>
+            </div>
+            <div class="stat-info">
+              <h3>Toplam Teklif</h3>
+              <div class="stat-value toplam-teklif">0</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-info">
+              <h3>Onaylanan</h3>
+              <div class="stat-value onaylanan">0</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-percentage"></i>
+            </div>
+            <div class="stat-info">
+              <h3>Başarı Oranı</h3>
+              <div class="stat-value basari-orani">0%</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="stat-info">
+              <h3>Toplam Değer</h3>
+              <div class="stat-value toplam-deger">$0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grafikler -->
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3>Aylık Teklif Trendi</h3>
+            </div>
+            <canvas id="monthlyTrendChart"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3>Kullanıcı Performansları</h3>
+            </div>
+            <canvas id="userPerformanceChart"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3>Kullanıcı Bazlı Aylık Trend</h3>
+            </div>
+            <canvas id="userMonthlyTrendChart"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3>Hedef Takibi</h3>
+              <div class="target-controls">
+                <input
+                  type="number"
+                  id="yearlyTargetInput"
+                  placeholder="Yıllık Hedef ($)"
+                  class="target-input"
+                  min="0"
+                  step="1000"
+                />
+                <button id="updateTargetBtn" class="btn btn-secondary">
+                  Güncelle
+                </button>
+              </div>
+            </div>
+            <canvas id="targetTrackingChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="customerModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Müşteri Detayları</h2>
+          <button class="close-modal">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="customer-stats">
+            <div class="stat-group">
+              <h3>Müşteri Bilgileri</h3>
+              <div class="info-grid">
+                <div class="info-item">
+                  <label>Firma</label>
+                  <span id="customerCompany"></span>
+                </div>
+                <div class="info-item">
+                  <label>İletişim</label>
+                  <span id="customerContact"></span>
+                </div>
+                <div class="info-item">
+                  <label>Müşteri Tipi</label>
+                  <span id="customerType"></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="stat-group">
+              <h3>Satın Alma Geçmişi</h3>
+              <div class="purchase-stats">
+                <div class="stat-card">
+                  <div class="stat-value" id="totalPurchases">0</div>
+                  <div class="stat-label">Toplam Alım</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-value" id="avgOrderValue">$0</div>
+                  <div class="stat-label">Ort. Sipariş</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-value" id="lastPurchase">-</div>
+                  <div class="stat-label">Son Alım</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="stat-group">
+              <h3>Ürün Tercihleri</h3>
+              <canvas id="productPreferencesChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module" src="../scripts/reports.js"></script>
+  </body>
+</html>

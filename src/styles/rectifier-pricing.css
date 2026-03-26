@@ -1,0 +1,683 @@
+@import url('theme.css');
+
+/* Rectifier Pricing Sayfası Özel Stilleri */
+
+.rectifier-pricing-page {
+  background: var(--background);
+  overflow-y: auto;
+  font-size: 14.4px; /* 12px * 1.2 = 14.4px */
+  scrollbar-gutter: stable;
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+body.rectifier-pricing-page {
+  background: var(--background) !important;
+  color: var(--text-primary) !important;
+}
+
+html body.rectifier-pricing-page {
+  background: var(--background) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Window frame */
+.rectifier-pricing-page .window-frame {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  color: var(--text-secondary);
+}
+
+.rectifier-pricing-page .menubar {
+  position: fixed;
+  top: 40px; /* window-frame yüksekliği kadar */
+  left: 0;
+  right: 0;
+  z-index: 999;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.rectifier-pricing-page .rectifier-content {
+  margin-top: 100px; /* menubar + window-frame yüksekliği */
+}
+
+.rectifier-content {
+  padding: 12px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* Girdiler Bölümü - Kompakt Tasarım */
+.input-section {
+  background: var(--card-bg);
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.input-section h2 {
+  color: var(--accent);
+  margin-bottom: 10px;
+  font-size: 1.32em; /* 1.1em * 1.2 */
+  border-bottom: 1px solid var(--accent);
+  padding-bottom: 6px;
+  font-weight: 600;
+}
+
+.input-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+  margin-bottom: 0;
+}
+
+.input-group {
+  background: var(--surface-light);
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.input-group h3 {
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  font-size: 1.14em; /* 0.95em * 1.2 */
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 4px;
+  font-weight: 600;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 8px;
+}
+
+.form-row:last-child {
+  margin-bottom: 0;
+}
+
+/* Dahili akü adı ve adedi kutucuklarını hizala */
+#internalBatteryDetails,
+#internalBatteryNameRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+#internalBatteryDetails label,
+#internalBatteryNameRow label {
+  min-width: 200px;
+  margin-bottom: 0;
+}
+
+#internalBatteryDetails .form-input,
+#internalBatteryNameRow .form-input {
+  flex: 1;
+  max-width: 300px;
+}
+
+.form-row label {
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 3px;
+  font-size: 1.02em; /* 0.85em * 1.2 */
+}
+
+.form-input {
+  padding: 5px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  font-size: 0.85em;
+  transition: var(--transition-smooth);
+  height: 28px;
+  background: var(--card-bg);
+  color: var(--text-primary);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--info-light);
+  background: var(--card-bg);
+  color: var(--text-primary);
+}
+
+.form-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+select.form-input {
+  background: var(--card-bg);
+  color: var(--text-primary);
+}
+
+select.form-input option {
+  background: var(--card-bg);
+  color: var(--text-primary);
+}
+
+/* Yarı genişlik kutucuklar */
+.form-input.half-width {
+  width: 50% !important;
+  max-width: 200px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.input-group .form-row {
+  display: flex;
+  flex-direction: column;
+}
+
+.action-section {
+  margin-top: 12px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 0;
+}
+
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-info {
+  background: #17a2b8;
+  color: white;
+}
+
+.btn-info:hover {
+  background: #138496;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(23, 162, 184, 0.3);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-soft);
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+}
+
+.btn-success {
+  background: #28a745;
+  color: white;
+}
+
+.btn-success:hover {
+  background: #218838;
+}
+
+/* Hesaplama Sonuçları Bölümü */
+.calculation-section {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.calculation-section h2 {
+  color: var(--accent);
+  margin-bottom: 20px;
+  font-size: 1.8em; /* 1.5em * 1.2 */
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 10px;
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.result-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.result-card h4 {
+  margin: 0 0 12px 0;
+  font-size: 0.9em;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+.result-value {
+  font-size: 2em;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.result-unit {
+  font-size: 0.85em;
+  opacity: 0.8;
+}
+
+/* Parça Listesi Bölümü */
+.components-section {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.components-section h2 {
+  color: var(--accent);
+  margin-bottom: 20px;
+  font-size: 1.8em; /* 1.5em * 1.2 */
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 10px;
+}
+
+.components-table-wrapper {
+  overflow-x: auto;
+  margin-bottom: 20px;
+}
+
+.components-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9em;
+}
+
+.components-table thead {
+  background: var(--accent);
+  color: white;
+}
+
+.components-table th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.components-table td {
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.components-table tbody tr:nth-child(even) {
+  background: var(--surface-light);
+}
+
+.components-table tbody tr:hover {
+  background: var(--hover-color);
+}
+
+.total-row {
+  background: var(--accent) !important;
+  color: white;
+  font-weight: bold;
+}
+
+.total-row td {
+  border: 1px solid var(--accent-hover) !important;
+}
+
+.components-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+/* Modal Stilleri */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: var(--card-bg);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: var(--accent);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 2em;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.modal-close:hover {
+  background: var(--hover-color);
+  color: var(--text-primary);
+}
+
+.modal-body {
+  padding: 20px;
+  color: var(--text-primary);
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px;
+  border-top: 1px solid var(--border-color);
+  background: var(--surface-light);
+}
+
+/* Loading Overlay */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(248, 250, 252, 0.9);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  color: var(--text-primary);
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid var(--border-color);
+  border-top: 4px solid var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  margin-top: 20px;
+  font-size: 1.1em;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* Fiyat Düzenleme Formu */
+.price-edit-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.price-edit-item:last-child {
+  border-bottom: none;
+}
+
+.price-edit-item label {
+  font-weight: 500;
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.price-edit-item input {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  width: 150px;
+  text-align: right;
+}
+
+/* Responsive Tasarım */
+@media (max-width: 768px) {
+  .input-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .results-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .components-table-wrapper {
+    overflow-x: scroll;
+  }
+
+  .action-buttons,
+  .components-actions {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Input Validation States */
+.form-input.input-error {
+  border-color: var(--error);
+  box-shadow: 0 0 0 3px var(--error-light);
+}
+
+.form-input.input-success {
+  border-color: var(--success);
+  box-shadow: 0 0 0 3px var(--success-light);
+}
+
+/* Scrollbar stilleri - genel stillerle uyumlu */
+.rectifier-pricing-page::-webkit-scrollbar {
+  width: 10px;
+}
+
+.rectifier-pricing-page::-webkit-scrollbar-track {
+  background: var(--surface-light);
+}
+
+.rectifier-pricing-page::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 5px;
+}
+
+.rectifier-pricing-page::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
+/* Firefox için scrollbar */
+.rectifier-pricing-page {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) var(--surface-light);
+}
+
+/* Textarea Stilleri */
+textarea.form-input {
+  resize: vertical;
+  min-height: 50px;
+  font-family: inherit;
+  padding: 5px 8px;
+  font-size: 0.85em;
+  height: auto;
+}
+
+/* Checkbox Stilleri */
+.feature-checkbox,
+input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: var(--accent);
+  margin-right: 4px;
+}
+
+input[type="checkbox"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+label {
+  cursor: pointer;
+  font-size: 0.85em;
+}
+
+/* Checkbox Container Labels */
+.form-row label[style*="flex"] {
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.85em;
+  padding: 2px 4px;
+  margin: 0;
+}
+
+.form-row label[style*="flex"]:hover {
+  background-color: var(--info-light);
+  border-radius: 2px;
+}
+
+/* Select Stilleri */
+select.form-input {
+  padding: 5px 8px;
+  height: 28px;
+  font-size: 0.85em;
+}
+
+/* Input number stilleri */
+input[type="number"].form-input {
+  padding: 5px 8px;
+  height: 28px;
+  font-size: 0.85em;
+}
+
+input[type="date"].form-input {
+  padding: 5px 8px;
+  height: 28px;
+  font-size: 0.85em;
+}
+
+input[type="text"].form-input {
+  padding: 5px 8px;
+  height: 28px;
+  font-size: 0.85em;
+}
+
+/* Wide input for longer fields */
+.wide-input {
+  min-width: 300px;
+}
+
+/* Features list container */
+#featuresListContainer {
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 8px;
+  background: var(--surface-light);
+  color: var(--text-primary);
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px;
+  border-radius: 2px;
+  transition: background-color 0.2s;
+}
+
+.feature-item:hover {
+  background-color: var(--info-light);
+}
+
+.feature-item.selected {
+  background-color: var(--info-light);
+  order: -1;
+  color: var(--accent);
+}
+
+.feature-item.hidden {
+  display: none;
+}

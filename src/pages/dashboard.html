@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Save Point Yönetim Sistemi</title>
+    <link rel="stylesheet" href="../styles/theme.css">
+    <link rel="stylesheet" href="../styles/dashboard.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="../scripts/web-api.js"></script>
+    <style>
+        /* ═══════════════════════════════════════════════════════════════
+           DASHBOARD — Sayfa-özel küçük override'lar
+           Tüm temel stiller dashboard.css + theme.css'ten gelir.
+        ═══════════════════════════════════════════════════════════════ */
+
+        /* Electron titlebar — web'de gizle */
+        .titlebar, .window-controls, .window-button { display: none !important; }
+
+        /* ── Genel Bakış: dashboard container ─────────────────────── */
+        .dashboard-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Stats-cards üst sıra */
+        .stats-cards-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        /* Küçük widget kartları */
+        .widget-card.widget-small {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .widget-card.widget-small:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* Büyük (tam genişlik) widget kartları */
+        .widget-card.widget-full {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        .widget-card .widget-title {
+            margin: 0 0 16px 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .widget-card .widget-content {
+            position: relative;
+        }
+
+        /* Büyük sayılar (toplam teklif vs.) */
+        .big-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--epc-navy);
+            line-height: 1.1;
+        }
+
+        .stat-trend {
+            margin-top: 6px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Charts container (tek sütun akış) */
+        .charts-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Canvas'lar otomatik boyutlansın */
+        .widget-card canvas {
+            width: 100% !important;
+            max-height: 300px;
+        }
+
+        /* ── Teklif tablosu ────────────────────────────────────────── */
+        .teklif-listesi {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin: 0;
+        }
+
+        .teklif-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            table-layout: auto;
+        }
+
+        .teklif-table th {
+            padding: 11px 14px;
+            background: var(--surface-light);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            border-bottom: 2px solid var(--border-color);
+            white-space: nowrap;
+            text-align: left;
+        }
+
+        .teklif-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            vertical-align: middle;
+        }
+
+        .teklif-table tbody tr:hover {
+            background: var(--surface-light);
+        }
+
+        /* Durum badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .status-hazirlandi { background: rgba(245,158,11,0.12); color: #b45309; }
+        .status-onaylandi  { background: rgba(16,185,129,0.12); color: #065f46; }
+        .status-reddedildi { background: rgba(239,68,68,0.12);  color: #991b1b; }
+
+        /* ── Filtre bölümü ─────────────────────────────────────────── */
+        .filter-section {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            margin-bottom: 16px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 7px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn.active,
+        .filter-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .date-filter {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .date-filter label {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .date-input {
+            padding: 6px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--surface-light);
+            color: var(--text-primary);
+            font-size: 13px;
+        }
+
+        .clear-filters {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 7px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            margin-left: auto;
+            transition: all 0.2s;
+        }
+
+        .clear-filters:hover {
+            background: rgba(239,68,68,0.1);
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        /* ── Tablo toolbar ─────────────────────────────────────────── */
+        .table-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .table-toolbar-left, .table-toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pagination-info {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .year-filter-select {
+            padding: 6px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--surface-light);
+            color: var(--text-primary);
+            font-size: 13px;
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .table-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--surface-light);
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .table-action-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        /* ── Performans tablosu ─────────────────────────────────────── */
+        .performance-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .performance-table th {
+            padding: 10px 14px;
+            text-align: left;
+            background: var(--surface-light);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .performance-table td {
+            padding: 11px 14px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .performance-table tbody tr:hover {
+            background: var(--surface-light);
+        }
+
+        /* ── Sayfalama ──────────────────────────────────────────────── */
+        .table-pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            margin-top: 8px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .pagination-btn {
+            width: 34px;
+            height: 34px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--surface-light);
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        #pageNumbers {
+            display: flex;
+            gap: 4px;
+        }
+
+        .page-number {
+            min-width: 34px;
+            height: 34px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--surface-light);
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .page-number.active,
+        .page-number:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        /* ── Tablo responsive ───────────────────────────────────────── */
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: 8px;
+        }
+
+        /* ── Genel butonlar ────────────────────────────────────────── */
+        .btn {
+            padding: 9px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { background: var(--accent-hover, #1d4ed8); }
+        .btn-secondary { background: var(--surface-light); color: var(--text-primary); border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background: var(--hover-color, #e5e7eb); }
+
+        /* ── Kâr/zarar view arama kutusu fix ──────────────────────── */
+        #profit-loss .search-box {
+            position: relative;
+            min-width: 200px;
+            max-width: 320px;
+        }
+
+        #profit-loss .search-box input {
+            width: 100%;
+            padding: 8px 12px 8px 36px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--surface-light);
+            color: var(--text-primary);
+            font-size: 13px;
+            box-sizing: border-box;
+        }
+
+        #profit-loss .search-box i {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        /* ── Aksiyon butonları (teklif tablosu satır aksiyonları) ─── */
+        .action-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 0 1px;
+            height: 24px;
+            background: var(--surface-light);
+            color: var(--text-secondary);
+        }
+
+        .action-button:hover { background: var(--hover-color); color: var(--text-primary); }
+        .action-button.approve { background: rgba(16,185,129,0.1); color: #065f46; }
+        .action-button.approve:hover { background: #10b981; color: white; }
+        .action-button.reject { background: rgba(239,68,68,0.1); color: #991b1b; }
+        .action-button.reject:hover { background: #ef4444; color: white; }
+        .action-button.revise { background: rgba(59,130,246,0.1); color: #1d4ed8; }
+        .action-button.revise:hover { background: #3b82f6; color: white; }
+        .action-button.revert { background: rgba(245,158,11,0.1); color: #b45309; }
+        .action-button.revert:hover { background: #f59e0b; color: white; }
+        .action-button.delete { background: rgba(239,68,68,0.06); color: var(--text-secondary); }
+        .action-button.delete:hover { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .action-button.edit-cost { background: rgba(16,185,129,0.1); color: #10b981; }
+        .action-button.edit-cost:hover { background: rgba(16,185,129,0.2); }
+
+        .actions-cell {
+            white-space: nowrap;
+            text-align: right;
+            min-width: 180px;
+            padding-right: 8px !important;
+        }
+
+        /* Son sütun sticky */
+        th:last-child, td:last-child {
+            position: sticky;
+            right: 0;
+            background: var(--card-bg);
+            box-shadow: -2px 0 6px rgba(0,0,0,0.05);
+            z-index: 1;
+        }
+
+        /* Kâr/zarar renkleri */
+        .profit-positive, .profit { color: #10b981; font-weight: 500; }
+        .profit-negative, .loss  { color: #ef4444; font-weight: 500; }
+
+        /* Cost edit modal */
+        .cost-edit-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cost-edit-modal.active { display: flex; }
+
+        .cost-edit-modal-content {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 0;
+            width: 480px;
+            max-width: 95vw;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .cost-edit-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--surface-light);
+        }
+
+        .cost-edit-modal-header h3 {
+            margin: 0;
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .cost-edit-modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+        }
+
+        .cost-edit-modal-close:hover { color: #ef4444; }
+
+        .cost-edit-form {
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .form-control, .cost-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--surface-light);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus, .cost-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .form-control[readonly] {
+            color: var(--text-secondary);
+            cursor: default;
+        }
+
+        .input-with-icon {
+            position: relative;
+        }
+
+        .input-with-icon i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 18px;
+        }
+
+        .input-with-icon input {
+            padding-left: 40px;
+        }
+
+        .cost-form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--surface-light); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+
+        /* ── Responsive ────────────────────────────────────────────── */
+        @media (max-width: 768px) {
+            .stats-cards-row { grid-template-columns: repeat(2, 1fr); }
+            .filter-section { flex-direction: column; align-items: stretch; }
+            .date-filter { flex-direction: column; align-items: flex-start; }
+            .table-toolbar { flex-direction: column; align-items: flex-start; }
+        }
+
+        @media (max-width: 480px) {
+            .stats-cards-row { grid-template-columns: 1fr; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Ana içerik -->
+    <div class="main-container">
+        <!-- Tab Navigasyonu -->
+        <nav class="main-nav">
+            <div class="nav-left">
+                <button class="nav-button active" data-view="overview">
+                    <i class="material-icons">home</i>
+                    Genel Bakış
+                </button>
+                
+                <button class="nav-button" data-view="quotes">
+                    <i class="material-icons">description</i>
+                    Teklifler
+                </button>
+
+                <button class="nav-button" data-view="profit-loss">
+                    <i class="material-icons">trending_up</i>
+                    Kâr/Zarar Analizi
+                </button>
+
+                <button class="nav-button" data-view="crm">
+                    <i class="material-icons">people</i>
+                    Müşteriler
+                </button>
+
+            </div>
+            <div class="nav-right">
+                    <div class="user-profile">
+                        <div class="user-info">
+                        <div class="user-details">
+                            <span id="userName">Ahmet Yılmaz</span>
+                            <span id="userRole">Satış</span>
+                        </div>
+                        <div class="avatar-initials"></div>
+                    </div>
+                    <button class="nav-button" onclick="window.location.href='anasayfa.html'">
+                        <i class="material-icons">exit_to_app</i>
+                        <span>Anasayfa</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- İçerik Alanı -->
+        <div class="content-area">
+            <div class="view active" id="overview">
+                <div class="dashboard-container">
+                    <!-- Üstteki Küçük Özet Kartları -->
+                    <div class="stats-cards-row">
+                        <div class="widget-card widget-small">
+                        <h3 class="widget-title">Toplam Teklif</h3>
+                        <div class="widget-content">
+                            <div class="big-number total-quotes">0</div>
+                            <div class="stat-trend">
+                                <span class="trend-value">Bu ay: <span id="thisMonthQuotes">0</span></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                        <div class="widget-card widget-small">
+                        <h3 class="widget-title">Onaylanan Teklifler</h3>
+                        <div class="widget-content">
+                            <div class="big-number approved-quotes">0</div>
+                            <div class="stat-trend">
+                                <span class="trend-value">Oran: <span id="approvalRate">0%</span></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                        <div class="widget-card widget-small">
+                        <h3 class="widget-title">Toplam Değer</h3>
+                        <div class="widget-content">
+                            <div class="big-number total-value">0 USD</div>
+                            <div class="stat-trend">
+                                <span class="trend-value">Ortalama: <span id="avgQuoteValue">0 USD</span></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                        <div class="widget-card widget-small">
+                        <h3 class="widget-title">Aktif Kullanıcılar</h3>
+                        <div class="widget-content">
+                            <div class="big-number active-users">0</div>
+                            <div class="stat-trend">
+                                <span class="trend-value">Satış Ekibi: <span id="salesTeamCount">0</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tek Sütun Grafikler -->
+                    <div class="charts-container">
+                    <!-- Teklif Trendi Grafiği -->
+                        <div class="widget-card widget-full">
+                        <h3 class="widget-title">Aylık Teklif Trendi</h3>
+                        <div class="widget-content">
+                            <canvas id="monthlyTrendChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Durum Dağılımı -->
+                        <div class="widget-card widget-full">
+                        <h3 class="widget-title">Teklif Durum Dağılımı</h3>
+                        <div class="widget-content">
+                            <canvas id="quoteStatusDistributionChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Kullanıcı Performans Karşılaştırması -->
+                        <div class="widget-card widget-full">
+                        <h3 class="widget-title">Kullanıcı Performans Karşılaştırması</h3>
+                        <div class="widget-content">
+                            <canvas id="userPerformanceRadarChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Kullanıcı Performansı -->
+                        <div class="widget-card widget-full">
+                        <h3 class="widget-title">Kullanıcı Performansı</h3>
+                        <div class="widget-content">
+                            <canvas id="userPerformanceChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Aylık Teklif Performansı -->
+                    <div class="widget-card widget-full">
+                        <h3 class="widget-title">Aylık Teklif Performansı</h3>
+                        <div class="widget-content">
+                            <canvas id="monthlyComparisonChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Kullanıcı Aylık Trendleri -->
+                        <div class="widget-card widget-full">
+                        <h3 class="widget-title">Kullanıcı Aylık Trendleri</h3>
+                        <div class="widget-content">
+                            <canvas id="userMonthlyTrendChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Müşteri Ülke Dağılımı — Harita -->
+                        <div class="widget-card widget-full">
+                        <h3 class="widget-title">Müşteri Ülke Dağılımı</h3>
+                        <div class="widget-content" style="min-height:380px; position:relative;">
+                            <div id="customerCountryDistributionChart" style="width:100%;height:380px;border-radius:8px;overflow:hidden;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Hedef Takibi -->
+                        <div class="widget-card widget-full">
+                        <h3 class="widget-title">Hedef Takibi</h3>
+                        <div class="widget-content">
+                            <div class="chart-header">
+                                <div class="target-controls">
+                                    <input type="text" id="yearlyTargetInput" class="target-input" placeholder="Yıllık Hedef ($)">
+                                    <button id="updateTargetBtn" class="target-btn">Güncelle</button>
+                                </div>
+                            </div>
+                            <canvas id="targetTrackingChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Kullanıcı Performans Tablosu -->
+                    <div class="widget-card widget-full">
+                        <h3 class="widget-title">Kullanıcı Performansı</h3>
+                        <div class="widget-content">
+                            <div class="table-responsive">
+                                <table class="performance-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Kullanıcı</th>
+                                            <th>Teklif Sayısı</th>
+                                            <th>Onaylanan</th>
+                                            <th>Toplam Değer</th>
+                                            <th>Onaylanan Değer</th>
+                                            <th>Başarı Oranı</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="userPerformanceTable">
+                                        <!-- JavaScript ile doldurulacak -->
+                                    </tbody>
+                                </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                
+                    </div>
+                </div>
+            </div>
+            <div class="view" id="quotes">
+                <!-- Arama ve filtreleme bölümü -->
+                <div class="filter-section">
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-status="">Tümü</button>
+                        <button class="filter-btn" data-status="HAZIRLANDI">✏️ Hazırlanan</button>
+                        <button class="filter-btn" data-status="ONAYLANDI">✔️ Onaylanan</button>
+                        <button class="filter-btn" data-status="REDDEDILDI">❌ Reddedilen</button>
+                    </div>
+                    
+                    <div class="date-filter">
+                        <label>Başlangıç:</label>
+                        <input type="date" id="startDate" class="date-input">
+                        <label>Bitiş:</label>
+                        <input type="date" id="endDate" class="date-input">
+                    </div>
+                    
+                    <button id="clearFilters" class="clear-filters">
+                        <i class="material-icons">filter_alt_off</i>Filtreleri Temizle
+                    </button>
+                </div>
+
+                <!-- Tablo Toolbar -->
+                <div class="table-toolbar">
+                    <div class="table-toolbar-left">
+                        <div class="pagination-info" id="tableInfo">Toplam: 0 kayıt</div>
+                        <select id="yearFilter" class="year-filter-select">
+                            <option value="">Tüm Yıllar</option>
+                        </select>
+                    </div>
+                    <div class="table-toolbar-right">
+                        <div class="table-actions">
+                            <button class="table-action-btn" id="exportExcel" title="Excel'e Aktar">
+                                <i class="material-icons">file_download</i>
+                                <span>Excel</span>
+                            </button>
+                            <button class="table-action-btn" id="exportPDF" title="PDF'e Aktar">
+                                <i class="material-icons">picture_as_pdf</i>
+                                <span>PDF</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="teklif-listesi">
+                    <table class="teklif-table" id="quotesTable">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-column="number">Teklif No</th>
+                                <th class="sortable" data-column="date">Tarih</th>
+                                <th class="sortable" data-column="customer">Müşteri</th>
+                                <th data-column="details">Detay</th>
+                                <th class="sortable" data-column="prepared_by">Hazırlayan</th>
+                                <th class="sortable" data-column="total_price">Toplam Tutar</th>
+                                <th class="sortable" data-column="status">Durum</th>
+                                <th data-column="actions">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody id="quotesList">
+                            <!-- Teklifler buraya JavaScript ile eklenecek -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="table-pagination" id="tablePagination" style="display: none;">
+                    <div class="pagination-info" id="paginationInfo">Sayfa 1 / 1</div>
+                    <div class="pagination-controls">
+                        <button class="pagination-btn" id="firstPage" title="İlk Sayfa">
+                            <i class="material-icons">first_page</i>
+                        </button>
+                        <button class="pagination-btn" id="prevPage" title="Önceki Sayfa">
+                            <i class="material-icons">chevron_left</i>
+                        </button>
+                        <div id="pageNumbers"></div>
+                        <button class="pagination-btn" id="nextPage" title="Sonraki Sayfa">
+                            <i class="material-icons">chevron_right</i>
+                        </button>
+                        <button class="pagination-btn" id="lastPage" title="Son Sayfa">
+                            <i class="material-icons">last_page</i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="view" id="crm">
+                <div class="crm-header-simple">
+                    <h2>Müşteriler</h2>
+                    <div class="crm-actions-simple">
+                        <div class="search-box-simple">
+                            <i class="material-icons">search</i>
+                            <input type="text" id="customerSearch" placeholder="Müşteri ara...">
+                        </div>
+                        <button class="btn btn-primary" id="addCustomerBtn">
+                            <i class="material-icons">add</i>
+                            Yeni Müşteri
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Müşteri Tablosu -->
+                <div class="table-container-simple">
+                    <table class="data-table-simple">
+                        <thead>
+                            <tr>
+                                <th>Firma Adı</th>
+                                <th>İletişim Kişisi</th>
+                                <th>Telefon</th>
+                                <th>E-posta</th>
+                                <th>Durum</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customerTableBody">
+                            <!-- Müşteriler buraya dinamik olarak eklenecek -->
+                        </tbody>
+                    </table>
+                        </div>
+                    </div>
+            
+            <!-- Müşteri Ekleme Modal -->
+            <div id="addCustomerModal" class="modal customer-modal">
+                <div class="modal-content customer-modal-content">
+                    <div class="modal-header">
+                        <h2>Yeni Müşteri Ekle</h2>
+                        <button class="modal-close" type="button">&times;</button>
+                        </div>
+                    <div class="modal-body">
+                        <form id="addCustomerForm">
+                            <div class="form-group">
+                                <label for="customerCompanyName">Firma Adı *</label>
+                                <input type="text" id="customerCompanyName" name="company_name" class="form-input" required placeholder="Örn: ABC Şirketi A.Ş.">
+                    </div>
+                            <div class="form-group">
+                                <label for="customerName">İletişim Kişisi</label>
+                                <input type="text" id="customerName" name="name" class="form-input" placeholder="Örn: Ahmet Yılmaz">
+                        </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="customerEmail">E-posta</label>
+                                    <input type="email" id="customerEmail" name="consultant_email" class="form-input" placeholder="ornek@firma.com">
+                    </div>
+                                <div class="form-group">
+                                    <label for="customerPhone">Telefon</label>
+                                    <input type="tel" id="customerPhone" name="consultant_phone" class="form-input" placeholder="+90 555 123 45 67">
+                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="customerAddress">Adres</label>
+                                <textarea id="customerAddress" name="address" class="form-input" rows="3" placeholder="Tam adres bilgisi"></textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="customerCountry">Ülke</label>
+                                    <input type="text" id="customerCountry" name="country" class="form-input" value="Türkiye">
+                                </div>
+                                <div class="form-group">
+                                    <label for="customerCity">Şehir</label>
+                                    <input type="text" id="customerCity" name="city" class="form-input" placeholder="İstanbul">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="customerCategory">Kategori</label>
+                                    <select id="customerCategory" name="category" class="form-input">
+                                        <option value="">Seçiniz...</option>
+                                        <option value="Endüstriyel">Endüstriyel</option>
+                                        <option value="Ticari">Ticari</option>
+                                        <option value="Kamu">Kamu</option>
+                                        <option value="Diğer">Diğer</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="customerStatus">Durum</label>
+                                    <select id="customerStatus" name="status" class="form-input">
+                                        <option value="Aktif" selected>Aktif</option>
+                                        <option value="Pasif">Pasif</option>
+                                        <option value="Potansiyel">Potansiyel</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" id="cancelCustomerBtn">İptal</button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="material-icons" style="font-size: 18px; margin-right: 6px;">save</i>
+                                    Kaydet
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- Add the new profit-loss view container before the closing div.content tag -->
+            <div class="view" id="profit-loss">
+                <div class="view-header">
+                    <h2>Kâr/Zarar Analizi</h2>
+                    <div class="header-actions">
+                        <div class="search-box">
+                            <i class="material-icons">search</i>
+                            <input type="text" id="profitLossSearch" placeholder="Teklif numarası veya hazırlayan ara...">
+                        </div>
+                        <button class="btn btn-primary" id="refreshProfitLossBtn">
+                            <i class="material-icons">refresh</i>
+                            Yenile
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="stats-cards">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="material-icons">trending_up</i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="totalApprovedCount">0</span>
+                            <span class="stat-label">Onaylanan Teklif Sayısı</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="material-icons">payments</i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="totalProfitAmount">$0</span>
+                            <span class="stat-label">Toplam Kâr</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="material-icons">assessment</i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="averageProfitMargin">0%</span>
+                            <span class="stat-label">Ortalama Kâr Marjı</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profit-loss-content">
+                    <div class="widget-card widget-full">
+                        <div class="widget-header">
+                            <h3 class="widget-title">Onaylanan Teklifler ve Maliyet Analizi</h3>
+                            <div class="widget-actions">
+                                <div class="table-export-options">
+                                    <button class="icon-btn" title="Excel olarak dışa aktar" id="exportProfitLossXLS">
+                                        <i class="material-icons">table_view</i>
+                                    </button>
+                                    <button class="icon-btn" title="PDF olarak dışa aktar" id="exportProfitLossPDF">
+                                        <i class="material-icons">picture_as_pdf</i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="widget-content">
+                            <div class="profit-loss-table-container">
+                                <table class="data-table" id="profit-loss-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Teklif No</th>
+                                            <th>Tarih</th>
+                                            <th>Hazırlayan</th>
+                                            <th>Teklif Tutarı</th>
+                                            <th>Gerçekleşen Maliyet</th>
+                                            <th>Kâr/Zarar</th>
+                                            <th>Kâr Marjı (%)</th>
+                                            <th>İşlemler</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="profitLossTableBody">
+                                        <!-- JavaScript ile doldurulacak -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-section">
+                        <div class="row">
+                            <div class="chart-container half">
+                                <div class="chart-header">
+                                    <h3>Teklif Başına Kâr/Zarar Dağılımı</h3>
+                                    <div class="chart-controls">
+                                        <button class="chart-control-btn active" data-chart-view="bar">
+                                            <i class="material-icons">bar_chart</i>
+                                        </button>
+                                        <button class="chart-control-btn" data-chart-view="line">
+                                            <i class="material-icons">show_chart</i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="chart-wrapper">
+                                    <canvas id="profitLossDistChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="chart-container half">
+                                <div class="chart-header">
+                                    <h3>Kâr Marjı Dağılımı</h3>
+                                    <div class="chart-info">
+                                        <div class="stat-pill high-margin">
+                                            <span class="pill-indicator"></span>
+                                            <span class="pill-text">Yüksek Kâr (>%30)</span>
+                                        </div>
+                                        <div class="stat-pill med-margin">
+                                            <span class="pill-indicator"></span>
+                                            <span class="pill-text">Orta Kâr (%15-%30)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="chart-wrapper">
+                                    <canvas id="marginDistChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="chart-container full">
+                                <div class="chart-header">
+                                    <h3>Aylık Kâr/Zarar Trendi</h3>
+                                    <div class="chart-period-selector">
+                                        <button class="period-btn active" data-period="6">6 Ay</button>
+                                        <button class="period-btn" data-period="12">1 Yıl</button>
+                                        <button class="period-btn" data-period="all">Tümü</button>
+                                    </div>
+                                </div>
+                                <div class="chart-wrapper">
+                                    <canvas id="monthlyProfitTrendChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Müşteri Detay Modalı -->
+    <div id="customerDetailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <div class="customer-avatar large">AC</div>
+                    <div class="title-text">
+                        <h3 id="modalCustomerName">ABC Company</h3>
+                        <span id="modalCustomerCategory" class="category-badge">Kurumsal</span>
+                    </div>
+                </div>
+                <button class="modal-close">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <!-- Sekme Navigasyonu -->
+                <div class="modal-tabs">
+                    <button class="tab-btn active" data-tab="info">Genel Bilgiler</button>
+                    <button class="tab-btn" data-tab="quotes">Teklifler</button>
+                    <button class="tab-btn" data-tab="meetings">Görüşmeler</button>
+                    <button class="tab-btn" data-tab="notes">Notlar</button>
+                </div>
+
+                <!-- Genel Bilgiler Sekmesi -->
+                <div class="tab-content active" id="infoTab">
+                    <div class="info-grid">
+                        <div class="info-group">
+                            <label>Firma Adı</label>
+                            <input type="text" id="companyName" class="form-input">
+                        </div>
+                        <div class="info-group">
+                            <label>Kategori</label>
+                            <select id="customerCategory" class="form-input">
+                                <option value="corporate">Kurumsal</option>
+                                <option value="sme">KOBİ</option>
+                                <option value="individual">Bireysel</option>
+                            </select>
+                        </div>
+                        <div class="info-group">
+                            <label>Telefon</label>
+                            <input type="tel" id="phone" class="form-input">
+                        </div>
+                        <div class="info-group">
+                            <label>E-posta</label>
+                            <input type="email" id="email" class="form-input">
+                        </div>
+                        <div class="info-group full">
+                            <label>Adres</label>
+                            <textarea id="address" class="form-input"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teklifler Sekmesi -->
+                <div class="tab-content" id="quotesTab">
+                    <div class="teklif-listesi">
+                        <table class="teklif-table">
+                            <thead>
+                                <tr>
+                                    <th>Teklif No</th>
+                                    <th>Tarih</th>
+                                    <th>Detay</th>
+                                    <th>Hazırlayan</th>
+                                    <th>Toplam Tutar</th>
+                                    <th>Durum</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customerQuotesList">
+                                <!-- Teklifler buraya JavaScript ile eklenecek -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Görüşmeler Sekmesi -->
+                <div class="tab-content" id="meetingsTab">
+                    <div class="meetings-list">
+                        <!-- Görüşme kayıtları buraya gelecek -->
+                    </div>
+                    <button class="add-meeting-btn">
+                        <i class="material-icons">add</i>
+                        Yeni Görüşme Ekle
+                    </button>
+                </div>
+
+                <!-- Notlar Sekmesi -->
+                <div class="tab-content" id="notesTab">
+                    <div class="notes-container">
+                        <div class="notes-list" id="customerNotesList">
+                            <!-- Notlar buraya gelecek -->
+                        </div>
+                        <div class="add-note">
+                            <textarea placeholder="Yeni not ekle..." class="note-input"></textarea>
+                            <button class="save-note-btn">Kaydet</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="closeCustomerModal">Kapat</button>
+                <button class="btn btn-primary" id="saveCustomerChanges">Değişiklikleri Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Yeni Müşteri Modalı -->
+    <div id="addCustomerModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Yeni Müşteri</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Modal içeriği burada olacak</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ana dashboard script -->
+    <script type="module" src="../scripts/dashboard.js"></script>
+    
+    <!-- Veri yönetimi modülü -->
+    <script type="module" src="../scripts/data-manager.js"></script>
+    
+    <!-- Kâr/Zarar analiz modülü -->
+    <script type="module" src="../scripts/profit-loss-manager.js"></script>
+    
+    <!-- Excel ve PDF dışa aktarma kütüphaneleri -->
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    
+    <!-- Ek widget'lar ve istatistikler için script -->
+    <script defer src="../scripts/dashboard-widgets.js"></script>
+    <script>
+        // Dashboard widget'larını başlat
+        document.addEventListener('DOMContentLoaded', function() {
+            // CSS spinner stilini ekle
+            const styleElement = document.createElement('style');
+            styleElement.textContent = `
+                .spinner {
+                    width: 40px;
+                    height: 40px;
+                    border: 3px solid rgba(255, 255, 255, 0.3);
+                    border-radius: 50%;
+                    border-top-color: var(--accent-color);
+                    animation: spin 1s ease-in-out infinite;
+                    margin-bottom: 10px;
+                }
+                
+                @keyframes spin {
+                    to { transform: rotate(360deg); }
+                }
+                
+                .loading-indicator p {
+                    color: white;
+                    font-size: 14px;
+                    margin: 0;
+                }
+            `;
+            document.head.appendChild(styleElement);
+            
+            // Dashboard widget'larını başlat (100ms bekleyerek sayfanın yüklenmesini garanti et)
+            setTimeout(() => {
+                try {
+                    // DashboardWidgets sınıfını başlat
+                    window.dashboardWidgetsInstance = new DashboardWidgets();
+                } catch (error) {
+                    console.error('Dashboard başlatma hatası:', error);
+                }
+            }, 100);
+            
+        });
+    </script>
+    
+    <!-- Cost Edit Modal -->
+    <div id="costEditModal" class="cost-edit-modal">
+        <div class="cost-edit-modal-content">
+            <div class="cost-edit-modal-header">
+                <h3>Gerçekleşen Maliyet Düzenle</h3>
+                <button class="cost-edit-modal-close">&times;</button>
+            </div>
+            <div class="cost-edit-form">
+                <div class="form-group">
+                    <label>Teklif No</label>
+                    <input type="text" id="costEditQuoteNumber" class="form-control" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Teklif Tutarı</label>
+                    <input type="text" id="costEditQuoteAmount" class="form-control" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Gerçekleşen Maliyet</label>
+                    <div class="input-with-icon">
+                        <i class="material-icons">attach_money</i>
+                        <input type="number" id="costEditActualCost" class="cost-input" placeholder="Gerçekleşen maliyeti girin" step="0.01">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Maliyet Notları</label>
+                    <textarea id="costEditNotes" class="form-control" rows="3" placeholder="Maliyet ile ilgili açıklamalar..."></textarea>
+                </div>
+                <div class="cost-form-actions">
+                    <button id="cancelCostEdit" class="btn btn-secondary">İptal</button>
+                    <button id="saveCostEdit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

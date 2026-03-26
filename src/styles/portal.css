@@ -1,0 +1,296 @@
+@import url('theme.css');
+
+/* ─── Base ─────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family);
+  background: linear-gradient(145deg, #0e2240 0%, #1B3A6B 50%, #1f4e8a 100%);
+  color: var(--text-primary);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  min-height: 100vh;
+  overflow: auto;
+}
+
+/* ─── Tam sayfa merkez container ────────────────────────────── */
+.portal-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 32px 20px;
+}
+
+/* ─── Kart ──────────────────────────────────────────────────── */
+.portal-card {
+  background: #ffffff;
+  border: none;
+  border-radius: 24px;
+  padding: 48px 40px 40px;
+  max-width: 840px;
+  width: 100%;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.30);
+  position: relative;
+}
+
+/* ─── Çıkış butonu ──────────────────────────────────────────── */
+.portal-logout-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--error-light);
+  border: 1px solid rgba(217, 48, 37, 0.3);
+  border-radius: 10px;
+  color: var(--error);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  z-index: 10;
+  font-family: var(--font-family);
+}
+
+.portal-logout-btn:hover {
+  background: rgba(217, 48, 37, 0.15);
+  border-color: var(--error);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(217, 48, 37, 0.2);
+}
+
+.portal-logout-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+}
+
+/* ─── Header: Logo + Hoşgeldin ──────────────────────────────── */
+.portal-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 36px;
+  gap: 0;
+}
+
+.portal-logo {
+  height: 72px;
+  width: auto;
+  object-fit: contain;
+  margin-bottom: 20px;
+  filter: drop-shadow(0 2px 8px rgba(27, 58, 107, 0.15));
+}
+
+.portal-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Üst şerit — EPC yeşil accent çizgisi */
+.portal-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--epc-navy) 0%, var(--epc-blue) 50%, var(--epc-green) 100%);
+  border-radius: 24px 24px 0 0;
+}
+
+.portal-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--epc-navy);
+  margin: 0 0 4px 0;
+  letter-spacing: -0.02em;
+}
+
+.portal-username {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--epc-blue);
+  margin: 0;
+}
+
+.portal-subtitle {
+  font-size: 14px;
+  color: var(--text-tertiary);
+  text-align: center;
+  margin: 8px 0 0 0;
+  line-height: 1.5;
+}
+
+/* ─── Modül butonları ───────────────────────────────────────── */
+.portal-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.portal-btn {
+  background: var(--surface);
+  border: 1.5px solid var(--border-color);
+  border-radius: 16px;
+  padding: 24px 20px;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+  font-family: var(--font-family);
+}
+
+/* Hover'da sol kenar accent çizgisi */
+.portal-btn::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--epc-navy), var(--epc-green));
+  border-radius: 3px 0 0 3px;
+  transform: scaleY(0);
+  transition: transform 0.25s ease;
+}
+
+.portal-btn:hover {
+  border-color: var(--epc-blue);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card-hover);
+  background: var(--epc-navy-light);
+}
+
+.portal-btn:hover::after {
+  transform: scaleY(1);
+}
+
+.portal-btn .icon {
+  font-size: 36px;
+  line-height: 1;
+  flex-shrink: 0;
+  filter: none;
+  /* Icon arkaplanı */
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--epc-navy-light);
+  border-radius: 14px;
+  transition: background 0.2s;
+}
+
+.portal-btn:hover .icon {
+  background: var(--epc-blue-light);
+}
+
+.portal-btn .text {
+  flex: 1;
+}
+
+.portal-btn .text strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--epc-navy);
+  margin-bottom: 4px;
+  transition: color 0.2s;
+}
+
+.portal-btn .text small {
+  display: block;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  line-height: 1.4;
+}
+
+.portal-btn:hover .text strong {
+  color: var(--epc-blue);
+}
+
+/* ─── Scrollbar ─────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(27,58,107,0.25); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(27,58,107,0.45); }
+* { scrollbar-width: thin; scrollbar-color: rgba(27,58,107,0.25) transparent; }
+
+/* ─── Responsive ────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .portal-card {
+    padding: 36px 24px 28px;
+    border-radius: 20px;
+    max-width: 100%;
+  }
+
+  .portal-logo {
+    height: 56px;
+  }
+
+  .portal-title {
+    font-size: 22px;
+  }
+
+  .portal-username {
+    font-size: 14px;
+  }
+
+  .portal-buttons {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .portal-btn {
+    padding: 18px 16px;
+  }
+
+  .portal-btn .icon {
+    font-size: 28px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .portal-logout-btn span {
+    display: none;
+  }
+
+  .portal-logout-btn {
+    padding: 8px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .portal-container {
+    padding: 20px 14px;
+  }
+
+  .portal-card {
+    padding: 28px 18px 22px;
+    border-radius: 16px;
+  }
+
+  .portal-logo {
+    height: 44px;
+    margin-bottom: 14px;
+  }
+
+  .portal-title {
+    font-size: 18px;
+  }
+}

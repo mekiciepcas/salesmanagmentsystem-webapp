@@ -1,0 +1,147 @@
+@import url('theme.css');
+
+/* Filtre Bölümü Stilleri */
+.filter-section {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  background: var(--card-bg);
+  border-radius: 8px;
+  padding: 12px 15px;
+  box-shadow: var(--shadow-soft);
+  flex-wrap: wrap;
+  gap: 15px;
+  border: 1px solid var(--border-color);
+}
+
+/* Arama Kutusu */
+.search-box {
+  position: relative;
+  flex: 1 1 300px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-tertiary);
+}
+
+#searchInput {
+  width: 100%;
+  padding: 10px 10px 10px 35px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 14px;
+  transition: var(--transition-smooth);
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+#searchInput:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--info-light);
+  outline: none;
+}
+
+/* Filtre Butonları */
+.filter-buttons {
+  display: flex;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 4px;
+  background: var(--surface-light);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-btn:hover {
+  background: var(--hover-color);
+}
+
+.filter-btn.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent-hover);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-weight: bold;
+}
+
+.filter-btn .material-icons {
+  font-size: 18px;
+}
+
+/* Tarih Filtreleri */
+.date-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 300px;
+}
+
+.date-filter label {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.date-input {
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 14px;
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+.date-input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+/* Temizle Butonu */
+.clear-filters {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 12px;
+  border: 1px solid var(--error);
+  border-radius: 4px;
+  background-color: var(--surface);
+  color: var(--error);
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.clear-filters:hover {
+  background-color: var(--error);
+  color: white;
+}
+
+.clear-filters .material-icons {
+  font-size: 18px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .filter-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-box,
+  .filter-buttons,
+  .date-filter {
+    width: 100%;
+  }
+}

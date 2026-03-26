@@ -1,0 +1,35 @@
+---
+description: EPC projesi için skills kullanım rehberi - güvenlik, API, erişilebilirlik
+globs: "**/*.js"
+alwaysApply: false
+---
+
+# EPC Skills Kullanım Rehberi
+
+## Skill Eşlemesi
+
+| Skill | Ne Zaman Kullan | Trigger Örnekleri |
+|-------|-----------------|-------------------|
+| **007** | Güvenlik denetimi, threat model, OWASP | güvenlik, audit, güvenlik denetimi, threat model |
+| **api-patterns** | REST API tasarımı, endpoint, response format | API tasarımı, REST, endpoint, response format |
+| **api-design-principles** | API versiyonlama, pagination, auth | API versiyonlama, pagination, auth pattern |
+| **accessibility-compliance** | WCAG, erişilebilirlik, UI erişilebilirliği | erişilebilirlik, WCAG, accessibility |
+| **antigravity-design-expert** | UI, tasarım, glassmorphism, animasyon | UI, tasarım, glassmorphism, animasyon, gölge, geçiş |
+| **20-andruia-niche-intelligence** | B2B, endüstriyel, fiyatlandırma UX | B2B, endüstriyel, fiyatlandırma UX, pricing |
+
+## EPC'ye Özel Trigger'lar
+
+Bu konularda ilgili skill'leri göz önünde bulundur:
+
+- **fiyatlandırma, pricing, margin** → api-patterns (endpoint tasarımı)
+- **maliyet, cost, parça seçimi** → api-patterns
+- **kar-zarar, profit-loss** → api-patterns, 007 (finansal veri güvenliği)
+- **Excel, teklif, quote** → api-patterns
+- **auth, login, güvenlik** → 007
+- **dashboard, UI, form** → accessibility-compliance
+- **UI, tasarım, glassmorphism, animasyon** → antigravity-design-expert
+- **B2B, endüstriyel, fiyatlandırma UX** → 20-andruia-niche-intelligence
+
+## Proje Ataması
+
+`--project epc-pricing-pro` ile agent-orchestrator kullanıldığında bu skill'ler +20 boost alır.

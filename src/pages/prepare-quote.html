@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Teklif Hazırla - Pricing Pro</title>
+    <link rel="stylesheet" href="../styles/pricing.css">
+    <script src="../scripts/web-api.js"></script>
+    <style>
+        /* Teklif hazırlama sayfası özel stilleri */
+        body {
+            background: var(--bg-primary);
+            color: var(--text);
+            font-family: 'Inter', -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        /* Window frame düzeni */
+        .window-frame {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            -webkit-app-region: drag;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            height: 40px;
+        }
+
+        .window-title {
+            font-size: 14px;
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 8px;
+            -webkit-app-region: no-drag;
+        }
+
+        .window-button {
+            background: transparent;
+            border: none;
+            color: var(--text);
+            width: 32px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.2s;
+            font-size: 16px;
+        }
+
+        .window-button:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .window-button.minimize:hover {
+            background: var(--blue-accent);
+        }
+
+        .window-button.close:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        /* Ana layout */
+        .main-layout {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding-top: 40px; /* Window frame yüksekliği */
+        }
+
+        /* Header alanı */
+        .header-area {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 40px;
+            z-index: 900;
+        }
+
+        .header-left, .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        /* Back button */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            padding: 10px 12px;
+            background-color: transparent;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .back-button:hover {
+            background-color: var(--bg-tertiary);
+            color: var(--text);
+        }
+
+        .back-icon {
+            font-size: 20px;
+            line-height: 1;
+        }
+
+        /* Menubar buttons */
+        .menubar-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            border: 1px solid transparent;
+        }
+        
+        .menubar-button .button-icon {
+            font-size: 16px;
+        }
+        
+        /* Primary Button */
+        .menubar-button.primary {
+            background-color: var(--blue-accent);
+            color: white;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+        }
+        
+        .menubar-button.primary:hover {
+            background-color: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        /* Secondary Button - Destructive action */
+        .menubar-button.secondary {
+            background-color: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+        
+        .menubar-button.secondary:hover {
+            background-color: rgba(220, 53, 69, 0.1);
+            border-color: rgba(220, 53, 69, 0.4);
+            color: #dc3545;
+        }
+
+        /* Content alanı */
+        .content {
+            flex: 1;
+            padding: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 24px;
+            margin: 0 0 8px 0;
+            color: var(--text);
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            margin: 0 0 24px 0;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: var(--blue-accent);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .empty-state-button:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        /* Tablo */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th {
+            background: var(--bg-tertiary);
+            color: var(--text);
+            font-weight: 600;
+            text-align: left;
+            padding: 16px;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        tbody tr:hover {
+            background: var(--bg-tertiary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-area {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+                padding: 12px;
+            }
+
+            .menubar {
+                justify-content: center;
+            }
+
+            .content {
+                padding: 16px;
+            }
+
+            .window-title {
+                font-size: 13px;
+            }
+
+            .menubar-button {
+                font-size: 13px;
+                padding: 6px 12px;
+            }
+        }
+
+        /* Modal Panel Stilleri */
+        .calculator-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+            display: none;
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .calculator-panel.active {
+            display: flex;
+        }
+
+        .panel-header {
+            background: var(--bg-secondary);
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .panel-header h3 {
+            margin: 0;
+            color: var(--text);
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .panel-close-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .panel-close-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text);
+        }
+
+        .panel-content {
+            background: var(--bg-primary);
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            border-radius: 0 0 12px 12px;
+            padding: 24px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            color: var(--text);
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 14px;
+            transition: all 0.2s ease;
+
+            appearance: none; /* Tarayıcı varsayılan stilini kaldır */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 1em;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--blue-accent);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-group input:disabled {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            cursor: not-allowed;
+        }
+
+        hr {
+            border: none;
+            height: 1px;
+            background: var(--border);
+            margin: 24px 0;
+        }
+
+        h4 {
+            color: var(--text);
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0 0 16px 0;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        .action-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: var(--blue-accent);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-button:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .action-button:active {
+            transform: translateY(0);
+        }
+
+        /* =================== YENİ MODERN MODAL =================== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+
+        .modal.active {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .modal-header {
+            background: var(--bg-tertiary);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: var(--text);
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .modal-close-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 28px;
+            cursor: pointer;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: background 0.2s ease;
+        }
+
+        .modal-close-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text);
+        }
+
+        .modal-body {
+            flex-grow: 1;
+            padding: 24px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .modal-form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .form-section {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-section h4 {
+            margin-top: 0;
+            margin-bottom: 16px;
+            color: var(--text);
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .conditions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .form-group-hidden {
+            display: none;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: var(--blue-accent);
+            color: white;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+        }
+
+        .btn-primary:hover {
+            background-color: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(220, 53, 69, 0.1);
+            border-color: rgba(220, 53, 69, 0.4);
+            color: #dc3545;
+        }
+
+        .icon-bolt {
+            font-size: 18px;
+            margin-right: 8px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            /* Sağdaki boşluk (30px) ok ikonu için alan yaratır */
+            padding: 10px 30px 10px 12px;
+            border: 1px solid var(--border);
+            background-color: var(--bg-primary);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-group select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            /* Ok ikonu beyaz renge güncellendi */
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 1em;
+        }
+
+        .form-group input {
+            /* Inputlar için simetrik boşluk yeterli */
+            padding: 10px 12px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--blue-accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        /* ======================================================= */
+    </style>
+</head>
+<body>
+    <!-- Window Frame -->
+    <div class="window-frame">
+        <div class="window-title">Teklif Hazırla</div>
+        <div class="window-controls">
+            <button class="window-button minimize">−</button>
+            <button class="window-button close">×</button>
+        </div>
+    </div>
+
+    <!-- Ana Layout -->
+    <div class="main-layout">
+        <!-- Header Area -->
+        <div class="header-area">
+            <div class="header-left">
+                <a href="#" class="back-button" onclick="location.href='anasayfa.html'">
+        <span class="back-icon">←</span>
+        <span>Ana Sayfa</span>
+                </a>
+            </div>
+            <div class="header-right">
+                <button class="menubar-button secondary" id="clearCartBtn">
+                    <span class="button-icon">🛒</span>
+                    <span>Sepeti Temizle</span>
+                </button>
+                <button class="menubar-button primary" id="generateHtmlQuoteBtn">
+                    <span class="button-icon">📄</span>
+                    <span>Teklif Oluştur</span>
+    </button>
+        </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content">
+            <!-- Sepet Tablosu -->
+            <div id="cartContent">
+                <!-- Empty State (JavaScript ile kontrol edilecek) -->
+                <div id="emptyState" class="empty-state">
+                    <div class="empty-state-icon">🛒</div>
+                    <h3>Teklif Listesi Boş</h3>
+                    <p>Ürün sayfalarından sistem ekleyerek teklifinizi oluşturmaya başlayın.</p>
+                    <a href="#" class="empty-state-button" onclick="location.href='anasayfa.html'">
+                        <span>🔧</span>
+                        <span>Ürün Sayfalarına Git</span>
+                    </a>
+    </div>
+
+                <!-- Tablo (JavaScript ile doldurulacak) -->
+                <table id="cartTable" style="display: none;">
+            <thead>
+                <tr>
+                            <th style="width: 80px;">Adet</th>
+                    <th>Sistem Adı</th>
+                    <th style="width: 150px; text-align: right;">Toplam Fiyat</th>
+                            <th style="width: 100px; text-align: center;">İşlemler</th>
+                </tr>
+            </thead>
+                    <tbody>
+                        <!-- JavaScript ile doldurulacak -->
+            </tbody>
+        </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Teklif Detayları Modalı -->
+    <!-- =================== YENİ MODERN MODAL =================== -->
+    <div class="modal-overlay" id="quoteDetailsModalOverlay" style="display: none;">
+        <div class="modal" id="quoteDetailsModal">
+            <div class="modal-header">
+                <h3>📝 Teklif Detayları</h3>
+                <button class="modal-close-btn" id="modalCloseBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-form-grid">
+                    <!-- Müşteri Bilgileri -->
+                    <div class="form-section">
+                        <h4>Müşteri Bilgileri</h4>
+                        <div class="form-group">
+                            <label for="customerNameInput">Firma Adı</label>
+                            <input type="text" id="customerNameInput" placeholder="Müşteri firmayı girin">
+                        </div>
+                        <div class="form-group">
+                            <label for="contactPersonInput">Yetkili Kişi</label>
+                            <input type="text" id="contactPersonInput" placeholder="Görüşülen kişi">
+                        </div>
+                    </div>
+
+                    <!-- Teklif Bilgileri -->
+                    <div class="form-section">
+                        <h4>Teklif Bilgileri</h4>
+                        <div class="form-group">
+                            <label for="quoteNumberInput">Teklif Numarası</label>
+                            <input type="text" id="quoteNumberInput">
+                        </div>
+                        <div class="form-group">
+                            <label for="quoteDateInput">Tarih</label>
+                            <input type="date" id="quoteDateInput">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teklif Koşulları -->
+                <div class="form-section">
+                    <h4>Teklif Koşulları</h4>
+                    <div class="conditions-grid">
+                        <div class="form-group">
+                            <label for="currencyInput">Para Birimi</label>
+                            <select id="currencyInput">
+                                <option value="$">Amerikan Doları ($)</option>
+                                <option value="€">Euro (€)</option>
+                                <option value="₺">Türk Lirası (₺)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="languageInput">Dil</label>
+                            <select id="languageInput">
+                                <option value="TR">Türkçe (TR)</option>
+                                <option value="EN">İngilizce (EN)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="incotermsInput">Teslim Şekli</label>
+                            <input type="text" id="incotermsInput" value="EXW">
+                        </div>
+                        <div class="form-group">
+                            <label for="deliveryTimeInput">Teslim Süresi</label>
+                            <input type="text" id="deliveryTimeInput" value="4-6 Hafta">
+                        </div>
+                        <div class="form-group">
+                            <label for="paymentConditionInput">Ödeme Koşulları</label>
+                            <input type="text" id="paymentConditionInput" value="%50 Sipariş, %50 Teslimat">
+                        </div>
+                        <div class="form-group">
+                            <label for="validityPeriodInput">Geçerlilik</label>
+                            <input type="text" id="validityPeriodInput" value="15 Gün">
+                        </div>
+                        <div class="form-group">
+                            <label for="originInput">Menşei</label>
+                            <input type="text" id="originInput" value="Türkiye">
+                        </div>
+                        <div class="form-group">
+                            <label for="packingTypeInput">Paketleme</label>
+                            <input type="text" id="packingTypeInput" value="Standart">
+                        </div>
+                        <div class="form-group form-group-hidden">
+                            <label for="preparedByInput">Hazırlayan</label>
+                            <input type="text" id="preparedByInput" readonly>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- PDF Şifreleme -->
+                <div class="form-section">
+                    <h4>🔒 PDF Güvenliği (İsteğe Bağlı)</h4>
+                    <div class="form-group">
+                        <label for="pdfPasswordInput">PDF Şifresi</label>
+                        <input type="password" id="pdfPasswordInput" placeholder="Şifre belirlemek için buraya yazın">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="modalCancelBtn">İptal</button>
+                <button class="btn btn-primary generate-final-quote-btn" id="modalSubmitBtn">
+                    <i class="icon-bolt"></i> Teklif Oluştur
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- ======================================================= -->
+
+    <script src="../scripts/prepare-quote.js"></script>
+</body>
+</html> 

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EPC Portal</title>
+    <link rel="stylesheet" href="../styles/portal.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="../scripts/web-api.js"></script>
+</head>
+
+<body>
+    <div class="portal-container">
+        <div class="portal-card">
+            <button class="portal-logout-btn" id="btn-logout" title="Çıkış Yap">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                <span>Çıkış Yap</span>
+            </button>
+            
+            <div class="portal-header">
+                <img src="../assets/images/EPC_logo1.png" alt="EPC Logo" class="portal-logo" />
+                <div class="portal-welcome">
+                    <h1 class="portal-title">Hoşgeldiniz</h1>
+                    <p class="portal-username" id="portal-username">Kullanıcı</p>
+                </div>
+            </div>
+            <p class="portal-subtitle">Devam etmek istediğiniz modülü seçiniz.</p>
+
+            <div class="portal-buttons">
+                <!-- ARGE -->
+                <button class="portal-btn" id="btn-arge">
+                    <div class="icon">🧪</div>
+                    <div class="text">
+                        <strong>ARGE</strong>
+                        <small>Proje Takip Sistemi</small>
+                    </div>
+                </button>
+
+                <!-- Satış -->
+                <button class="portal-btn" id="btn-satis">
+                    <div class="icon">💼</div>
+                    <div class="text">
+                        <strong>Satış</strong>
+                        <small>Fiyatlandırma, Teklif Hazırlama</small>
+                    </div>
+                </button>
+
+                <!-- Dashboard -->
+                <button class="portal-btn" id="btn-dashboard">
+                    <div class="icon">📊</div>
+                    <div class="text">
+                        <strong>Dashboard</strong>
+                        <small>Şirket İstatistikleri</small>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../scripts/portal.js"></script>
+    <script>
+      // Sayfa yüklendiğinde fade-in efekti
+      requestAnimationFrame(() => {
+        document.body.style.opacity = '1';
+      });
+    </script>
+</body>
+</html>

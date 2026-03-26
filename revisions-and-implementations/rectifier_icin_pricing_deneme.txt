@@ -1,0 +1,104 @@
+Rectifier Pricing sayfasına girildiğinde şu şekilde bir modal olmalı ve fiyatların listelenmesinde aşağıdaki şekilde işlevleri barındırmalıdır.
+
+Ana amaç: Aşağıda belirtilen girdiler eşliğinde otomatik sistem tasarımı yapabilmek bu sayede kullanılacak parçaları tayin edebilmek, tayin edilen parçaları maliyetlendirme için veri çekilen excel dosyasından bulup fiyat eşleştirmesi yapabilmek.
+Rectifier pricing sayfasında otomatik olarak listelenmiş olan maliyetler düzenlenebilir olmalıdır.
+Rectifier sisteminin giriş gerilimi AC, çıkış gerilimi ve batarya gerilimi DC'dir 
+Girdiler:Teklif isteyen müşteri şunları belirtiyor ve buna göre sistem maliyetlenmesine başlanıyor
+	*Giriş Voltajı ve Giriş faz bilgisi, Sistem frekansı(fsistem), Giriş Voltaj toleransı (+/-%10,20 gibi)
+	*Çıkış Akımı ve Çıkış Voltajı
+	*Cihaz topolojisi tek faz ise B2C, 3faz ise 6 pulse veya 12pulse olabilir.
+	*Akü tipi [Akü tiplerine göre float ve boost voltajları değişir. VRLA için 2.24V/cell float, 2.40V/cell boost ve equalize gerilimidir. VRLA'lar için cell gerilimi nominal 2V'ttur.
+]
+Bu verilerin girilmesi ile birlikte aşağıdaki çıktılar alınmalıdır.
+	*Cihaz topolojisi 3 faz sistemlerde 6 pulse ile 12 pulse arasında trafo maliyetini 2x arttıracaktır. ayrıca 3 adet daha modül tristör kullanılacaktır. (Bu konu üzerine daha detaylı maliyet çalışması yapmadım ana amaçtan sapmamak ve eksik nokta bırakamamak için belirtilmiştir.)
+	(Bu kısımda belirtilen parçalar olmazsa olmaz ve her sistemde bulunan parçalardır.)
+	*Çıkış Klemensi= Çıkış akımına göre seçilmelidir aşağıda klemens seçiminin nasıl yapılması gerektiğini paylaşıyorum.
+		[Klemens nasıl seçilir:
+			Klemensler üzerinde taşıyacağı akıma göre seçilmelidir. Yüksek akımlarda klemens yerine bara tercih 				edilebilir. Aşağıdaki tabloda klemensler ve baralar için akım taşıma kapasiteleri verilmiştir.
+			
+			2.5mm Klemens =20A'e kadar
+			4.0mm Klemens = 25A'e kadar
+			6.0mm Klemens = 33A'e kadar
+			10.0mm Klemens = 50A'e kadar
+			16.0mm Klemens = 60A'e kadar
+			25.0mm Klemens = 85A'e kadar
+			35.0mm Klemens = 110A'e kadar
+			50.0mm Klemens = 132A'e kadar 
+taşımaktadır.
+			15x2mm Bara = 155A'e kadar
+			20x2mm Bara = 205A'e kadar
+			20x3mm Bara = 245A'e kadar
+			20x5mm Bara = 325A'e kadar
+			30x3mm Bara = 350A'e kadar
+			30x5mm Bara = 450A'e kadar
+			40x3mm Bara = 460A'e kadar
+			40x5mm Bara = 600A'e kadar
+			40x10mm Bara = 835A'e kadar
+destek verebilmektedir. Buradaki seçim mantığı şu şekilde olmalıdır. Örneğin çıkış için düşünecek olursak çıkış akımı belirlendikten sonra seçilecek olan klemens veya bara akımı taşıyabilecek kadar olmalıdır. Örneğin çıkış için akım 100A ise çıkış klemensi 35mm klemens 110A'e kadar kullanılabildiği için akım için verilen değerden daha büyük bir üst değere göre seçilmelidir.]
+
+	*Çıkış kesicisi= Girdiler kısmında verilen Çıkış Akımı ile aynıdır.Çıkış kesicileri MCB ve MCCB olarak iki kısma ayrılmaktadır. MCB'ler düşük akım ve gerilim değerlerinde tercih edilmelidir. Aşağıda MCB ve MCCB'ler için akım değerlerine göre liste verilmiştir. Çıkış akımı 27A verildiğini varsayarsak çıkış kesicimiz bu çıkış akımından yüksek bir sonraki kesici olarak yani 32A olarak seçilmesi gerekir.
+[MCB ve MCCB template = MCB/MCCB kutup sayısı x Akım, kutup sayısı DC gerilimlerde eğer 48V'tan büyük ise 3 kutuplu 48V'ta eşit veya küçük ise 2 kutuplu seçilebilir.
+	MCB 2x6A
+	MCB 2x10A
+	MCB 2x16A
+	MCB 2x20A
+	MCB 2x25A
+	MCB 2x32A
+	MCB 2x40A
+	MCB 2x50A
+	MCB 2x63A
+	MCB 2x80A
+	MCB 2x100A
+
+	MCB 3x6A
+	MCB 3x10A
+	MCB 3x16A
+	MCB 3x20A
+	MCB 3x25A
+	MCB 3x32A
+	MCB 3x40A
+	MCB 3x50A
+	MCB 3x63A
+	MCB 3x80A
+	MCB 3x100A
+
+	MCCB 3x20A
+	MCCB 3x25A
+	MCCB 3x30A
+	MCCB 3x40A
+	MCCB 3x50A
+	MCCB 3x60A
+	MCCB 3x70A
+	MCCB 3x80A
+	MCCB 3x90A
+	MCCB 3x100A
+	MCCB 3x125A
+	MCCB 3x160A
+	MCCB 3x175A
+	MCCB 3x200A
+	MCCB 3x225A
+ 	MCCB 3x250A
+	MCCB 3x320A
+	MCCB 3x400A
+	MCCB 3x500A
+Kullanıcıya giriş çıkış ve batarya kesicisi için MCB mi MCCB mi tercih edilmesi gerektiğini sormamız gerekibilir. Bu sayede daha keskin sonuçlar elde edebiliriz.
+]
+	*Batarya Kesicisi = Çıkış kesicisi ile aynıdır. Ve seçilim şartları Çıkış kesicisi ile aynı olmalıdır.
+
+	*Batarya akım okuma kartı: çıkış akımı 100'den küçük ise  L100P, 200 ile 100A arasında ise L200P, 300A den küçük ise L300p seçilmelidir. 300A den büyük ise kullanıcıya fiyat araştırması için yetkilli kişi ile görüşmeleri gerektiğini söylemelidir.
+	* Rectifier çıkış akımı okuma kartı için batarya akım okuma kartı ile aynı şartlar geçerlidir.
+	* Serbest Geçiş Diyotu: Serbest geçiş diyotu = çıkış akımı*1.5 olarak seçilmelidir. Serbest geçiş diyotları için akım ve gerilime göre bir liste oluşturmalıyım ve bu listeye göre seçilebilir olmalı. Örnek olarak aşağıdaki listeyi ele alalım:
+		[
+			MDD56-12 71A
+			MDD76-12 80A
+			MDD110-12 120A
+			MDD156-12 170A
+			MDD215-12 220A
+Çıkış akımı 100 A ise 1.5 katı 150A bu akımdan yüksek bir üst seviyesi MDD156-12 170A seçilmelidir.
+]
+	*Giriş Trafosu güç Hesabı= Giriş trafosunu hesaplayabilmek için ((Çıkış akımı* Çıkış Gerilimi)/(verimlilik[verimlilik 3 faz girişi olan cihazlarda 0,9 tek fazlılarda 0,8'dir.]*pf[power factor tek faz girişli sistemlerde 0,7, 3faz girişli sistemlerde 0,8'dir]))= Trafo gücü kVA cinsinden, Trafo Primer gerilimi = giriş gerilimi ve giriş faz sayısı ile aynı yani giriş gerilimi 3 faz 400 Volt ise primer 3 faz 400 volttur. Sekonder gerilimi = Sistemin girişi 3 fazlı ise float gerilimine tek fazlı ise boost gerilimine eşittir.
+Sistemin float gerilimi akü tipine göre düzenlenmeli ve hesaplanmalıdır. 
+	*DC Şok ve DC Bara kapasitörü: Bu iki komponent şu şekilde seçilecektir. V= I*XL, L=XL/(2pi*fsistem) bu formüller ile önce giriş trafosunun kaçak endüktansı bulunur. V=sekonder geriliminin yüzde 4'üdür, eğer giriş 3 faz ise 1.732'ye bölünür tek faz ise aynen yazılır ve V bulunmuş olunur. I ise giriş trafosu gücü/(sekonder gerilimi*kök içinde faz sayısı) şeklinde hesaplanır. Buradan V= I*XL formülünden XL'yi bulduk. L= XL/(2pi*fsistem) çözülerek iç endüktans L bulunur. Şimdi mesele şu şekilde öyle bir C ve L değeri seçilmelidir ki; fkesme=1/(2pi*kök içinde(L.C*dc bara kapasitör sayısı)) formülündeki fkesme frekansı 33Hz olarak bulunabilsin. iç endüktansımız Lyi arttırarak bu sayıya ulaşmamız gerekir. DC bara kapasitörü 4700uF veya 10000 uf seçilebilir ve adet sayısı arttırılabilir. bizim için en optimum olay bu ikisini dengeli şekilde seçebilmektir. Örneğin iç endüktansımız 150uH olsun 8adet 4700uF kapasitör kullanarak 33 kesme frekansını elde edebiliriz ancak amacımız 1mH DC şok kullanarak 2adet 4700uf kullanmak olmalıdır. 6 Pulse için fkesme=(Sistem frekansı*6)/10, 12 Pulse için fkesme= (Sistem frekansı*12)/10 şeklinde hesaplanmalıdır.B2H 'da ise fkesme= (Sistem frekansı*2)/3 şeklindedir.
+	*Faz kontrol tristörlerinin hesabı: (Çıkış akımı*1.5)/faz sayısı aynı şekilde sonuç olarak bulunan akım var olan akım değerinin bir üst segmentine göre seçilmeli aynı serbest geçiş diyotunda olduğu gibi. Bunun adet sayısı ise 3fazlı 6 pulse sistemde 3 adet, 3 fazlı 12 pulse sistemde 6 adet, tek fazlı sistemde 2 adet olacak şekildedir.
+	* Giriş Kesicisi yukarıdaki kesici mantığı ile aynıdır. Akım değeri ise Trafo gücü/(Trafonun primer gerilimi*kök içinde faz sayısı), girdi olarak belirtilen giriş toleransı eğer yüzde 10 ise örnek olarak 3x400V  primer gerilimi, 3x360V olarak değerlendirilmelidir. 
+	*Giriş klemensi ise Yukarıda bulunan giriş akımına göre çıkış klemenslerinde belirtilen kurallar geçerli olacak şekilde seçilmelidir.

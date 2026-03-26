@@ -1,0 +1,184 @@
+/**
+ * EPC Energy Power Conversion — Merkezi Tema
+ * Renk paleti: Logo'dan türetilmiş kurumsal renkler
+ *   Navy blue  : #1B3A6B  (EPC logosu ana renk)
+ *   Bright blue: #2E7FC1  (ikincil mavi)
+ *   Lime green : #7DC242  (logo ok rengi)
+ *   Purple     : #5B3A8E  (Energy Power Conversion yazısı)
+ */
+
+/* ─── EPC Renk Tokenları ─────────────────────────────────────── */
+:root {
+  /* Kurumsal marka renkleri */
+  --epc-navy:          #1B3A6B;   /* Ana lacivert (logo EPC harfleri) */
+  --epc-navy-dark:     #142d55;   /* Hover / daha koyu varyant */
+  --epc-navy-light:    #e8eef6;   /* Açık lacivert yüzey tonu */
+  --epc-blue:          #2E7FC1;   /* Parlak mavi (vurgu) */
+  --epc-blue-dark:     #256aa3;   /* Mavi hover */
+  --epc-blue-light:    #deeef9;   /* Açık mavi yüzey tonu */
+  --epc-green:         #7DC242;   /* Lime yeşil (logo ok) */
+  --epc-green-dark:    #66a335;   /* Yeşil hover */
+  --epc-green-light:   #edf6e3;   /* Açık yeşil yüzey tonu */
+  --epc-purple:        #5B3A8E;   /* Mor (Energy Power Conversion) */
+  --epc-purple-light:  #ede8f6;   /* Açık mor yüzey tonu */
+
+  /* ── Semantik değişkenler (tüm bileşenler bu değişkenleri kullanır) */
+  --accent:            var(--epc-blue);
+  --accent-hover:      var(--epc-blue-dark);
+  --epc-brand:         var(--epc-navy);
+  --epc-brand-contrast:#ffffff;
+  --epc-accent:        var(--epc-green);
+
+  /* ── Arkaplan & yüzeyler */
+  --background:        #f4f7fb;   /* Ana sayfa arkaplanı — hafif mavi-gri */
+  --surface:           #ffffff;
+  --surface-light:     #f0f4f9;
+  --surface-alt:       #f7f9fc;
+  --card-bg:           #ffffff;
+
+  /* ── Metin */
+  --text-primary:      #1B3A6B;   /* Lacivert — ana metin */
+  --text-secondary:    #3d5278;   /* Orta lacivert */
+  --text-tertiary:     #7189a8;   /* Soluk lacivert */
+
+  /* ── Durum renkleri */
+  --error:             #d93025;
+  --success:           #2e9e6b;
+  --warning:           #e6950a;
+  --info:              var(--epc-blue);
+  --error-light:       rgba(217, 48, 37,  0.10);
+  --success-light:     rgba(46, 158, 107, 0.10);
+  --warning-light:     rgba(230, 149, 10, 0.10);
+  --info-light:        rgba(46, 127, 193, 0.10);
+
+  /* ── Sınır & hover */
+  --border-color:      #cdd8e8;
+  --hover-color:       rgba(27, 58, 107, 0.05);
+  --surface-hover:     rgba(27, 58, 107, 0.05);
+
+  /* ── Geriye dönük uyumluluk (pricing.css, data-entry.css vb.) */
+  --primary:           var(--epc-navy);
+  --primary-light:     var(--epc-navy-light);
+  --primary-dark:      var(--epc-navy-dark);
+  --bg-primary:        var(--background);
+  --bg-secondary:      var(--surface);
+  --bg-tertiary:       var(--surface-light);
+  --border:            var(--border-color);
+  --text:              var(--text-primary);
+  --blue-accent:       var(--epc-blue);
+  --bg-color:          var(--background);
+  --text-color:        var(--text-primary);
+  --input-bg:          var(--surface);
+  --accent-color:      var(--epc-blue);
+  --error-color:       var(--error);
+  --success-color:     var(--success);
+  --disabled-color:    #9fb1c8;
+  --secondary-bg:      var(--surface-light);
+  --spacing-rem-1:     0.25rem;
+  --spacing-rem-2:     0.5rem;
+  --spacing-rem-4:     1rem;
+}
+
+/* ─── Gölge & Geçiş ────────────────────────────────────────── */
+:root {
+  --shadow-soft:       0 2px 8px  rgba(27, 58, 107, 0.08);
+  --shadow-card:       0 4px 16px rgba(27, 58, 107, 0.10);
+  --shadow-card-hover: 0 8px 24px rgba(27, 58, 107, 0.16);
+  --shadow:            0 4px 12px rgba(27, 58, 107, 0.09);
+  --shadow-lg:         0 12px 32px rgba(27, 58, 107, 0.14);
+  --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --blur-glass:        blur(12px);
+}
+
+/* ─── Spacing ────────────────────────────────────────────────── */
+:root {
+  --space-4:  4px;
+  --space-8:  8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-48: 48px;
+}
+
+/* ─── Tipografi ──────────────────────────────────────────────── */
+:root {
+  --font-family:      'Inter', system-ui, -apple-system, sans-serif;
+  --font-size-base:   16px;
+  --line-height-base: 1.5;
+}
+
+h1, h2, h3, h4, h5, h6 { text-wrap: balance; }
+p, .card-label, .description { text-wrap: pretty; }
+.numeric, td.numeric, .stat-value, .card-value { font-variant-numeric: tabular-nums; }
+
+/* ─── Tablo genel stilleri ───────────────────────────────────── */
+table thead th {
+  background: var(--epc-navy-light);
+  color: var(--epc-navy);
+  font-weight: 600;
+}
+table tbody tr:nth-child(even) {
+  background: var(--surface-light);
+}
+table tbody tr:hover {
+  background: var(--hover-color);
+}
+table th,
+table td {
+  border-color: var(--border-color);
+}
+
+/* ─── BEM: Kurumsal buton iskelet ───────────────────────────── */
+.epc-btn {
+  font-family:   var(--font-family);
+  font-size:     var(--font-size-base);
+  line-height:   var(--line-height-base);
+  padding:       var(--spacing-rem-2) var(--spacing-rem-4);
+  border-radius: var(--spacing-rem-2);
+  border:        1px solid var(--border-color);
+  background:    var(--surface);
+  color:         var(--text-primary);
+  cursor:        pointer;
+  transition:    var(--transition-smooth);
+}
+.epc-btn--primary {
+  background:   var(--epc-navy);
+  color:        #ffffff;
+  border-color: var(--epc-navy);
+}
+.epc-btn--primary:hover {
+  background:   var(--epc-navy-dark);
+  border-color: var(--epc-navy-dark);
+}
+
+/* ─── Erişilebilirlik ────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration:       0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration:      0.01ms !important;
+  }
+}
+
+@media (prefers-contrast: high) {
+  :root {
+    --text-primary: #000000;
+    --text:         #000000;
+    --text-color:   #000000;
+    --background:   #ffffff;
+    --bg-primary:   #ffffff;
+    --bg-color:     #ffffff;
+    --border-color: #000000;
+    --border:       #000000;
+  }
+}
+
+/* ─── Metin seçimi & Focus ───────────────────────────────────── */
+::selection      { background: var(--epc-blue); color: #fff; }
+::-moz-selection { background: var(--epc-blue); color: #fff; }
+
+:focus-visible {
+  outline:        2px solid var(--epc-blue);
+  outline-offset: 2px;
+}
