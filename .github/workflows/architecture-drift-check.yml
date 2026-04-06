@@ -1,0 +1,30 @@
+name: Architecture Drift Check
+
+on:
+  pull_request:
+
+jobs:
+  drift-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed files
+        id: changed
+        run: |
+          echo "changed=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | tr '\n' ' ')" >> $GITHUB_OUTPUT
+
+      - name: Enforce mermaid/adr updates for architecture changes
+        run: |
+          CHANGED="${{ steps.changed.outputs.changed }}"
+          echo "Changed files: $CHANGED"
+          if echo "$CHANGED" | grep -E "src/(api|domain|infrastructure|runtime|tooling)/" >/dev/null; then
+            if ! echo "$CHANGED" | grep -E "mermaids/|docs/adr/" >/dev/null; then
+              echo "Architecture drift check failed: source architecture changed without mermaid or ADR updates."
+              exit 1
+            fi
+          fi
+          echo "Architecture drift check passed."

@@ -1989,11 +1989,17 @@ ipcMain.handle('read-rectifier-component', async (event, componentType) => {
 
     // DCComponents sayfası için özel filtreleme
     if (componentType === 'DCChokes' && sheetName === 'DCComponents') {
-      cleanedData = cleanedData.filter((row) => 
-        row['Product Type'] === 'DC Choke' || 
-        row['Product Type'] === 'DCChoke' ||
-        row['Product Type']?.includes('Choke')
-      );
+      cleanedData = cleanedData.filter((row) => {
+        const pt = String(row['Product Type'] || '').trim();
+        const lower = pt.toLowerCase();
+        return (
+          pt === 'DC Choke' ||
+          pt === 'DCChoke' ||
+          lower.includes('choke') ||
+          lower.includes('şok') ||
+          lower.includes('chok')
+        );
+      });
     } else if (componentType === 'DCCapacitors' && sheetName === 'DCComponents') {
       cleanedData = cleanedData.filter((row) => 
         row['Product Type'] === 'DC Capacitor' || 

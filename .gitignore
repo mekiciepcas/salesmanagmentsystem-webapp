@@ -8,3 +8,21 @@ build/
 
 src/config/credentials.json
 credentials.json
+
+# Cursor IDE
+.cursor/
+
+# Logs
+logs/
+*.log
+
+# Microsoft Office temp lock files
+~$*
+
+# Local / large data (repo root)
+Rectifier.xlsx
+tum_veriler.json
+
+# OS
+.DS_Store
+Thumbs.db

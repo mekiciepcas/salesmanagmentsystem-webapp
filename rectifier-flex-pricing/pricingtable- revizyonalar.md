@@ -1,0 +1,4 @@
+pricing table içerisinde parçalara tıklanıldığında açılan nasıl hesaplandı modalını tablonun düzgün ve sistematik yapısnı bozmadan başa ufak bir buton ekleyerek sağlayalım çünkü satır seçme işlemi ile çakışıyor.
+Ayrıca @image.png dosyasından gözlemleyebileceğin gibi kutu ve tablo yerleşimleri biraz sıkıntılı taşmalar söz konusu ayrıca satır seçme işlemlerinde yazı rengi beyaza döndüğü için okunmuyor ayrıca yazı tipi ve boyutlarını da daha okunaklı profesyonel bir görünüme çevirebiliriz
+Dc şok seçimi ile alakalı hala excelden değer düzgün çekilmiyor hesaplamanın da doğru olduğuna emin değilim amaç şok endüktans değerini hesaplamak daha sonra akıma ve endüktans değerine uygun exceldeki listeden doğru olabilecek ürünü bulabilmek.
+Kapasitör olarak yedekli olması açısından minimum 2 adet kullanalım akıma göre kullanılması gereken kapasitör sayısı 2den küçük olduğu durumlarda.

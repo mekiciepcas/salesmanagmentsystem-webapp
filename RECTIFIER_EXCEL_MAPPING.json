@@ -892,7 +892,7 @@
   },
   "calculationFormulas": {
     "transformerPower": {
-      "formula": "(outputCurrent * outputVoltage) / (efficiency * powerFactor)",
+      "formula": "(outputCurrent * floatVoltage) / (efficiency * powerFactor)",
       "efficiency": {
         "3": 0.9,
         "1": 0.8

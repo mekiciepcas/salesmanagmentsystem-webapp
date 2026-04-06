@@ -261,6 +261,8 @@ body {
   color: var(--text-primary);
   font-family: var(--font-family);
   min-height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .window-frame {
@@ -394,7 +396,7 @@ input:focus {
 /* Action butonlarını düzenleyelim */
 .action-button {
   background: rgba(255,255,255,0.15);
-  color: white;
+  color: rgb(0, 0, 0);
   border: 1px solid rgba(255,255,255,0.25);
   padding: 6px 12px;
   border-radius: 4px;
@@ -473,6 +475,319 @@ td {
 
 .tools-menu-item:hover {
   background: var(--hover-color);
+}
+
+.rectifier-flex-table {
+  table-layout: fixed;
+  width: 100%;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.rectifier-flex-table thead th {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.rectifier-flex-table .col-check { width: 52px; min-width: 52px; }
+.rectifier-flex-table .col-no { width: 56px; }
+.rectifier-flex-table .col-product { width: 240px; min-width: 240px; }
+.rectifier-flex-table .col-description { width: 180px; min-width: 180px; }
+.rectifier-flex-table .col-cost { width: 110px; }
+.rectifier-flex-table .col-qty { width: 90px; }
+.rectifier-flex-table .col-total { width: 130px; }
+.rectifier-flex-table .col-margin { width: 110px; }
+.rectifier-flex-table .col-total2 { width: 130px; }
+
+/* thead / tbody / colgroup: aynı 9 sütun ızgarası (özet satırı colspan olmadan hizalanır) */
+.rectifier-flex-table col.rf-col-check { width: 52px; }
+.rectifier-flex-table col.rf-col-no { width: 56px; }
+.rectifier-flex-table col.rf-col-product { width: 240px; }
+.rectifier-flex-table col.rf-col-desc { width: 180px; }
+.rectifier-flex-table col.rf-col-cost { width: 110px; }
+.rectifier-flex-table col.rf-col-qty { width: 90px; }
+.rectifier-flex-table col.rf-col-total { width: 130px; }
+.rectifier-flex-table col.rf-col-margin { width: 110px; }
+.rectifier-flex-table col.rf-col-total2 { width: 130px; }
+
+table.rectifier-flex-table > thead > tr > th:first-child,
+table.rectifier-flex-table > tbody > tr > td:first-child {
+  width: 52px;
+  min-width: 52px;
+  box-sizing: border-box;
+}
+
+.rectifier-flex-table .col-check-with-info {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  padding: 4px 6px;
+  vertical-align: middle;
+}
+
+.rectifier-flex-table .flex-line-info-btn {
+  flex: 0 0 auto;
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  padding: 0;
+  margin: 0;
+  border: 1px solid var(--border-color, #cdd8e8);
+  border-radius: 6px;
+  background: var(--card-bg, #fff);
+  color: var(--accent-color, #2e7fc1);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rectifier-flex-table .flex-line-info-btn:hover {
+  background: var(--hover-color, #e8eef6);
+  border-color: var(--accent-color, #2e7fc1);
+}
+
+.rectifier-flex-table .flex-line-info-btn:focus-visible {
+  outline: 2px solid var(--accent-color, #2e7fc1);
+  outline-offset: 1px;
+}
+
+/* Rectifier flex: sayfa düzeni — tablo yatay kaydırma sarmalayıcıda (.rf-table-scroll) */
+body.rf-flex-pricing-page .content,
+body:has(table.rectifier-flex-table) .content {
+  overflow-x: visible;
+  max-width: 100%;
+  box-sizing: border-box;
+  gap: 12px;
+  padding: 24px clamp(12px, 3vw, 24px) 20px;
+}
+
+/* Tablo: sarmalayıcıda çerçeve; tabloda düz kenar + minimum genişlik (yatay kaydırma) */
+.rf-table-scroll .rectifier-flex-table {
+  border-radius: 0;
+  border: none;
+  margin: 0;
+  min-width: 1040px;
+}
+
+body.rf-flex-pricing-page .controls,
+body:has(table.rectifier-flex-table) .controls {
+  height: auto;
+  min-height: 42px;
+  flex-wrap: wrap;
+  white-space: normal;
+  row-gap: 10px;
+  column-gap: 10px;
+  padding: 12px 14px;
+  align-items: center;
+}
+
+body.rf-flex-pricing-page .controls .search-combobox {
+  flex: 1 1 260px;
+  min-width: min(100%, 200px);
+}
+
+body.rf-flex-pricing-page .controls #subtypeSelect {
+  flex: 0 1 160px;
+  min-width: 120px;
+}
+
+body.rf-flex-pricing-page .controls #quantityInput {
+  flex: 0 0 72px;
+  width: 72px;
+}
+
+body.rf-flex-pricing-page .controls .action-button {
+  flex: 0 0 auto;
+}
+
+/* Yatay kaydırmalı tablo alanı + sticky başlık */
+.rf-table-scroll {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--card-bg);
+  box-shadow: 0 1px 3px rgba(27, 58, 107, 0.08);
+  scrollbar-gutter: stable;
+}
+
+.rf-table-scroll:focus-within {
+  outline: 2px solid var(--epc-blue, #2e7fc1);
+  outline-offset: 2px;
+}
+
+.rf-table-scroll-hint {
+  display: none;
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+@media (max-width: 1100px) {
+  .rf-table-scroll-hint {
+    display: block;
+  }
+}
+
+.rectifier-flex-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--surface-light);
+  box-shadow: 0 1px 0 var(--border-color);
+  vertical-align: bottom;
+  padding-top: 14px;
+  padding-bottom: 12px;
+}
+
+.rectifier-flex-table tbody td {
+  vertical-align: top;
+  padding-top: 11px;
+  padding-bottom: 11px;
+}
+
+.rectifier-flex-table .col-product,
+.rectifier-flex-table .col-description {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+.rectifier-flex-table tbody td.col-cost,
+.rectifier-flex-table tbody td.col-qty,
+.rectifier-flex-table tbody td.col-total,
+.rectifier-flex-table tbody td.col-margin,
+.rectifier-flex-table tbody td.col-total2 {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  white-space: nowrap;
+}
+
+.rectifier-flex-table thead th.col-cost,
+.rectifier-flex-table thead th.col-qty,
+.rectifier-flex-table thead th.col-total,
+.rectifier-flex-table thead th.col-margin,
+.rectifier-flex-table thead th.col-total2 {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.rectifier-flex-table tr.flex-line-item td {
+  border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+body.rf-flex-pricing-page #system-config-bar {
+  flex-wrap: wrap;
+  row-gap: 8px;
+  justify-content: flex-end;
+}
+
+body.rf-flex-pricing-page #system-config-bar .form-group {
+  min-width: 0;
+}
+
+body.rf-flex-pricing-page #system-config-bar .form-input {
+  max-width: 220px;
+}
+
+/* Rectifier flex: gruplu bölüm başlığı / özet */
+.rectifier-flex-table tr.flex-section-header {
+  background: var(--surface-light, #f1f5f9);
+  border-left: 3px solid var(--epc-blue, #2e7fc1);
+  font-weight: 600;
+  user-select: none;
+}
+
+.rectifier-flex-table tr.flex-section-header:hover {
+  background: var(--hover-color, #e2e8f0);
+}
+
+.rectifier-flex-table .flex-section-title-cell {
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+/* Bölüm başlığı: kategori adı solda, "+ Satır" tüm satırlarda aynı dikey eksende (hücre sağı) */
+.rectifier-flex-table tr.flex-section-header .flex-section-title-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rectifier-flex-table tr.flex-section-header .flex-section-toggle {
+  flex: 1 1 auto;
+  min-width: 0;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.rectifier-flex-table tr.flex-section-header .flex-section-add-line {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.rectifier-flex-table .flex-section-desc-spacer {
+  vertical-align: middle;
+}
+
+.rectifier-flex-table tr.flex-section-header .flex-section-sum-cell {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-primary);
+  text-align: right;
+  vertical-align: middle;
+  cursor: default;
+}
+
+.rectifier-flex-table .flex-section-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--text-primary);
+  padding: 4px 0;
+}
+
+.rectifier-flex-table .flex-section-chevron {
+  display: inline-block;
+  width: 1.25em;
+  text-align: center;
+  font-size: 0.85em;
+}
+
+.rectifier-flex-table .flex-section-add-line {
+  padding: 2px 10px;
+  font-size: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--card-bg);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.rectifier-flex-table .flex-section-add-line:hover {
+  background: var(--hover-color);
+}
+
+.rectifier-flex-table tr.flex-line-item td.flex-line-no {
+  color: var(--text-secondary);
 }
 
 /* Diğer stiller referans.css'den alınacak */
@@ -889,8 +1204,17 @@ td:first-child {
 }
 
 .row-selected {
-  background-color: var(--surface-light) !important;
-  color: #fff;
+  background-color: rgba(46, 127, 193, 0.14) !important;
+  color: var(--text-primary, #1b3a6b) !important;
+  box-shadow: inset 3px 0 0 var(--accent-color, #2e7fc1);
+}
+
+.row-selected td {
+  color: var(--text-primary, #1b3a6b) !important;
+}
+
+.rectifier-flex-table tr.flex-line-item.row-selected td {
+  color: var(--text-primary, #1b3a6b) !important;
 }
 
 /* Form Grid Stili */
@@ -1651,6 +1975,16 @@ td:first-child {
   th, td {
     padding: 8px 10px;
   }
+
+  body.rf-flex-pricing-page .rf-table-scroll .rectifier-flex-table {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  body.rf-flex-pricing-page .rectifier-flex-table thead th {
+    font-size: 11px;
+    letter-spacing: 0;
+  }
 }
 
 @media (max-width: 600px) {
@@ -1665,5 +1999,494 @@ td:first-child {
 
   .content {
     padding: 10px;
+  }
+
+  body.rf-flex-pricing-page .menubar-right,
+  body.rf-flex-pricing-page #system-config-bar {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  body.rf-flex-pricing-page #system-config-bar .action-button {
+    width: 100%;
+    justify-content: center;
+    min-height: 40px;
+  }
+
+  body.rf-flex-pricing-page #system-config-bar .form-input {
+    max-width: none;
+    width: 100%;
+  }
+}
+
+/* ─── “Nasıl hesaplandı?” modal (rectifier-flex-pricing) ───────── */
+body.rf-calc-explain-open {
+  overflow: hidden;
+}
+
+.rf-calc-explain-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(12px, 4vw, 24px);
+  box-sizing: border-box;
+  background: rgba(27, 58, 107, 0.48);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: rfCalcOverlayIn 0.2s ease-out;
+}
+
+@keyframes rfCalcOverlayIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes rfCalcDialogIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rf-calc-explain-overlay {
+    animation: none;
+  }
+
+  .rf-calc-explain-dialog {
+    animation: none;
+  }
+}
+
+.rf-calc-explain-dialog {
+  width: min(720px, 100%);
+  max-height: min(90vh, 920px);
+  display: flex;
+  flex-direction: column;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  box-shadow:
+    0 4px 6px rgba(27, 58, 107, 0.06),
+    0 24px 48px rgba(27, 58, 107, 0.16);
+  animation: rfCalcDialogIn 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  overflow: hidden;
+}
+
+.rf-calc-explain-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 22px 16px;
+  background: linear-gradient(180deg, var(--epc-navy-light) 0%, var(--card-bg) 100%);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.rf-calc-explain-heading {
+  min-width: 0;
+}
+
+.rf-calc-explain-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--epc-blue);
+  background: var(--epc-blue-light);
+  padding: 4px 10px;
+  border-radius: 999px;
+  margin-bottom: 8px;
+}
+
+.rf-calc-explain-title {
+  margin: 0 0 6px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--epc-navy);
+}
+
+.rf-calc-explain-subtitle {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.rf-calc-explain-dot {
+  opacity: 0.5;
+  padding: 0 0.15em;
+}
+
+.rf-calc-explain-close {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 10px;
+  background: var(--surface-light);
+  color: var(--text-secondary);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.rf-calc-explain-close:hover {
+  background: var(--hover-color);
+  color: var(--epc-navy);
+}
+
+.rf-calc-explain-close:focus-visible {
+  outline: 2px solid var(--epc-blue);
+  outline-offset: 2px;
+}
+
+.rf-calc-explain-body {
+  padding: 18px 22px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.rf-calc-explain-section {
+  margin: 0;
+  padding: 16px 18px;
+  background: var(--surface-alt, var(--surface-light));
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+}
+
+.rf-calc-explain-section--technical {
+  background: var(--card-bg);
+}
+
+.rf-calc-section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.rf-calc-section-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--epc-navy);
+  background: linear-gradient(135deg, var(--epc-blue-light) 0%, var(--surface-light) 100%);
+  border: 1px solid var(--border-color);
+}
+
+.rf-calc-section-icon--tech {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.rf-calc-section-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--epc-navy);
+}
+
+.rf-calc-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.rf-calc-flow-cards {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 10px 12px;
+}
+
+.rf-calc-mini-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 112px;
+  padding: 12px 14px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(27, 58, 107, 0.04);
+}
+
+.rf-calc-mini-card--highlight {
+  border-color: var(--epc-blue);
+  background: linear-gradient(180deg, var(--epc-blue-light) 0%, var(--card-bg) 65%);
+}
+
+.rf-calc-mini-card--total {
+  border-color: var(--epc-green);
+  background: linear-gradient(180deg, var(--epc-green-light) 0%, var(--card-bg) 70%);
+}
+
+.rf-calc-mini-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+}
+
+.rf-calc-mini-value {
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--epc-navy);
+}
+
+.rf-calc-flow-op {
+  align-self: center;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  padding: 0 4px;
+}
+
+.rf-calc-flow-op--eq {
+  color: var(--epc-blue);
+}
+
+.rf-calc-flow-caption {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.rf-calc-flow-caption--muted {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.rf-calc-flow-note {
+  color: var(--warning, #e6950a);
+  font-weight: 500;
+}
+
+.rf-calc-margin-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0 4px;
+}
+
+.rf-calc-margin-line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: var(--surface-light);
+  border-radius: 999px;
+  border: 1px dashed var(--border-color);
+}
+
+.rf-calc-margin-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.rf-calc-margin-num {
+  font-size: 15px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--epc-purple);
+}
+
+.rf-calc-margin-arrow {
+  width: 2px;
+  height: 20px;
+  background: linear-gradient(180deg, var(--epc-blue) 0%, var(--epc-green) 100%);
+  border-radius: 2px;
+  position: relative;
+}
+
+.rf-calc-margin-arrow::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  transform: translateX(-50%);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 7px solid var(--epc-green);
+}
+
+.rf-calc-tech-lead {
+  margin: -4px 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.rf-calc-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.rf-calc-step {
+  display: flex;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.rf-calc-step:last-child {
+  border-bottom: none;
+  padding-bottom: 4px;
+}
+
+.rf-calc-step-index {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--epc-brand-contrast);
+  background: var(--epc-navy);
+  border-radius: 50%;
+  margin-top: 2px;
+}
+
+.rf-calc-step-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.rf-calc-step-key {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--epc-navy);
+  margin-bottom: 4px;
+}
+
+.rf-calc-step-formula {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-family: ui-monospace, 'Cascadia Code', 'Consolas', monospace;
+  margin-bottom: 6px;
+  padding: 6px 10px;
+  background: var(--surface-light);
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+.rf-calc-step-value {
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 600;
+  color: var(--epc-blue);
+}
+
+.rf-calc-empty {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 12px 4px 4px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.rf-calc-empty-icon {
+  flex-shrink: 0;
+  font-size: 18px;
+  color: var(--epc-blue);
+  opacity: 0.7;
+}
+
+.rf-calc-explain-footer {
+  padding: 14px 22px 18px;
+  border-top: 1px solid var(--border-color);
+  background: var(--surface-light);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.rf-calc-explain-btn {
+  min-width: 120px;
+  padding: 10px 22px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, var(--epc-navy) 0%, var(--epc-blue) 100%);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(46, 127, 193, 0.35);
+  transition:
+    filter 0.15s,
+    transform 0.15s;
+}
+
+.rf-calc-explain-btn:hover {
+  filter: brightness(1.05);
+}
+
+.rf-calc-explain-btn:active {
+  transform: translateY(1px);
+}
+
+.rf-calc-explain-btn:focus-visible {
+  outline: 2px solid var(--epc-blue);
+  outline-offset: 2px;
+}
+
+@media (max-width: 520px) {
+  .rf-calc-flow-cards {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .rf-calc-flow-op {
+    align-self: center;
+    padding: 2px 0;
+    font-size: 18px;
+  }
+
+  .rf-calc-explain-header {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .rf-calc-explain-close {
+    align-self: flex-end;
   }
 }

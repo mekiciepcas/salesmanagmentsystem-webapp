@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const stepsList = document.getElementById('stepsList');
   const btnNext = document.getElementById('btnNextPricing');
   const btnBack = document.getElementById('btnBackAnasayfa');
+  const selectedLineIds = new Set();
 
   function costingStorageKey(draft) {
     const n = draft && draft.quoteNumber ? String(draft.quoteNumber) : 'anon';
@@ -91,14 +92,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     emptyState.style.display = 'none';
     mainContent.style.display = 'block';
     if (costingGridCard) costingGridCard.style.display = 'block';
-    renderCostingGrid(draft);
 
-    const cust =
-      draft.customerId != null ? `Müşteri ID: ${draft.customerId}` : 'Müşteri seçilmedi';
+    // Maliyet grid bloğu (opsiyonel) kaldırıldı; eski verilerin karışmasını engelleyelim.
+    if (!costingGridCard) {
+      try {
+        sessionStorage.removeItem('epcCostingGrid');
+      } catch (_) {}
+    }
+    renderCostingGrid(draft);
+    if (draft.quoteProjectId) {
+      try {
+        sessionStorage.setItem('quoteProjectId', String(draft.quoteProjectId));
+      } catch (_) {}
+    }
+
+    const customerSummary =
+      draft.customerName
+        ? `Müşteri: ${draft.customerName}`
+        : draft.customerId != null
+          ? `Müşteri ID: ${draft.customerId}`
+          : 'Müşteri seçilmedi';
     summaryEl.innerHTML = `
       <div><strong>Teklif no:</strong> ${escapeHtml(draft.quoteNumber || '—')}</div>
       <div><strong>Para birimi:</strong> ${escapeHtml(draft.currency || 'USD')}</div>
-      <div><strong>${escapeHtml(cust)}</strong></div>
+      <div><strong>${escapeHtml(customerSummary)}</strong></div>
       <div><strong>Kalem sayısı (satır):</strong> ${draft.lines?.length ?? 0}</div>
     `;
 
@@ -109,16 +126,38 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (cur >= total) {
       stepsProgress.textContent =
         `Tüm kalemler için sıra tamamlandı (${doneCount}/${total}). Sepete eklenen ürünlerle teklif hazırlayabilirsiniz.`;
+      const quoteProjectId = sessionStorage.getItem('quoteProjectId');
+      if (quoteProjectId && localStorage.getItem('authToken')) {
+        fetch(`${window.location.origin}/api/user/quote-projects/${quoteProjectId}/finalize-docs`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+          },
+        }).catch(() => {});
+      }
       btnNext.textContent = 'Teklif Hazırla sayfasına git';
       btnNext.onclick = () => window.app.navigate('prepare-quote.html');
     } else {
       stepsProgress.textContent = `İlerleme: ${doneCount} tamamlandı, sıradaki adım ${cur + 1} / ${total}`;
       btnNext.textContent = 'Sıradaki kaleme git';
-      btnNext.onclick = goToCurrentStep;
+      btnNext.onclick = () => {
+        const firstSelectedIndex = queue.steps.findIndex((s, i) =>
+          selectedLineIds.has(String(s.lineId || `${s.routeKey}-${i}`)) && !s.done
+        );
+        if (firstSelectedIndex >= 0) {
+          goToStep(firstSelectedIndex);
+          return;
+        }
+        goToStep(cur);
+      };
     }
 
     stepsList.innerHTML = '';
     queue.steps.forEach((step, i) => {
+      const lineKey = String(step.lineId || `${step.routeKey}-${i}`);
+      if (!selectedLineIds.size) selectedLineIds.add(lineKey);
+      const isSelected = selectedLineIds.has(lineKey);
       const li = document.createElement('li');
       const isCurrent = i === cur && cur < total;
       const completed = step.done || i < cur;
@@ -130,6 +169,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           : '';
       li.innerHTML = `
         <span class="step-badge">${i + 1}</span>
+        <input type="checkbox" class="step-select-checkbox" data-line-key="${escapeHtml(lineKey)}" ${isSelected ? 'checked' : ''} title="Bu kalemi maliyetlendirme sırasına dahil et" />
         <span>${escapeHtml(step.label)}${escapeHtml(unitNote)} — ${escapeHtml(step.pricingPage)}</span>
         ${
           completed && !isCurrent
@@ -140,6 +180,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       `;
       stepsList.appendChild(li);
+      li.style.cursor = 'pointer';
+      li.addEventListener('click', () => goToStep(i));
+      const check = li.querySelector('.step-select-checkbox');
+      if (check) {
+        check.addEventListener('click', (ev) => ev.stopPropagation());
+        check.addEventListener('change', () => {
+          if (check.checked) selectedLineIds.add(lineKey);
+          else selectedLineIds.delete(lineKey);
+        });
+      }
     });
   }
 
@@ -149,22 +199,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     return d.innerHTML;
   }
 
-  async function goToCurrentStep() {
+  async function goToStep(stepIndex) {
     const queue = await window.api.pricingQueueGet();
-    if (!queue?.steps?.length || queue.currentStep >= queue.steps.length)
+    if (!queue?.steps?.length || stepIndex < 0 || stepIndex >= queue.steps.length)
       return;
 
-    const step = queue.steps[queue.currentStep];
+    const step = queue.steps[stepIndex];
+    let draftCustomerId = null;
+    let draftCustomerName = '';
+    try {
+      const storedDraft = JSON.parse(sessionStorage.getItem('offerDraft') || '{}');
+      draftCustomerId = storedDraft?.customerId ?? null;
+      draftCustomerName = storedDraft?.customerName || '';
+    } catch (_) {}
     try {
       sessionStorage.setItem(
         'pricingQueueContext',
         JSON.stringify({
-          stepIndex: queue.currentStep,
+          stepIndex,
           totalSteps: queue.steps.length,
           lineId: step.lineId,
           label: step.label,
           routeKey: step.routeKey,
           pricingPage: step.pricingPage,
+          quoteProjectId: sessionStorage.getItem('quoteProjectId') || '',
+          customerId: draftCustomerId,
+          customerName: draftCustomerName,
         })
       );
     } catch (_) {}
@@ -177,4 +237,5 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   await refresh();
+
 });

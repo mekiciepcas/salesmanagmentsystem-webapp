@@ -250,11 +250,17 @@ app.get('/api/excel/rectifier/:componentType', (req, res) => {
       })
       .filter((row) => row['Product Type']);
     if (req.params.componentType === 'DCChokes') {
-      data = data.filter(
-        (r) =>
-          r['Product Type']?.includes('Choke') ||
-          r['Product Type'] === 'DCChoke'
-      );
+      data = data.filter((r) => {
+        const pt = String(r['Product Type'] || '').trim();
+        const lower = pt.toLowerCase();
+        return (
+          pt === 'DC Choke' ||
+          pt === 'DCChoke' ||
+          lower.includes('choke') ||
+          lower.includes('şok') ||
+          lower.includes('chok')
+        );
+      });
     } else if (req.params.componentType === 'DCCapacitors') {
       data = data.filter(
         (r) =>
@@ -348,6 +354,46 @@ app.post('/api/components/find', (req, res) => {
 // Web mode flag (frontend için)
 app.get('/api/web-mode', (req, res) => {
   res.json({ webMode: true });
+});
+
+// Canlı döviz kuru (cdn.jsdelivr.net/fawazahmed0 — ücretsiz, API key gerekmez)
+let _ratesCache = null;
+let _ratesCacheAt = 0;
+const RATES_TTL_MS = 10 * 60 * 1000; // 10 dakika cache
+
+app.get('/api/exchange-rates', async (req, res) => {
+  try {
+    const now = Date.now();
+    if (_ratesCache && now - _ratesCacheAt < RATES_TTL_MS) {
+      return res.json(_ratesCache);
+    }
+
+    const response = await fetch(
+      'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json'
+    );
+    if (!response.ok) throw new Error('Kur verisi alınamadı');
+    const data = await response.json();
+    const usd = data.usd || {};
+
+    const usdTry = usd.try  ?? null;
+    const usdEur = usd.eur  ?? null;
+    const eurTry = (usdTry && usdEur) ? +(usdTry / usdEur).toFixed(4) : null;
+
+    const payload = {
+      success: true,
+      date: data.date || new Date().toISOString().slice(0, 10),
+      rates: { USD_TRY: usdTry, EUR_TRY: eurTry, USD_EUR: usdEur },
+    };
+
+    _ratesCache = payload;
+    _ratesCacheAt = now;
+    res.json(payload);
+  } catch (err) {
+    console.error('Exchange rate error:', err.message);
+    // Cache'den döndür (varsa)
+    if (_ratesCache) return res.json({ ..._ratesCache, cached: true });
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // ============ STATIC & SPA ============

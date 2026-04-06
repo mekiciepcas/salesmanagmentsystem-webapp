@@ -1,34 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Rectifier Flexible Pricing</title>
     <link rel="stylesheet" href="../styles/pricing.css">
     <script src="../scripts/web-api.js"></script>
 </head>
-<body>
+<body class="rf-flex-pricing-page">
     <div class="menubar">
         <div class="menubar-left">
             <div class="menubar-item">
-                <button class="menubar-button" onclick="location.href='anasayfa.html'">
-                    ← Ana Sayfa
+                <button class="menubar-button" id="backToConfigBtn" onclick="location.href='rectifier-pricing.html'">
+                    ← Konfigürasyona Dön
                 </button>
-            </div>
-            <div class="menubar-item">
-                <button class="menubar-button" id="fileMenuBtn">Dosya</button>
-                <div class="menubar-dropdown" id="fileMenu">
-                    <button class="menubar-dropdown-item" id="exportExcelBtn">
-                        <span>📊 Excel'e Aktar</span>
-                    </button>
-                </div>
-            </div>
-            <div class="menubar-item">
-                <button class="menubar-button" id="toolsMenuBtn">Araçlar</button>
-                <div class="menubar-dropdown" id="toolsMenu">
-                    <button class="menubar-dropdown-item" id="batteryCalcBtn">
-                        <span>🔋 Batarya Hesaplama</span>
-                    </button>
-                </div>
             </div>
         </div>
         <div class="menubar-right" id="system-config-bar">
@@ -40,8 +25,14 @@
                 <label for="systemQuantityInput">Adet:</label>
                 <input type="number" id="systemQuantityInput" value="1" min="1" class="form-input" style="width: 80px;">
             </div>
-            <button class="action-button primary-action" id="addToQuoteBtn">
-                <span>Teklife Ekle</span>
+            <button class="action-button" id="systemDetailsBtn" onclick="window.open('system-details.html','_blank')" title="Teknik veri sayfasını aç">
+                <span>📄 Sistem Detayı</span>
+            </button>
+            <button class="action-button primary-action" id="finishPricingBtn">
+                <span>Maliyetlendirmeyi Bitir</span>
+            </button>
+            <button class="action-button" id="exportExcelBtn">
+                <span>Excele Aktar</span>
             </button>
         </div>
     </div>
@@ -61,23 +52,38 @@
             <button id="deleteButton" class="action-button">🗑️ Satırları Sil</button>
             <button id="showTotalsButton" class="action-button">💰 Toplamları Göster</button>
         </div>
-        
-        <table>
+
+        <p class="rf-table-scroll-hint" aria-hidden="true">Tablo geniş; dar ekranda yatay kaydırın.</p>
+
+        <div class="rf-table-scroll" role="region" aria-label="Maliyet kalemleri tablosu" tabindex="0">
+        <table class="rectifier-flex-table">
+            <colgroup>
+                <col class="rf-col-check" span="1">
+                <col class="rf-col-no" span="1">
+                <col class="rf-col-product" span="1">
+                <col class="rf-col-desc" span="1">
+                <col class="rf-col-cost" span="1">
+                <col class="rf-col-qty" span="1">
+                <col class="rf-col-total" span="1">
+                <col class="rf-col-margin" span="1">
+                <col class="rf-col-total2" span="1">
+            </colgroup>
             <thead>
                 <tr>
-                    <th style="width: 16px"></th>
-                    <th style="width: 50px">No</th>
-                    <th style="width: 200px">Ürün</th>
-                    <th style="width: 150px">Açıklama</th>
-                    <th style="width: 100px">Maliyet</th>
-                    <th style="width: 80px">Adet</th>
-                    <th style="width: 120px">Toplam</th>
-                    <th style="width: 100px">Margin-2</th>
-                    <th style="width: 120px">Toplam-2</th>
+                    <th class="col-check"></th>
+                    <th class="col-no">No</th>
+                    <th class="col-product">Ürün</th>
+                    <th class="col-description">Açıklama</th>
+                    <th class="col-cost">Maliyet</th>
+                    <th class="col-qty">Adet</th>
+                    <th class="col-total">Maliyet Tutarı</th>
+                    <th class="col-margin">Marj</th>
+                    <th class="col-total2">Toplam Tutar</th>
                 </tr>
             </thead>
             <tbody id="priceTable"></tbody>
         </table>
+        </div>
     </div>
     
     <!-- Batarya Hesaplama Paneli (gerekirse Rectifier için de kullanılabilir) -->
@@ -127,6 +133,7 @@
         </div>
     </div>
 
+    <script src="../runtime/adapters/httpClient.js"></script>
     <script src="../scripts/pricing-queue-after-cart.js"></script>
     <script src="../scripts/rectifier-flex-pricing.js"></script>
 </body>

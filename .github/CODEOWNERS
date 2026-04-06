@@ -1,0 +1,8 @@
+# Architecture and governance ownership
+mermaids/* @mekiciepcas
+docs/adr/* @mekiciepcas
+.github/workflows/* @mekiciepcas
+src/domain/* @mekiciepcas
+src/infrastructure/* @mekiciepcas
+src/api/* @mekiciepcas
+src/runtime/* @mekiciepcas

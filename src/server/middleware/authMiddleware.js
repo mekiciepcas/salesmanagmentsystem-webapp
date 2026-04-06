@@ -1,6 +1,11 @@
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'epc-dev-secret-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error(
+    'JWT_SECRET is required. Set JWT_SECRET in environment before starting the server.'
+  );
+}
 
 function authenticate(req, res, next) {
   const header = req.headers.authorization || '';

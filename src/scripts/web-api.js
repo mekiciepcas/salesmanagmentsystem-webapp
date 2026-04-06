@@ -23,6 +23,57 @@
     return h;
   }
 
+  window.fileAPI = {
+    showSaveDialog: async function () {
+      return { canceled: false, filePath: null };
+    },
+  };
+
+  window.excelAPI = {
+    getData: async function () {
+      throw new Error('Web modunda excelAPI.getData kullanılamaz.');
+    },
+    getExcelBuffer: async function (options) {
+      var res = await fetch(API_BASE + '/api/excel/export-workbook', {
+        method: 'POST',
+        headers: Object.assign({}, authHeaders(), {
+          'Content-Type': 'application/json',
+        }),
+        body: JSON.stringify(options),
+      });
+      if (!res.ok) {
+        var msg = res.statusText;
+        try {
+          var j = await res.json();
+          if (j.error) msg = j.error;
+        } catch (_) {
+          try {
+            msg = await res.text();
+          } catch (_) {}
+        }
+        throw new Error(msg || 'Excel oluşturulamadı');
+      }
+      return new Uint8Array(await res.arrayBuffer());
+    },
+    createExcel: async function (filePath, options) {
+      var buf = await this.getExcelBuffer(options);
+      var blob = new Blob([buf], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      var name =
+        (typeof filePath === 'string' && filePath.split(/[/\\\\]/).pop()) ||
+        'fiyat-listesi.xlsx';
+      a.download = /\.xlsx$/i.test(name) ? name : name + '.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    },
+  };
+
   window.httpAPI = {
     authHeaders: authHeaders,
     get: async function (url) {
@@ -138,6 +189,15 @@
     return window.httpAPI.post('/api/web/pricing-queue/advance', {});
   },
 
+  async getExchangeRates() {
+    try {
+      const res = await fetch(`${API_BASE}/api/exchange-rates`);
+      return await res.json();
+    } catch (_) {
+      return { success: false };
+    }
+  },
+
   signOut() {
     try {
       localStorage.removeItem('authToken');
@@ -169,7 +229,7 @@
   },
 
   showSaveDialog() {
-    return Promise.resolve({ canceled: false, filePath: null });
+    return Promise.resolve({ canceled: true, filePath: null });
   },
 
   showOpenDialog() {

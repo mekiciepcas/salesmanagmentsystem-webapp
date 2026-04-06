@@ -842,6 +842,7 @@ class UIManager {
 
       // Excel dosyasını oluştur ve kaydet
       await window.excelAPI.createExcel(filePath, {
+        preset: 'pricing-generic',
         sheetName: 'Fiyat Listesi',
         data: tableData,
         styles: styles,

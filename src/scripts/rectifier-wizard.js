@@ -37,7 +37,15 @@
   /* ---- URL parametresinden lineId al (proje kalemine bağlı) ---- */
   function readLineFromUrl() {
     const params = new URLSearchParams(window.location.search);
-    const lineId = params.get('lineId');
+    // Bu sayfa her zaman URL'ye lineId ile gelmeyebilir; queue context üzerinden de bulmaya çalışıyoruz.
+    const lineIdFromUrl = params.get('lineId');
+    let lineId = lineIdFromUrl;
+    if (!lineId) {
+      try {
+        const ctx = JSON.parse(sessionStorage.getItem('pricingQueueContext') || '{}');
+        lineId = ctx.lineId;
+      } catch (_) {}
+    }
     if (!lineId) return;
     try {
       const draft = JSON.parse(sessionStorage.getItem('offerDraft') || '{}');
@@ -91,6 +99,170 @@
     if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  /* ---- Zorunlu alan validasyonu ---- */
+  function isEmptyValue(el) {
+    if (!el) return true;
+    const tag = String(el.tagName || '').toLowerCase();
+    const type = String(el.type || '').toLowerCase();
+
+    if (tag === 'select') return !String(el.value || '').trim();
+    if (tag === 'textarea') return !String(el.value || '').trim();
+
+    if (type === 'checkbox') return !el.checked;
+
+    if (type === 'number') {
+      const raw = String(el.value || '').trim();
+      if (!raw) return true;
+      const val = Number(raw);
+      if (Number.isNaN(val)) return true;
+      const minRaw = String(el.min || '').trim();
+      if (minRaw) {
+        const min = Number(minRaw);
+        if (!Number.isNaN(min) && val < min) return true;
+      }
+      return false;
+    }
+
+    return !String(el.value || '').trim();
+  }
+
+  function isElementVisible(el) {
+    if (!el) return false;
+    return !!(el.offsetParent || (el.getClientRects && el.getClientRects().length));
+  }
+
+  function getMissingFieldsForStep(stepNum) {
+    const miss = [];
+    const addIfMissing = (id, label, conditionFn = () => true) => {
+      const el = document.getElementById(id);
+      if (!conditionFn()) return;
+      if (isEmptyValue(el)) miss.push(label);
+    };
+
+    // 1) Proje Bilgileri
+    if (stepNum === 1) {
+      addIfMissing('projectCustomerName', 'Müşteri');
+      addIfMissing('projectQuoteRef', 'Teklif No');
+      addIfMissing('projectDeviceCount', 'Cihaz Adedi');
+      addIfMissing('projectQuoteDate', 'Teklif Tarihi');
+      addIfMissing('projectDeliveryWindow', 'Teslim Süresi');
+      addIfMissing('projectIncoterms', 'İncoterms');
+      addIfMissing('projectPackingType', 'Paketleme Türü');
+      return miss;
+    }
+
+    // 2) Giriş Bilgileri
+    if (stepNum === 2) {
+      addIfMissing('inputVoltageNominal', 'Nominal Giriş Gerilimi');
+      addIfMissing('inputVoltageTolerance', 'Giriş Toleransı');
+      addIfMissing('inputPhase', 'Giriş Faz Sayısı');
+      addIfMissing('inputNeutral', 'Giriş Nötr Bağlantısı');
+      addIfMissing('systemFrequency', 'Giriş Frekansı');
+      addIfMissing('acInputCurrentTHD', 'AC Giriş Akımı THD');
+      return miss;
+    }
+
+    // 3) Çıkış Bilgileri
+    if (stepNum === 3) {
+      addIfMissing('outputVoltage', 'Nominal Çıkış Gerilimi');
+      addIfMissing('outputCurrent', 'Nominal Çıkış Akımı');
+      addIfMissing('topology', 'Topoloji');
+      addIfMissing('dcRipple', 'DC Bara Dalgalılığı');
+      addIfMissing('extraLoadOutput', 'Ek Yük Çıkışı');
+      addIfMissing('diodeDropper', 'Diyot Dropper');
+      addIfMissing('internalDistribution', 'Dahili DC Yük Dağıtımı');
+      addIfMissing('batteryLVD', 'Akü LVD');
+      return miss;
+    }
+
+    // 4) Akü Bilgileri
+    if (stepNum === 4) {
+      addIfMissing('batteryType', 'Akü Tipi');
+      addIfMissing('batteryVoltage', 'Batarya Voltajı');
+      addIfMissing('batteryInCabinet', 'Kutu İçinde Dahili Akü');
+      addIfMissing('floatVoltagePerCell', 'Float Gerilimi');
+      addIfMissing('equalizationVoltagePerCell', 'Dengeleme Gerilimi');
+      addIfMissing('boostVoltagePerCell', 'Boost Gerilimi');
+
+      const batteryInCabinetVal = document.getElementById('batteryInCabinet')?.value || '';
+      const requireInternalBattery = batteryInCabinetVal === 'Var / Yes';
+      addIfMissing('internalBatteryQuantity', 'Dahili Akü Adedi', () => requireInternalBattery && isElementVisible(document.getElementById('internalBatteryDetails')));
+      addIfMissing('internalBatteryName', 'Dahili Akü Adı', () => requireInternalBattery && isElementVisible(document.getElementById('internalBatteryNameRow')));
+
+      return miss;
+    }
+
+    // 5) Mekanik Bilgiler
+    if (stepNum === 5) {
+      addIfMissing('cabinetType', 'Kutu Tipi');
+      addIfMissing('cabinetSize', 'Kutu Boyutları');
+      addIfMissing('protectionClass', 'Koruma Sınıfı');
+      addIfMissing('cabinetColor', 'Kutu Rengi');
+      addIfMissing('cableEntry', 'Kablo Girişi');
+      addIfMissing('sheetType', 'Sac Tipi');
+      addIfMissing('cooling', 'Soğutma');
+      addIfMissing('airflowDirection', 'Hava Akış Yönü');
+      addIfMissing('operatingTemperature', 'Çalışma Sıcaklığı');
+
+      const cabinetSizeVal = document.getElementById('cabinetSize')?.value || '';
+      const requireCustomCabinet = cabinetSizeVal === 'Özel Boyutlar';
+      addIfMissing('customCabinetWidth', 'Özel Genişlik', () => requireCustomCabinet && isElementVisible(document.getElementById('customCabinetSizeRow')));
+      addIfMissing('customCabinetDepth', 'Özel Derinlik', () => requireCustomCabinet && isElementVisible(document.getElementById('customCabinetSizeRow')));
+      addIfMissing('customCabinetHeight', 'Özel Yükseklik', () => requireCustomCabinet && isElementVisible(document.getElementById('customCabinetSizeRow')));
+
+      return miss;
+    }
+
+    // 6) Kullanıcı Arayüzü
+    if (stepNum === 6) {
+      addIfMissing('frontPanel', 'Ön Panel Tipi');
+      // Ölçü aletleri artık opsiyonel: bu adımda zorunlu tutulmaz.
+      return miss;
+    }
+
+    // 7) Haberleşme
+    if (stepNum === 7) {
+      addIfMissing('communicationProtocol', 'Protokol');
+      addIfMissing('relayAlarmOutputs', 'Röle Kuru Kontak Alarm Çıkışı');
+      addIfMissing('parallelOperation', 'Paralel Çalışma');
+      return miss;
+    }
+
+    // 8-9 opsiyonel
+    return miss;
+  }
+
+  function ensureValidationMessageEl() {
+    let el = document.getElementById('wizardValidationMessage');
+    if (el) return el;
+    el = document.createElement('div');
+    el.id = 'wizardValidationMessage';
+    el.style.display = 'none';
+    el.style.marginTop = '10px';
+    el.style.padding = '10px 12px';
+    el.style.borderRadius = '10px';
+    el.style.border = '1px solid var(--error, #ef4444)';
+    el.style.background = 'rgba(239, 68, 68, 0.08)';
+    el.style.color = 'var(--text-primary)';
+    el.style.fontSize = '13px';
+    el.style.maxWidth = '100%';
+    const footer = document.querySelector('.wizard-footer');
+    footer?.parentElement?.insertBefore(el, footer);
+    return el;
+  }
+
+  function showValidationError(missingLabels) {
+    const el = ensureValidationMessageEl();
+    if (!el) return;
+    el.textContent = `Bu adım için şu alanlar zorunlu: ${missingLabels.join(', ')}`;
+    el.style.display = 'block';
+  }
+
+  function clearValidationError() {
+    const el = document.getElementById('wizardValidationMessage');
+    if (el) el.style.display = 'none';
+  }
+
   /* ---- Müşteri listesini yükle ---- */
   async function loadCustomers() {
     const sel = document.getElementById('projectCustomerName');
@@ -109,9 +281,9 @@
       });
 
       // Session'dan seçili müşteriyi uygula
-      const ctx = JSON.parse(sessionStorage.getItem('quoteProjectContext') || '{}');
-      if (ctx.customerId) {
-        sel.value = String(ctx.customerId);
+      const draft = JSON.parse(sessionStorage.getItem('offerDraft') || '{}');
+      if (draft.customerId) {
+        sel.value = String(draft.customerId);
         const sidebarCust = document.getElementById('sidebarCustomer');
         if (sidebarCust) {
           const opt = sel.selectedOptions[0];
@@ -125,30 +297,165 @@
   function fillPreparedBy() {
     const el = document.getElementById('projectPreparedBy');
     if (!el) return;
+
+    const existing = String(el.value || '').trim();
+    if (existing) return;
+
+    // 1) localStorage.currentUser → hızlı yol
     try {
-      const token = localStorage.getItem('authToken');
-      if (!token) return;
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      el.value = payload.name || payload.username || '';
+      const u = JSON.parse(localStorage.getItem('currentUser') || 'null');
+      const full =
+        u?.full_name ||
+        u?.fullName ||
+        u?.name ||
+        u?.username ||
+        u?.email ||
+        '';
+      if (full) {
+        el.value = String(full);
+        return;
+      }
     } catch (_) {}
+
+    // 2) JWT payload → fallback
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const full =
+          payload?.full_name || payload?.fullName || payload?.name || payload?.username || '';
+        if (full) el.value = String(full);
+      } catch (_) {}
+    }
+
+    // 3) /api/auth/me → istersen kesinleştirme
+    if (!String(el.value || '').trim() && token) {
+      (async () => {
+        try {
+          const r = await fetch(`${window.location.origin}/api/auth/me`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const j = await r.json().catch(() => ({}));
+          if (!r.ok) return;
+          const full =
+            j?.data?.full_name ||
+            j?.data?.fullName ||
+            j?.data?.name ||
+            j?.data?.username ||
+            j?.full_name ||
+            j?.fullName ||
+            j?.name ||
+            j?.username ||
+            '';
+          if (full) el.value = String(full);
+        } catch (_) {}
+      })();
+    }
+  }
+
+  /* ---- Ölçüm noktası seçeneklerini tipe göre filtrele ---- */
+  function updateMeasurementPointOptions() {
+    const typeEl = document.getElementById('measurementInstrumentType');
+    const pointEl = document.getElementById('measurementPoint');
+    if (!typeEl || !pointEl) return;
+
+    const typeVal = typeEl.value || '';
+    const prevVal = pointEl.value;
+    const typeLow = typeVal.toLowerCase();
+
+    // Tüm olası seçenekler
+    const allOptions = [
+      { value: '', text: 'Ölçüm Noktası...' },
+      // Nokta bazlı (multimetre için)
+      { value: 'Yük / Load',    text: 'Yük / Load',    group: 'point' },
+      { value: 'Akü / Battery', text: 'Akü / Battery', group: 'point' },
+      { value: 'Giriş / Input', text: 'Giriş / Input', group: 'point' },
+      // Detaylı (analog/dijital için)
+      { value: 'Yük gerilimi / Load Voltage',      text: 'Yük Gerilimi',      group: 'detail' },
+      { value: 'Yük akımı / Load Current',         text: 'Yük Akımı',         group: 'detail' },
+      { value: 'Akü gerilimi / Battery Voltage',   text: 'Akü Gerilimi',      group: 'detail' },
+      { value: 'Akü akımı / Battery Current',      text: 'Akü Akımı',         group: 'detail' },
+      { value: 'Giriş gerilimler / Input Voltages',text: 'Giriş Gerilimler',  group: 'detail' },
+      { value: 'Giriş akımlar / Input Currents',   text: 'Giriş Akımlar',     group: 'detail' },
+    ];
+
+    let allowed;
+    if (typeLow.includes('multimetre') || typeLow.includes('multimeter')) {
+      // Multimetre: yük, akü, giriş (tek alet hem akım hem voltaj ölçebildiğinden nokta bazlı)
+      allowed = (o) => o.value === '' || o.group === 'point';
+    } else if (typeLow.includes('enerji') || typeLow.includes('energy')) {
+      // Enerji güç analizörü: sadece giriş
+      allowed = (o) => o.value === '' || o.value === 'Giriş / Input';
+    } else if (typeVal !== '') {
+      // Analog / Dijital: gerilim–akım detaylı seçenekler
+      allowed = (o) => o.value === '' || o.group === 'detail';
+    } else {
+      // Seçim yok → sadece placeholder
+      allowed = (o) => o.value === '';
+    }
+
+    pointEl.innerHTML = '';
+    allOptions.filter(allowed).forEach((opt) => {
+      const o = document.createElement('option');
+      o.value = opt.value;
+      o.textContent = opt.text;
+      pointEl.appendChild(o);
+    });
+
+    // Önceki seçim hâlâ geçerliyse koru
+    if ([...pointEl.options].some((o) => o.value === prevVal)) {
+      pointEl.value = prevVal;
+    }
   }
 
   /* ---- DOMContentLoaded ---- */
   document.addEventListener('DOMContentLoaded', () => {
+    // Validasyon mesaj alanını hazırla
+    ensureValidationMessageEl();
+
     fillFromSession();
     readLineFromUrl();
     loadCustomers();
     fillPreparedBy();
+
+    // Ölçüm noktası filtresini başlat ve tipe bağla
+    updateMeasurementPointOptions();
+    document.getElementById('measurementInstrumentType')
+      ?.addEventListener('change', updateMeasurementPointOptions);
+
     goToStep(1);
 
-    document.getElementById('prevStepBtn')?.addEventListener('click', () => goToStep(currentStep - 1));
-    document.getElementById('nextStepBtn')?.addEventListener('click', () => goToStep(currentStep + 1));
+    document.getElementById('prevStepBtn')?.addEventListener('click', () => {
+      clearValidationError();
+      goToStep(currentStep - 1);
+    });
+
+    document.getElementById('nextStepBtn')?.addEventListener('click', () => {
+      const next = currentStep + 1;
+      const missing = getMissingFieldsForStep(currentStep);
+      if (missing.length) {
+        showValidationError(missing);
+        return;
+      }
+      clearValidationError();
+      goToStep(next);
+    });
 
     // Adım bubble tıklama
     document.querySelectorAll('.wizard-step').forEach((s) => {
       s.addEventListener('click', () => {
         const n = parseInt(s.getAttribute('data-step'), 10);
-        if (n) goToStep(n);
+        if (!n) return;
+        // İleri atlamalarda sadece mevcut adım zorunluluklarını kontrol ediyoruz
+        if (n > currentStep) {
+          const missing = getMissingFieldsForStep(currentStep);
+          if (missing.length) {
+            showValidationError(missing);
+            return;
+          }
+        }
+        clearValidationError();
+        goToStep(n);
       });
     });
 

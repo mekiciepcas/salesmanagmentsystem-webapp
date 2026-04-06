@@ -11,7 +11,8 @@ class RectifierPricing {
       currentReadingCards: 'CurrentReadingCards.xlsx',
       freewheelingDiodes: 'FreewheelingDiodes.xlsx',
       thyristors: 'Thyristors.xlsx',
-      dcChokes: 'DCChokes.xlsx',
+      /* API/IPC: Rectifier.xlsx → DCComponents; DC şok satırları Product Type ile filtrelenir */
+      dcChokes: 'Rectifier.xlsx (DCComponents)',
       dcCapacitors: 'DCCapacitors.xlsx',
       transformers: 'Transformers.xlsx',
     };
@@ -31,10 +32,10 @@ class RectifierPricing {
       relays: [],
       controlCards: [],
       measurementInstruments: [],
-      communicationComponents: [],
       communicationProtocols: [],
       relayAlarmOutputs: [],
       cabinets: [],
+      options: [],
     };
 
     // Hesaplama sonuçları
@@ -96,6 +97,7 @@ class RectifierPricing {
       dcRipple: document.getElementById('dcRipple'),
       extraLoadOutput: document.getElementById('extraLoadOutput'),
       diodeDropper: document.getElementById('diodeDropper'),
+      dropperVoltageDropV: document.getElementById('dropperVoltageDropV'),
       internalDistribution: document.getElementById('internalDistribution'),
       batteryLVD: document.getElementById('batteryLVD'),
     };
@@ -280,6 +282,7 @@ class RectifierPricing {
     
     // Dahili dağıtım için event listener'lar
     this.setupInternalDistribution();
+    this.setupDropperVoltageField();
     
     // Müşteri seçimi ve ekleme
     this.setupCustomerSelection();
@@ -289,6 +292,7 @@ class RectifierPricing {
   async setupCustomerSelection() {
     // Müşterileri yükle (şimdilik localStorage'dan, sonra database'den)
     await this.loadCustomers();
+    this.applyCustomerFromProjectContext();
     
     // Yeni müşteri ekle butonu
     const addCustomerBtn = document.getElementById('addCustomerBtn');
@@ -339,10 +343,13 @@ class RectifierPricing {
 
       // PostgreSQL API'den müşterileri çek
       try {
-        const response = await fetch('http://localhost:3110/api/customers', {
+        const response = await fetch(`${window.location.origin}/api/customers?limit=500`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            ...(localStorage.getItem('authToken')
+              ? { Authorization: `Bearer ${localStorage.getItem('authToken')}` }
+              : {}),
           },
         });
 
@@ -354,9 +361,16 @@ class RectifierPricing {
             // Müşterileri select'e ekle
             customers.forEach((customer) => {
               const option = document.createElement('option');
-              option.value = customer.company_name || customer.id;
-              option.textContent = customer.company_name || `Müşteri #${customer.id}`;
-              option.dataset.customerId = customer.id;
+              const label =
+                String(
+                  customer.company_name ||
+                    customer.name ||
+                    customer.customer_name ||
+                    ''
+                ).trim() || `Müşteri #${customer.id}`;
+              option.value = String(customer.id);
+              option.textContent = label;
+              option.dataset.customerId = String(customer.id);
               select.appendChild(option);
             });
 
@@ -370,8 +384,12 @@ class RectifierPricing {
           const localCustomers = JSON.parse(localStorage.getItem('customers') || '[]');
           localCustomers.forEach((customer) => {
             const option = document.createElement('option');
-            option.value = customer.company_name || customer.name || customer.id;
-            option.textContent = customer.company_name || customer.name || customer.id;
+            const label =
+              String(customer.company_name || customer.name || '').trim() ||
+              `Müşteri #${customer.id}`;
+            option.value = String(customer.id ?? '');
+            option.textContent = label;
+            option.dataset.customerId = String(customer.id ?? '');
             select.appendChild(option);
           });
         }
@@ -381,13 +399,71 @@ class RectifierPricing {
         const localCustomers = JSON.parse(localStorage.getItem('customers') || '[]');
         localCustomers.forEach((customer) => {
           const option = document.createElement('option');
-          option.value = customer.company_name || customer.name || customer.id;
-          option.textContent = customer.company_name || customer.name || customer.id;
+          const label =
+            String(customer.company_name || customer.name || '').trim() ||
+            `Müşteri #${customer.id}`;
+          option.value = String(customer.id ?? '');
+          option.textContent = label;
+          option.dataset.customerId = String(customer.id ?? '');
           select.appendChild(option);
         });
       }
     } catch (error) {
       console.error('Müşteri yükleme hatası:', error);
+    }
+  }
+
+  applyCustomerFromProjectContext() {
+    try {
+      const select = this.projectInputs.customerName;
+      if (!select || select.tagName !== 'SELECT' || !select.options?.length) return;
+
+      const queueCtx = JSON.parse(sessionStorage.getItem('pricingQueueContext') || '{}');
+      const offerDraft = JSON.parse(sessionStorage.getItem('offerDraft') || '{}');
+      const currentProject = JSON.parse(localStorage.getItem('currentProject') || '{}');
+      const selectedProject = JSON.parse(localStorage.getItem('selectedProject') || '{}');
+
+      const customerIdCandidates = [
+        queueCtx?.customerId,
+        offerDraft?.customerId,
+        currentProject?.customerId,
+        currentProject?.customer_id,
+        selectedProject?.customerId,
+        selectedProject?.customer_id,
+      ]
+        .map((v) => (v == null ? '' : String(v).trim()))
+        .filter(Boolean);
+
+      const customerNameCandidates = [
+        queueCtx?.customerName,
+        queueCtx?.customer,
+        offerDraft?.customerName,
+        currentProject?.customerName,
+        currentProject?.customer_name,
+        selectedProject?.customerName,
+        selectedProject?.customer_name,
+      ]
+        .map((v) => (v == null ? '' : String(v).trim()))
+        .filter(Boolean);
+
+      const normalize = (value) => String(value || '').toLocaleLowerCase('tr-TR').trim();
+      const idSet = new Set(customerIdCandidates.map(String));
+      const nameSet = new Set(customerNameCandidates.map(normalize));
+
+      const optionToSelect = Array.from(select.options).find((opt) => {
+        const optionId = String(opt.dataset?.customerId || '').trim();
+        const optionVal = normalize(opt.value);
+        const optionText = normalize(opt.textContent);
+        const idMatched = optionId && idSet.has(optionId);
+        const nameMatched = nameSet.has(optionVal) || nameSet.has(optionText);
+        return idMatched || nameMatched;
+      });
+
+      if (!optionToSelect) return;
+      select.value = optionToSelect.value;
+      select.dispatchEvent(new Event('change'));
+    } catch (e) {
+      console.warn('Müşteri otomatik seçim başarısız:', e);
     }
   }
 
@@ -739,6 +815,47 @@ class RectifierPricing {
   // Ölçü aletleri için setup
   setupMeasurementInstruments() {
     if (this.uiInputs.addMeasurementInstrumentBtn) {
+      const updateMeasurementPointOptions = () => {
+        const typeVal = this.uiInputs.measurementInstrumentType?.value || '';
+        const pointSel = this.uiInputs.measurementPoint;
+        if (!pointSel) return;
+
+        const typeLower = String(typeVal).toLowerCase();
+        const mpPlaceholder = 'Ölçüm Noktası...';
+
+        // Multimetre: Yük, Akü, Giriş
+        if (typeLower.includes('multimetre') || typeLower.includes('multimeter')) {
+          pointSel.innerHTML = `<option value="">${mpPlaceholder}</option>`;
+          ['Yük', 'Akü', 'Giriş'].forEach((p) => {
+            const opt = document.createElement('option');
+            opt.value = p;
+            opt.textContent = p;
+            pointSel.appendChild(opt);
+          });
+          // Seçili değer izinli değilse temizle
+          if (pointSel.value && !['Yük', 'Akü', 'Giriş'].includes(pointSel.value)) {
+            pointSel.value = '';
+          }
+          return;
+        }
+
+        // Enerji analizörü: sadece Giriş
+        if (typeLower.includes('enerji') || typeLower.includes('energy analyzer')) {
+          pointSel.innerHTML = `<option value="">${mpPlaceholder}</option>`;
+          const opt = document.createElement('option');
+          opt.value = 'Giriş';
+          opt.textContent = 'Giriş';
+          pointSel.appendChild(opt);
+          if (pointSel.value && pointSel.value !== 'Giriş') pointSel.value = '';
+          return;
+        }
+      };
+
+      // Tip değişince ölçüm noktası seçeneklerini kural setine göre güncelle
+      this.uiInputs.measurementInstrumentType?.addEventListener('change', updateMeasurementPointOptions);
+      // İlk seçim varsa da uygula
+      updateMeasurementPointOptions();
+
       this.uiInputs.addMeasurementInstrumentBtn.addEventListener('click', () => {
         const type = this.uiInputs.measurementInstrumentType?.value;
         const point = this.uiInputs.measurementPoint?.value;
@@ -896,7 +1013,24 @@ class RectifierPricing {
       listContainer.appendChild(item);
     });
   }
-  
+
+  /** Diyot dropper kademeli seçimde manuel düşüş (V) alanını göster/gizle */
+  setupDropperVoltageField() {
+    const sel = this.deviceOutputs.diodeDropper;
+    const sync = () => {
+      const row = document.getElementById('dropperVoltageDropRow');
+      if (!row) return;
+      const v = sel?.value || '';
+      const show =
+        v &&
+        !this.isDiodeDropperOff(v) &&
+        !this.isDiodeDropperDcChopper(v);
+      row.style.display = show ? 'block' : 'none';
+    };
+    if (sel) sel.addEventListener('change', sync);
+    sync();
+  }
+
   // Ek özellikler listesini başlat
   initializeFeaturesList() {
     const allFeatures = [
@@ -1099,12 +1233,13 @@ class RectifierPricing {
       coolingComponents:       'CoolingComponents',
       diodeDroppers:           'DiodeDroppers',
       relays:                  'Relays',
+      // ControlCards: Card Type (eski seçim) + Electronic Board + BoardScope (Standard/Opsiyon) + OptionMatch
       controlCards:            'ControlCards',
       measurementInstruments:  'MeasurementInstruments',
-      communicationComponents: 'CommunicationComponents',
       communicationProtocols:  'CommunicationProtocols',
       relayAlarmOutputs:       'RelayAlarmOutputs',
       cabinets:                'Cabinets',
+      options:                 'Options',
     };
 
     const token = localStorage.getItem('authToken') || localStorage.getItem('token') || '';
@@ -1118,8 +1253,13 @@ class RectifierPricing {
       for (const [key, componentType] of Object.entries(componentTypeMap)) {
         try {
           const res = await fetch(`/api/excel/rectifier/${componentType}`, { headers });
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const json = await res.json();
+          const json = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            const err = new Error(json.error || `HTTP ${res.status}`);
+            err.status = res.status;
+            err.detail = json.detail || '';
+            throw err;
+          }
           const data = json.data || [];
           this.excelData[key] = data;
           loadedCount++;
@@ -1132,7 +1272,15 @@ class RectifierPricing {
           console.error(`✗ ${componentType} yükleme hatası:`, err);
           this.excelData[key] = [];
           failedCount++;
-          failedComponents.push(componentType);
+          const reason =
+            err.status === 401
+              ? '401-Oturum'
+              : err.status === 404 || err.status === 503
+                ? 'DosyaYok'
+                : err.status === 400
+                  ? 'Geçersizİstek'
+                  : 'SunucuHatası';
+          failedComponents.push(`${componentType}(${reason})`);
         }
       }
 
@@ -1481,6 +1629,13 @@ class RectifierPricing {
       breakerType: this.inputs.breakerType?.value || 'MCB',
       systemName: this.projectInputs.quoteRef?.value || this.inputs.systemName?.value || 'Rectifier System',
       diodeDropper: this.deviceOutputs.diodeDropper?.value || '',
+      dropperVoltageDropV:
+        (() => {
+          const raw = this.deviceOutputs.dropperVoltageDropV?.value;
+          if (raw == null || String(raw).trim() === '') return null;
+          const v = parseFloat(String(raw).replace(',', '.'));
+          return Number.isFinite(v) && v > 0 ? v : null;
+        })(),
       batteryLVD: this.deviceOutputs.batteryLVD?.value || '',
       internalDistribution: this.deviceOutputs.internalDistribution?.value || '',
       internalDistributions: this.internalDistributions || [],
@@ -1488,7 +1643,25 @@ class RectifierPricing {
       parallelOperation: this.communicationInputs.parallelOperation?.value || '',
       communicationProtocol: this.communicationInputs.communicationProtocol?.value || '',
       relayAlarmOutputs: this.alarmInputs.relayAlarmOutputs?.value || '',
+      cabinetSize: this.mechanicalInputs.cabinetSize?.value || '',
+      protectionClass: this.mechanicalInputs.protectionClass?.value || '',
+      cabinetColor: this.mechanicalInputs.cabinetColor?.value || '',
+      frontPanel: this.uiInputs.frontPanel?.value || '',
+      // Akü adımında hesaplanan toplam float/boost gerilimlerini direkt aktar
+      precomputedFloatVoltage: parseFloat(this.batteryInputs.floatVoltage?.value || '0') || null,
+      precomputedBoostVoltage: parseFloat(this.batteryInputs.boostVoltage?.value || '0') || null,
     };
+  }
+
+  /**
+   * Giriş kesicisi için efektif tip (B2H → MCCB). İş kuralı: docs/rectifier-pricing-business-rules.md
+   * Çıkış/batarya kesicileri doğrudan inputs.breakerType kullanır.
+   */
+  getEffectiveInputBreakerType(inputs) {
+    const top = String(inputs?.topology || '').trim();
+    if (top === 'B2H') return 'MCCB';
+    const t = String(inputs?.breakerType || 'MCB').trim();
+    return t || 'MCB';
   }
 
   // Proje / müşteri konfigürasyonunu al (tüm girdiler dahil)
@@ -1529,10 +1702,21 @@ class RectifierPricing {
       }
     });
 
-        return {
+    const customerNameFromSelect = (() => {
+      const el = p.customerName;
+      if (!el) return '';
+      if (el.tagName === 'SELECT' && el.selectedIndex > 0) {
+        const opt = el.options[el.selectedIndex];
+        const txt = (opt && opt.textContent) ? String(opt.textContent).trim() : '';
+        if (txt) return txt;
+      }
+      return String(el.value || '').trim();
+    })();
+
+    return {
       // Proje Bilgileri
       project: {
-        customerName: p.customerName?.value || '',
+        customerName: customerNameFromSelect,
         quoteRef: p.quoteRef?.value || '',
         deviceCount: parseInt(p.deviceCount?.value || '1', 10),
         quoteDate: p.quoteDate?.value || '', // Teklif tarihi
@@ -1561,6 +1745,12 @@ class RectifierPricing {
         dcRipple: parseFloat(do_.dcRipple?.value || '5'),
         extraLoadOutput: do_.extraLoadOutput?.value || '',
         diodeDropper: do_.diodeDropper?.value || '',
+        dropperVoltageDropV: (() => {
+          const raw = do_.dropperVoltageDropV?.value;
+          if (raw == null || String(raw).trim() === '') return null;
+          const v = parseFloat(String(raw).replace(',', '.'));
+          return Number.isFinite(v) && v > 0 ? v : null;
+        })(),
         internalDistribution: do_.internalDistribution?.value || '',
         internalDistributions: this.internalDistributions || [],
         batteryLVD: do_.batteryLVD?.value || '',
@@ -1599,12 +1789,15 @@ class RectifierPricing {
       // Kullanıcı Arayüzü
       userInterface: {
         frontPanel: ui.frontPanel?.value || '',
+        measurementInstrumentType: ui.measurementInstrumentType?.value || '',
+        measurementPoint: ui.measurementPoint?.value || '',
         measurementInstruments: this.measurementInstruments || [],
       },
       // Haberleşme Arayüzü
       communication: {
         protocol: ci.communicationProtocol?.value || '',
         relayAlarmOutputs: ci.relayAlarmOutputs?.value || '',
+        alarmOutputCount: ci.relayAlarmOutputs?.value || '',
         parallelOperation: ci.parallelOperation?.value || '',
       },
       // Alarm & Koruma
@@ -1623,14 +1816,17 @@ class RectifierPricing {
     const efficiency = inputs.inputPhase === 3 ? 0.9 : 0.8;
     const powerFactor = inputs.inputPhase === 3 ? 0.8 : 0.7;
 
-    // Trafo gücü (kVA)
-    const transformerPower =
-      (inputs.outputCurrent * inputs.outputVoltage) /
-      (efficiency * powerFactor);
-
-    // Float, Equalization ve Boost gerilimleri (VRLA için)
+    // Float, Equalization ve Boost gerilimleri:
+    // Önce akü adımında hesaplanan hazır değerleri kullan (precomputedFloatVoltage),
+    // bunlar yoksa veya 0 ise runtime'da hesapla.
     let floatVoltage, equalizationVoltage, boostVoltage;
-    if (inputs.batteryType === 'VRLA') {
+    const preFloat = Number(inputs.precomputedFloatVoltage || 0);
+    const preBoost = Number(inputs.precomputedBoostVoltage || 0);
+    if (preFloat > 0) {
+      floatVoltage = preFloat;
+      boostVoltage = preBoost > 0 ? preBoost : preFloat;
+      equalizationVoltage = boostVoltage;
+    } else if (inputs.batteryType === 'VRLA') {
       const cellCount = inputs.batteryVoltage / 2; // 2V per cell
       floatVoltage = cellCount * 2.24;
       equalizationVoltage = cellCount * 2.40;
@@ -1642,6 +1838,12 @@ class RectifierPricing {
       boostVoltage = inputs.batteryVoltage * 1.2;
     }
 
+    // Trafo gücü önce W olarak hesaplanır; seçim/gösterimde kVA kullanılır.
+    const transformerPowerWatts =
+      (inputs.outputCurrent * floatVoltage) /
+      (efficiency * powerFactor);
+    const transformerPower = transformerPowerWatts / 1000;
+
     // Sekonder gerilim (3 faz için float, tek faz için boost)
     const secondaryVoltage =
       inputs.inputPhase === 3 ? floatVoltage : boostVoltage;
@@ -1649,24 +1851,25 @@ class RectifierPricing {
     // Giriş akımı (tolerans dahil)
     // Not: Giriş gerilimi trafo hesaplamasında primer için nominaldir (tolerans uygulanmaz)
     // Tolerans sadece giriş akımı hesaplamasında kullanılır
-    // +/-%10 tolerans ise +%10 gibi düşünüp gerilimin %10 fazlasından hesap yapılır (en kötü durum senaryosu)
-    // Formül: Giriş Akımı (A) = Trafo Gücü (W) / (Primer Gerilimi (V) × √Faz Sayısı)
-    // transformerPower W cinsinden hesaplanıyor
+    // +/-%10 tolerans için en kötü durumda minimum primer gerilimi kullanılır: 400V -> 360V
+    // Formül: Giriş Akımı (A) = Trafo Gücü (W) / (Primer Minimum Gerilimi (V) × √Faz Sayısı)
+    const voltageToleranceRatio = Math.min(0.99, Math.max(0, Number(inputs.voltageTolerance) || 0));
     const inputVoltageWithTolerance =
-      inputs.inputVoltage * (1 + inputs.voltageTolerance);
+      Math.max(0.001, inputs.inputVoltage * (1 - voltageToleranceRatio));
     const inputCurrent =
-      transformerPower /
+      transformerPowerWatts /
       (inputVoltageWithTolerance * Math.sqrt(inputs.inputPhase));
 
     // DC Şok ve Kapasitör hesaplaması
     const dcCalculations = this.calculateDCComponents(
       inputs,
-      transformerPower,
+      transformerPowerWatts,
       secondaryVoltage
     );
 
     return {
       transformerPower,
+      transformerPowerWatts,
       inputCurrent,
       floatVoltage,
       equalizationVoltage,
@@ -1679,6 +1882,60 @@ class RectifierPricing {
     };
   }
 
+  /**
+   * DCComponents (dcChokes) kataloğunda, [minMh, maxMh] aralığındaki benzersiz endüktanslar (mH).
+   * Sadece çıkış akımına uygun (Current Rating >= requiredCurrentA) satırlar dikkate alınır.
+   */
+  getDCChokeCatalogInductancesMh(minMh, maxMh, requiredCurrentA) {
+    const rows = Array.isArray(this.excelData?.dcChokes) ? this.excelData.dcChokes : [];
+    const min = Number(minMh);
+    const max = Number(maxMh);
+    const needA = Number(requiredCurrentA) || 0;
+    if (!Number.isFinite(min) || !Number.isFinite(max) || min > max) return [];
+    const seen = new Set();
+    const values = [];
+    for (const row of rows) {
+      const L = Number(
+        this.getColumn(row, [
+          'Inductance (mH)',
+          'Inductance',
+          'L (mH)',
+          'L(mH)',
+          'Endüktans (mH)',
+          'Endüktans mH',
+        ]) || 0
+      );
+      const iA = Number(
+        this.getColumn(row, [
+          'Current Rating (A)',
+          'Current Rating',
+          'Current (A)',
+          'Rating (A)',
+          'Current',
+          'Akım (A)',
+          'Rated Current (A)',
+        ]) || 0
+      );
+      if (!Number.isFinite(L) || L <= 0) continue;
+      if (!Number.isFinite(iA) || iA < needA) continue;
+      if (L < min || L > max) continue;
+      const key = Math.round(L * 1e9) / 1e9;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      values.push(L);
+    }
+    values.sort((a, b) => a - b);
+    return values;
+  }
+
+  getDefaultDCChokeScanValuesMh() {
+    const out = [];
+    for (let value = 0.25; value <= 2.0001; value += 0.01) {
+      out.push(Number(value.toFixed(3)));
+    }
+    return out;
+  }
+
   // DC Şok ve Kapasitör hesaplaması
   calculateDCComponents(inputs, transformerPower, secondaryVoltage) {
     // Trafo İç Endüktansı Hesaplama
@@ -1689,82 +1946,716 @@ class RectifierPricing {
     // İç Endüktans L_trafo = XL / (2 × π × Sistem Frekansı)
     const L_trafo = XL / (2 * Math.PI * inputs.systemFrequency);
 
-    // Toplam Endüktans: L_toplam = L_trafo + L_DC_Şok
-    // DC Şok: Her zaman 1mH (0.001H) sabit değer kullanılır
-    const L_DC_Shok = 0.001; // 1mH
-    const L_toplam = L_trafo + L_DC_Shok;
+    // Hedef kesim frekansı sınırı:
+    // - 3 faz: 34Hz'den küçük
+    // - 1 faz: 20Hz'den küçük
+    const isSinglePhase = Number(inputs.inputPhase || 0) === 1 || inputs.topology === 'B2H';
+    const targetFreq = isSinglePhase ? 20 : 34;
 
-    // Hedef Kesim Frekansı (Topolojiye Göre)
-    let targetFreq;
-    switch (inputs.topology) {
-      case 'B2H':
-        targetFreq = 20; // Tek Faz: 20Hz
-        break;
-      case 'B6C':
-        targetFreq = 35; // 6 Pulse: 35Hz
-        break;
-      case 'B12C':
-        targetFreq = 35; // 12 Pulse: 35Hz
-        break;
-      default:
-        targetFreq = 35; // Varsayılan
-    }
+    const minCapCountRaw = Number(inputs.outputCurrent || 0) / (Math.max(1, Number(inputs.inputPhase || 1)) * 15);
+    const minCapRounded = this.calculateThresholdRoundedCount(minCapCountRaw);
+    const minCapCount = Math.max(2, minCapRounded);
+    const capOptions = [
+      { uf: 4700, f: 4700e-6 },
+      { uf: 10000, f: 10000e-6 },
+    ];
+    const chokeValuesMh = this.getDefaultDCChokeScanValuesMh();
+    const catalogToleranceMh = 0.1;
+    const preferredMarginHz = 5;
+    const outputCurrent = Number(inputs.outputCurrent || 0);
+    const requiredChokeCurrentA = this.getRequiredDCChokeCurrentA(outputCurrent);
 
-    // Kapasitör Seçim Algoritması (İteratif)
-    // fkesme = 1 / (2 × π × √(L_toplam × C × Kapasitör_Adedi))
-    const targetL = L_toplam; // Toplam endüktans kullanılır
-    const cap4700 = 4700e-6; // 4700µF
-    const cap10000 = 10000e-6; // 10000µF
-
-    // Önce 4700µF ile deneme
-    let bestConfig = null;
-    let bestDiff = Infinity;
-
-    // 4700µF ile 1'den 10'a kadar kapasitör sayısını dene
-    for (let n = 1; n <= 10; n++) {
-      const freq = 1 / (2 * Math.PI * Math.sqrt(targetL * cap4700 * n));
-      const diff = Math.abs(freq - targetFreq);
-      if (diff < bestDiff) {
-        bestDiff = diff;
-        bestConfig = { C: cap4700, N: n, freq: freq };
+    const candidates = [];
+    const maxExtraCaps = 8;
+    for (const capOption of capOptions) {
+      for (let capCount = minCapCount; capCount <= minCapCount + maxExtraCaps; capCount++) {
+        for (const chokeMh of chokeValuesMh) {
+          const chokeH = chokeMh / 1000;
+          const totalL = L_trafo + chokeH;
+          const actualFreq = 1 / (2 * Math.PI * Math.sqrt(totalL * capOption.f * capCount));
+          const isValid = actualFreq < targetFreq;
+          const estimatedCapCost = this.getDCCapacitorUnitCost(capOption.uf) * capCount;
+          const estimatedChokeCost = this.getEstimatedDCChokeUnitCost(chokeMh, requiredChokeCurrentA, catalogToleranceMh);
+          const totalEstimatedDCFilterCost = estimatedCapCost + estimatedChokeCost;
+          const frequencyMargin = targetFreq - actualFreq;
+          const marginPenalty = Math.abs(frequencyMargin - preferredMarginHz);
+          const frequencyExcess = Math.max(0, actualFreq - targetFreq);
+          candidates.push({
+            capacitanceUf: capOption.uf,
+            capacitanceF: capOption.f,
+            capCount,
+            chokeInductanceMh: chokeMh,
+            totalInductanceH: totalL,
+            actualFreq,
+            targetFreq,
+            isValid,
+            estimatedCapCost,
+            estimatedChokeCost,
+            totalEstimatedDCFilterCost,
+            frequencyMargin,
+            marginPenalty,
+            frequencyExcess,
+          });
+        }
       }
     }
 
-    // 10000µF ile 1'den 10'a kadar kapasitör sayısını dene
-    for (let n = 1; n <= 10; n++) {
-      const freq = 1 / (2 * Math.PI * Math.sqrt(targetL * cap10000 * n));
-      const diff = Math.abs(freq - targetFreq);
-      if (diff < bestDiff) {
-        bestDiff = diff;
-        bestConfig = { C: cap10000, N: n, freq: freq };
+    const validCandidates = candidates.filter((candidate) => candidate.isValid);
+    const selectionPool = validCandidates.length ? validCandidates : candidates;
+    const bestConfig = [...selectionPool].sort((a, b) => {
+      if (a.capCount !== b.capCount) return a.capCount - b.capCount;
+      if (a.totalEstimatedDCFilterCost !== b.totalEstimatedDCFilterCost) {
+        return a.totalEstimatedDCFilterCost - b.totalEstimatedDCFilterCost;
       }
-    }
-
-    // Eğer 4700µF ile çok fazla kapasitör gerekiyorsa (8+ adet), 10000µF tercih edilir
-    const cap4700Config = { C: cap4700, N: Math.ceil(1 / (Math.pow(2 * Math.PI * targetFreq, 2) * targetL * cap4700)) };
-    if (cap4700Config.N >= 8 && bestConfig.C === cap4700) {
-      // 10000µF ile yeniden hesapla
-      const n10000 = Math.ceil(1 / (Math.pow(2 * Math.PI * targetFreq, 2) * targetL * cap10000));
-      if (n10000 < cap4700Config.N) {
-        const freq10000 = 1 / (2 * Math.PI * Math.sqrt(targetL * cap10000 * n10000));
-        bestConfig = { C: cap10000, N: n10000, freq: freq10000 };
+      if (!validCandidates.length && a.frequencyExcess !== b.frequencyExcess) {
+        return a.frequencyExcess - b.frequencyExcess;
       }
-    }
+      if (a.marginPenalty !== b.marginPenalty) return a.marginPenalty - b.marginPenalty;
+      if (a.capacitanceUf !== b.capacitanceUf) return a.capacitanceUf - b.capacitanceUf;
+      if (a.chokeInductanceMh !== b.chokeInductanceMh) return a.chokeInductanceMh - b.chokeInductanceMh;
+      return a.actualFreq - b.actualFreq;
+    })[0];
 
     return {
-      dcChokeInductance: L_DC_Shok * 1000, // mH cinsinden
-      dcCapacitorCapacitance: bestConfig.C * 1e6, // uF cinsinden
-      dcCapacitorCount: bestConfig.N,
+      dcChokeInductance: bestConfig.chokeInductanceMh,
+      dcCapacitorCapacitance: bestConfig.capacitanceUf,
+      dcCapacitorUnitCapacitance: bestConfig.capacitanceUf,
+      dcCapacitorCount: bestConfig.capCount,
+      dcCapacitorTotalCapacitance: bestConfig.capacitanceUf * bestConfig.capCount,
+      dcCapacitorMinCountRaw: minCapCountRaw,
+      dcCapacitorMinCount: minCapCount,
+      dcCapacitorMinCountFromCurrent: minCapRounded,
       calculatedL: L_trafo,
-      calculatedLTotal: L_toplam,
+      calculatedLTotal: bestConfig.totalInductanceH,
       targetFrequency: targetFreq,
-      actualFrequency: bestConfig.freq,
+      actualFrequency: bestConfig.actualFreq,
+      dcOptimizationSummary: {
+        selectedCapacitanceUf: bestConfig.capacitanceUf,
+        selectedChokeInductanceMh: bestConfig.chokeInductanceMh,
+        technicalTargetChokeInductanceMh: bestConfig.chokeInductanceMh,
+        estimatedTotalCost: bestConfig.totalEstimatedDCFilterCost,
+        estimatedChokeCost: bestConfig.estimatedChokeCost,
+        totalEstimatedDCFilterCost: bestConfig.totalEstimatedDCFilterCost,
+        usedMinimumCapCount: bestConfig.capCount === minCapCount,
+        capCountFloorBeforeMinTwoRule: minCapRounded,
+        appliedRedundantMinTwoCaps: minCapRounded < 2,
+        requiredChokeCurrentA,
+        catalogToleranceMh,
+        selectedFrequencyMargin: bestConfig.frequencyMargin,
+        preferredMarginHz,
+        marginPenalty: bestConfig.marginPenalty,
+      },
     };
+  }
+
+  normalizeSearchText(value) {
+    return String(value || '')
+      .toLocaleLowerCase('tr-TR')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  buildRowSearchText(row) {
+    if (!row || typeof row !== 'object') return '';
+    const values = [];
+    Object.entries(row).forEach(([key, value]) => {
+      if (value == null) return;
+      const keyText = this.normalizeSearchText(key);
+      if (keyText.includes('description') || keyText.includes('desc') || keyText.includes('subtype')) {
+        values.push(String(value));
+      } else if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+        values.push(String(value));
+      }
+    });
+    return this.normalizeSearchText(values.join(' '));
+  }
+
+  rowMatchesKeywords(row, keywords = []) {
+    const haystack = this.buildRowSearchText(row);
+    return keywords.every((keyword) => haystack.includes(this.normalizeSearchText(keyword)));
+  }
+
+  findFirstMatchingRow(rows, keywords = [], extraPredicate = null) {
+    const list = Array.isArray(rows) ? rows : [];
+    return list.find((row) => {
+      const keywordMatch = this.rowMatchesKeywords(row, keywords);
+      if (!keywordMatch) return false;
+      if (typeof extraPredicate === 'function') return Boolean(extraPredicate(row));
+      return true;
+    }) || null;
+  }
+
+  createComponent(name, productName, specs, quantity, unitPrice, stockCode, excelData, category) {
+    const qty = Math.max(1, Number(quantity) || 1);
+    const unit = Number(unitPrice) || 0;
+    return {
+      name,
+      productName,
+      specs,
+      quantity: qty,
+      unitPrice: unit,
+      totalPrice: unit * qty,
+      stockCode: stockCode || '',
+      excelData: excelData || null,
+      category,
+    };
+  }
+
+  getStandardSupplyTransformerName() {
+    return 'Trafo 230V / 230V 20VA';
+  }
+
+  normalizeTransformerTopology(value) {
+    const text = this.normalizeSearchText(value);
+    if (!text) return '';
+    if (text.includes('supply') || text.includes('besleme')) return 'SUPPLY';
+    if (text.includes('12') || text.includes('b12c')) return 'B12C';
+    if (text.includes('6') || text.includes('b6c')) return 'B6C';
+    if (text.includes('single') || text.includes('tek faz') || text.includes('1 faz') || text.includes('b2h')) return 'B2H';
+    return text.toUpperCase();
+  }
+
+  getTransformerTopology(row, fallback = '') {
+    return this.normalizeTransformerTopology(
+      this.getColumn(row, ['Topology', 'Topoloji', 'topology']) || fallback || ''
+    );
+  }
+
+  getTransformerOutputVoltage(row, fallback = '') {
+    return Number(this.getColumn(row, [
+      'Output Voltage (V)',
+      'Output Voltage',
+      'Secondary Voltage',
+      'Secondary Voltage (V)',
+      'Secondary',
+      'Voltage (V)',
+    ]) || fallback || 0);
+  }
+
+  getTransformerPowerKva(row) {
+    return Number(this.getColumn(row, ['Power (kVA)', 'Power Rating (kVA)', 'Power', 'kVA']) || 0);
+  }
+
+  getNearestAvailableValue(target, values) {
+    const numericTarget = Number(target);
+    const candidates = (Array.isArray(values) ? values : [])
+      .map((value) => Number(value))
+      .filter((value) => Number.isFinite(value));
+    if (!Number.isFinite(numericTarget) || !candidates.length) return null;
+    return candidates.reduce((best, current) =>
+      Math.abs(current - numericTarget) < Math.abs(best - numericTarget) ? current : best
+    );
+  }
+
+  calculateThresholdRoundedCount(rawCount) {
+    const value = Number(rawCount) || 0;
+    const base = Math.floor(value);
+    const fraction = value - base;
+    if (value <= 0) return 1;
+    if (fraction === 0) return Math.max(1, base);
+    return Math.max(1, base + (fraction > 0.2 ? 1 : 0));
+  }
+
+  getDCCapacitanceUf(row) {
+    return Number(this.getColumn(row, ['Capacitance (uF)', 'Capacitance (µF)', 'Capacitance', 'C (uF)', 'C (µF)']) || 0);
+  }
+
+  getRequiredDCChokeCurrentA(outputCurrent) {
+    return Number((Math.max(0, Number(outputCurrent) || 0) * 1.1).toFixed(3));
+  }
+
+  /** BOM / açıklama: örn. "Choke 1.5mH 60A DC" (gereksiz ondalık sıfırları atar). */
+  formatDCChokeSpecsLine(inductanceMh, currentA) {
+    const L = Number(inductanceMh);
+    const I = Number(currentA);
+    const lPart = Number.isFinite(L) ? String(parseFloat(L.toFixed(3))) : '0';
+    let iPart = '0';
+    if (Number.isFinite(I)) {
+      const r = Math.round(I * 10) / 10;
+      iPart = Math.abs(r - Math.round(r)) < 1e-6 ? String(Math.round(r)) : String(parseFloat(r.toFixed(1)));
+    }
+    return `Choke ${lPart}mH ${iPart}A DC`;
+  }
+
+  /**
+   * ±tolerans mH içinde, önce I_req'i sağlayan en küçük katalog akımı, sonra endüktans farkı, sonra maliyet.
+   * Mantık: dc-choke-catalog-pick.js — findBestDCChokeCatalogRowImpl.
+   * @returns {{ row: object|null, reason: 'ok'|'empty'|'no-current-or-cost'|'no-tolerance', _stats?: object }}
+   */
+  findBestDCChokeCatalogRow(requiredInductanceMh, requiredCurrentA, chokes, toleranceMh = 0.1) {
+    const impl =
+      typeof globalThis !== 'undefined' && typeof globalThis.findBestDCChokeCatalogRowImpl === 'function'
+        ? globalThis.findBestDCChokeCatalogRowImpl
+        : null;
+    if (!impl) {
+      console.error('findBestDCChokeCatalogRowImpl bulunamadı; dc-choke-catalog-pick.js sayfaya ekli olmalı.');
+      return { row: null, reason: 'empty', _stats: { afterCurrentFilter: 0, inToleranceBand: 0 } };
+    }
+    return impl(this.getColumn.bind(this), requiredInductanceMh, requiredCurrentA, chokes, toleranceMh);
+  }
+
+  getDCCapacitorUnitCost(capacitanceUf) {
+    const rows = Array.isArray(this.excelData?.dcCapacitors) ? this.excelData.dcCapacitors : [];
+    const match = rows.find((row) => {
+      const value = this.getDCCapacitanceUf(row);
+      return Math.abs(value - Number(capacitanceUf || 0)) < 0.01;
+    });
+    return Number(match?.Cost || 0);
+  }
+
+  getEstimatedDCChokeUnitCost(requiredInductanceMh, current, toleranceMh = 0.1) {
+    const rows = Array.isArray(this.excelData?.dcChokes) ? this.excelData.dcChokes : [];
+    const { row } = this.findBestDCChokeCatalogRow(requiredInductanceMh, current, rows, toleranceMh);
+    return Number(row?.Cost || 0);
+  }
+
+  isSupplyTransformerRow(row) {
+    const topology = this.getTransformerTopology(row);
+    if (topology === 'SUPPLY') return true;
+    const haystack = this.buildRowSearchText(row);
+    if (haystack.includes('supply')) return true;
+    const typed = this.normalizeSearchText(
+      [
+        this.getColumn(row, ['Product Type', 'Ürün Tipi', 'Type', 'Tip']),
+        this.getColumn(row, ['Product Name', 'Ürün Adı', 'Model', 'Description', 'Açıklama']),
+        haystack,
+      ]
+        .filter(Boolean)
+        .join(' ')
+    );
+    if (!typed.includes('besleme')) return false;
+    return (
+      typed.includes('trafo') ||
+      typed.includes('transformat') ||
+      typed.includes('transformator') ||
+      typed.includes('transformer')
+    );
+  }
+
+  buildTransformerLabel(row, fallbackPrimary = '', fallbackSecondary = '', fallbackTopology = '') {
+    const power = this.getTransformerPowerKva(row);
+    const primary = Number(this.getColumn(row, ['Primary Voltage', 'Primary Voltage (V)', 'Primary', 'Input Voltage (V)', 'Input Voltage']) || fallbackPrimary || 0);
+    const secondary = this.getTransformerOutputVoltage(row, fallbackSecondary);
+    const topology = this.getTransformerTopology(row, fallbackTopology) || 'Transformer';
+    const stockCode = String(row?.['Stock Code'] || '').trim();
+    const base = `${power ? power.toFixed(0) : '?'}kVA ${primary || '?'}V/${secondary || '?'}V ${topology}`.trim();
+    return stockCode ? `${base} (${stockCode})` : base;
+  }
+
+  selectSupplyTransformer(transformers) {
+    const list = Array.isArray(transformers) ? transformers : [];
+    const supplyRows = list.filter((row) => this.isSupplyTransformerRow(row));
+    if (!supplyRows.length) return null;
+    const selected = supplyRows.find((row) => Number.isFinite(Number(row.Cost))) || supplyRows[0];
+    return {
+      ...selected,
+      Topology: this.getTransformerTopology(selected, 'SUPPLY') || 'SUPPLY',
+      'Product Name': this.getStandardSupplyTransformerName(),
+    };
+  }
+
+  /**
+   * Besleme trafosu görünen adında Hz / sabit frekans ifadesini kaldırır (şebeke frekansı projeye göre değişir).
+   */
+  stripSupplyTransformerFrequencyText(text) {
+    const raw = String(text == null ? '' : text);
+    let s = raw;
+    s = s.replace(/\b\d{2}\s*\/\s*\d{2}\s*hz\b/gi, '');
+    s = s.replace(/\b\d{2}\s*-\s*\d{2}\s*hz\b/gi, '');
+    s = s.replace(/\b\d{2}\s*hz\b/gi, '');
+    s = s.replace(/\s*hz\b/gi, '');
+    s = s.replace(/\s{2,}/g, ' ').replace(/,\s*,/g, ',').trim();
+    return s || raw.trim();
+  }
+
+  /** Excel'den gelen $50,00 / 50,00 ₺ gibi değerleri sayıya çevirir. */
+  parseExcelCurrencyNumber(value) {
+    if (value == null || value === '') return 0;
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    let s = String(value).replace(/[$€₺\s]/gi, '').trim();
+    if (!s) return 0;
+    if (s.includes(',') && !s.includes('.')) {
+      s = s.replace(',', '.');
+    } else if (s.includes('.') && s.includes(',')) {
+      s = s.replace(/\./g, '').replace(',', '.');
+    }
+    const n = parseFloat(s);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  /**
+   * ControlCards Product Type eşlemesi (önceden normalizeSearchText ile küçük harfe çevrilmiş metin).
+   * İngilizce: electronic + board veya electronic + card | Türkçe: elektronik + (kart veya board)
+   */
+  isElectronicBoardProductType(ptNormalized) {
+    const pt = String(ptNormalized || '').trim();
+    if (!pt) return false;
+    const enBoard = pt.includes('electronic') && pt.includes('board');
+    const enCard = pt.includes('electronic') && pt.includes('card');
+    const trKart = pt.includes('elektronik') && (pt.includes('kart') || pt.includes('board'));
+    return Boolean(enBoard || enCard || trKart);
+  }
+
+  /**
+   * ControlCards (Rectifier.xlsx) — Electronic Board katalog satırları:
+   * - Product Type: "Electronic Board" / "Electronic Card" / "Elektronik Kart" / "Elektronik Board" (normalizeSearchText sonrası eşleşir)
+   * - Product Name, Cost, Stock Code
+   * - BoardScope | Board Scope | Kategori | Scope: "Standard" / "Standart" veya "Option" / "Opsiyon"
+   * - OptionMatch | Keywords: opsiyon satırları için eşleştirme (; | , ile ayrılmış)
+   * - Quantity | Qty | Adet: (isteğe bağlı, varsayılan 1)
+   * Varsayılan: ilgili Product Type ise satır her projede standart eklenir (BoardScope boş / Standart).
+   * Yalnızca BoardScope açıkça Opsiyon/Option ise OptionMatch koşulu uygulanır. Aynı Stock Code zaten BOM'da varsa atlanır.
+   *
+   * Not: rectifier-flex-pricing price table bu listeyi doğrudan Excel'den okumaz; yalnızca bu sayfada
+   * selectComponents çalışıp sonuç rectifierCalculatedComponents olarak localStorage'a yazıldıktan sonra flex sayfasında görünür.
+   */
+  appendElectronicBoardCatalogComponents(components, inputs, optionsRows, projectConfig) {
+    const list = Array.isArray(this.excelData?.controlCards) ? this.excelData.controlCards : [];
+    console.log(`[ControlCards] Excel satır sayısı: ${list.length}`);
+    if (!list.length) return;
+
+    let catalogBoardRowsAdded = 0;
+
+    const usedStock = new Set(
+      components.map((c) => String(c.stockCode || '').trim()).filter(Boolean)
+    );
+
+    const featureParts = [
+      ...Array.from(this.selectedFeatures || []),
+      ...(Array.isArray(projectConfig?.extraFeatures) ? projectConfig.extraFeatures : []),
+    ].map((s) => this.normalizeSearchText(String(s)));
+
+    const haystack = this.normalizeSearchText(featureParts.join(' '));
+
+    const inputSignals = [];
+    if (String(inputs.parallelOperation || '') === 'Aktif') {
+      inputSignals.push('paralel', 'parallel');
+    }
+    if (inputs.batteryLVD === 'Var' || inputs.batteryLVD === 'Var / Yes') {
+      inputSignals.push('lvd', 'low voltage disconnect');
+    }
+    const dd = String(inputs.diodeDropper || '').trim();
+    if (dd && !this.isDiodeDropperOff(dd)) {
+      inputSignals.push('dropper', 'diyot');
+    }
+    const comm = this.normalizeSearchText(inputs.communicationProtocol || '');
+    if (comm) inputSignals.push(comm);
+    const relay = this.normalizeSearchText(inputs.relayAlarmOutputs || '');
+    if (relay) inputSignals.push(relay);
+
+    const megaHay = this.normalizeSearchText(`${haystack} ${inputSignals.join(' ')}`);
+
+    const optionRowsNorm = (Array.isArray(optionsRows) ? optionsRows : []).map((r) =>
+      this.normalizeSearchText(
+        [r['Product Name'], r['Product Type'], r['Description'], r['Açıklama']].filter(Boolean).join(' ')
+      )
+    );
+
+    let forwardFillProductType = '';
+    for (const row of list) {
+      const rawPt = String(
+        this.getColumn(row, ['Product Type', 'Ürün Tipi', 'Type', 'Tip']) || ''
+      ).trim();
+      if (rawPt) forwardFillProductType = rawPt;
+
+      const pt = this.normalizeSearchText(forwardFillProductType);
+      if (!this.isElectronicBoardProductType(pt)) continue;
+
+      const explicitScopeRaw = String(
+        this.getColumn(row, [
+          'BoardScope',
+          'Board Scope',
+          'Kategori',
+          'Scope',
+          'boardScope',
+        ]) || ''
+      ).trim();
+
+      const scopeNorm = this.normalizeSearchText(explicitScopeRaw);
+      const isExplicitOption =
+        scopeNorm.includes('option') || scopeNorm.includes('opsiyon');
+
+      const treatAsOption = Boolean(isExplicitOption);
+      const treatAsStandard = !treatAsOption;
+
+      const stock = String(
+        this.getColumn(row, ['Stock Code', 'Stockcode', 'Stok Kodu', 'Stock_Code']) || ''
+      ).trim();
+      if (stock && usedStock.has(stock)) continue;
+
+      const matchRaw = String(
+        this.getColumn(row, ['OptionMatch', 'Option Match', 'Keywords', 'optionMatch']) || ''
+      ).trim();
+      const tokens = matchRaw
+        .split(/[;|,\n]+/)
+        .map((t) => this.normalizeSearchText(t.trim()))
+        .filter(Boolean);
+
+      if (treatAsOption) {
+        if (!tokens.length) continue;
+        const matched = tokens.some((tok) => {
+          if (!tok) return false;
+          return (
+            megaHay.includes(tok) ||
+            featureParts.some((f) => f.includes(tok) || tok.includes(f)) ||
+            optionRowsNorm.some((o) => o.includes(tok))
+          );
+        });
+        if (!matched) continue;
+      }
+
+      const qtyRaw = Number(this.getColumn(row, ['Quantity', 'Qty', 'Adet']) || 1);
+      const q = Number.isFinite(qtyRaw) && qtyRaw > 0 ? qtyRaw : 1;
+      const pname = String(
+        this.getColumn(row, ['Product Name', 'Ürün Adı', 'Model', 'Description', 'Açıklama']) || ''
+      ).trim() || 'Elektronik Kart';
+      const scopeTag = treatAsOption ? 'option' : 'standard';
+
+      const unitPrice = this.parseExcelCurrencyNumber(
+        this.getColumn(row, ['Cost', 'Price', 'Fiyat', 'Birim Fiyat', 'Unit Price']) ?? row.Cost
+      );
+
+      components.push({
+        name: pname,
+        productName: pname,
+        specs: treatAsOption ? 'Opsiyon kart' : 'Standart kart',
+        quantity: q,
+        unitPrice,
+        totalPrice: unitPrice * q,
+        stockCode: stock,
+        excelData: { ...row, __boardCatalog: true, __boardScope: scopeTag },
+        category: 'Kart',
+      });
+      catalogBoardRowsAdded += 1;
+      if (stock) usedStock.add(stock);
+    }
+
+    console.log(`[ControlCards] BOM'a eklenen kart katalog satırı: ${catalogBoardRowsAdded}`);
+  }
+
+  /**
+   * revizyonlar08: 1004_30 Alarm & Comm için röle sayısına göre ek adet; ≥8 rölede 1020_50 güç kartı (yoksa) ekle.
+   */
+  applyRelayBasedControlCardAdjustments(components, inputs) {
+    const relayCount = this.parseRelayAlarmCount(inputs.relayAlarmOutputs);
+    if (relayCount == null) return;
+
+    const extraComm = this.getRelayExtraAlarmCommBoardQty(relayCount);
+    if (extraComm > 0) {
+      for (const c of components) {
+        if (String(c.category || '') !== 'Kart' || !c.excelData?.__boardCatalog) continue;
+        const sc = String(c.stockCode || '')
+          .replace(/\s/g, '')
+          .toUpperCase();
+        if (!sc.startsWith('1004_30')) continue;
+        const q0 = Number(c.quantity) || 1;
+        c.quantity = q0 + extraComm;
+        c.totalPrice = (Number(c.unitPrice) || 0) * c.quantity;
+        if (c.excelData && typeof c.excelData === 'object') {
+          c.excelData.__relayExtraAlarmCommBoards = extraComm;
+        }
+        break;
+      }
+    }
+
+    if (relayCount < 8) return;
+
+    const has1020 = components.some((c) =>
+      String(c.stockCode || '')
+        .replace(/\s/g, '')
+        .toUpperCase()
+        .startsWith('1020_50')
+    );
+    if (has1020) return;
+
+    const list = Array.isArray(this.excelData?.controlCards) ? this.excelData.controlCards : [];
+    let row = null;
+    for (const r of list) {
+      const sc = String(
+        this.getColumn(r, ['Stock Code', 'Stockcode', 'Stok Kodu', 'Stock_Code']) || r['Stock Code'] || ''
+      )
+        .replace(/\s/g, '')
+        .toUpperCase();
+      if (sc.startsWith('1020_50')) {
+        row = r;
+        break;
+      }
+    }
+    if (!row) return;
+
+    const pname = String(
+      this.getColumn(row, ['Product Name', 'Ürün Adı', 'Model', 'Description', 'Açıklama']) || ''
+    ).trim() || 'Power Supply Board';
+    const stock = String(
+      this.getColumn(row, ['Stock Code', 'Stockcode', 'Stok Kodu', 'Stock_Code']) || ''
+    ).trim();
+    const unitPrice = this.parseExcelCurrencyNumber(
+      this.getColumn(row, ['Cost', 'Price', 'Fiyat', 'Birim Fiyat', 'Unit Price']) ?? row.Cost
+    );
+    const qRaw = Number(this.getColumn(row, ['Quantity', 'Qty', 'Adet']) || 1);
+    const q = Number.isFinite(qRaw) && qRaw > 0 ? qRaw : 1;
+    components.push({
+      name: pname,
+      productName: pname,
+      specs: 'Standart kart · programlanabilir röle ≥8',
+      quantity: q,
+      unitPrice,
+      totalPrice: unitPrice * q,
+      stockCode: stock,
+      excelData: { ...row, __boardCatalog: true, __boardScope: 'standard', __relayConditionalPsu: true },
+      category: 'Kart',
+    });
+  }
+
+  addComponentIfFound(components, options) {
+    const {
+      rows,
+      keywords,
+      predicate,
+      name,
+      specs,
+      quantity = 1,
+      category,
+    } = options;
+    const row = this.findFirstMatchingRow(rows, keywords, predicate);
+    if (!row) return null;
+    const productName = row['Product Name'] || row['productName'] || name;
+    const unitPrice = row.Cost || row.cost || 0;
+    const stockCode = row['Stock Code'] || row.stockCode || '';
+    const component = this.createComponent(
+      name,
+      productName,
+      specs || productName,
+      quantity,
+      unitPrice,
+      stockCode,
+      row,
+      category
+    );
+    components.push(component);
+    return component;
+  }
+
+  /**
+   * AS99 soğutucu uzunluğu (ürün adında 150mm / 200mm / 300mm eşlemesi).
+   * I < 70 → 150mm; I < 150 → 200mm; aksi → 300mm.
+   */
+  getAs99Variant(outputCurrent) {
+    const c = Number(outputCurrent) || 0;
+    if (c < 70) return '150mm';
+    if (c < 150) return '200mm';
+    return '300mm';
+  }
+
+  getStandardFanQuantity(outputCurrent) {
+    void outputCurrent;
+    return 3;
+  }
+
+  getCurrentCardLabel(outputCurrent) {
+    const current = Number(outputCurrent) || 0;
+    if (current <= 100) return 'L100P';
+    if (current <= 200) return 'L200P';
+    if (current <= 300) return 'L300P';
+    return 'Özel';
+  }
+
+  /** UI metninden programlanabilir kuru kontak sayısı (4 / 8 / 12 / 16). */
+  parseRelayAlarmCount(relayAlarmOutputs) {
+    if (relayAlarmOutputs == null || String(relayAlarmOutputs).trim() === '') return null;
+    const m = String(relayAlarmOutputs).match(/(\d+)/);
+    if (!m) return null;
+    const n = parseInt(m[1], 10);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  /** revizyonlar08: röle sayısına göre 2.5 mm alarm klemm adedi. */
+  getAlarmTerminalCountForRelay(relayCount) {
+    if (relayCount === 4) return 12;
+    if (relayCount === 8) return 24;
+    if (relayCount === 12) return 36;
+    if (relayCount === 16) return 48;
+    return 0;
+  }
+
+  /** 1004_30 Alarm & Comm kartına eklenecek ek adet (taban Excel qty üzerine). */
+  getRelayExtraAlarmCommBoardQty(relayCount) {
+    if (relayCount === 8) return 1;
+    if (relayCount === 12) return 2;
+    if (relayCount === 16) return 3;
+    return 0;
+  }
+
+  /** UI değeri `Yok / No` vb. iken modül diyotu sayılmaz (parseInt NaN → 1 hatası önlenir). */
+  isDiodeDropperOff(dd) {
+    const s = String(dd || '').trim().toLowerCase();
+    if (!s || s === '0') return true;
+    if (s.startsWith('yok')) return true;
+    return false;
+  }
+
+  /** DC-DC kıyıcılı seçenek (value içinde "DC-DC" geçer). */
+  isDiodeDropperDcChopper(dd) {
+    return /dc-dc/i.test(String(dd || ''));
+  }
+
+  /**
+   * Kademe sayısı: "1 kademe / 1 Stage" → 1. Dropper kapalı veya rakam yok → 0.
+   */
+  parseDiodeDropperStageCount(dd) {
+    if (this.isDiodeDropperOff(dd) || this.isDiodeDropperDcChopper(dd)) return 0;
+    const m = String(dd || '').match(/(\d+)/);
+    if (!m) return 0;
+    const n = parseInt(m[1], 10);
+    return Number.isFinite(n) && n >= 1 ? n : 0;
+  }
+
+  /**
+   * Dropper modül diyot adedi (soğutma hesabı ile dropper push aynı mantık).
+   * DC-DC kıyıcılı veya dropper yok: 0.
+   * dropperVoltageDropV > 0 ise: ceil(V / 1.5) (manuel düşüş, V).
+   */
+  computeDropperModuleDiodeCount(inputs, calculations) {
+    const dd = String(inputs.diodeDropper || '').trim();
+    if (this.isDiodeDropperOff(dd)) return 0;
+    if (this.isDiodeDropperDcChopper(dd)) return 0;
+    const dropperStageCount = this.parseDiodeDropperStageCount(dd);
+    if (dropperStageCount < 1) {
+      console.warn('Diyot dropper: kademe sayısı çözülemedi, diyot adedi 0:', dd);
+      return 0;
+    }
+    const manualV = Number(inputs.dropperVoltageDropV);
+    let voltageDrop = 0;
+    if (Number.isFinite(manualV) && manualV > 0) {
+      voltageDrop = manualV;
+    } else if (dropperStageCount === 1) {
+      voltageDrop = calculations.boostVoltage - calculations.floatVoltage;
+    } else if (dropperStageCount >= 2) {
+      voltageDrop = calculations.boostVoltage - inputs.outputVoltage * 1.1;
+    }
+    const diodeCount = Math.ceil(voltageDrop / 1.5);
+    return Math.max(0, diodeCount);
+  }
+
+  /**
+   * revizyonlar08: tristör + serbest geçiş (1) + dropper modül diyotları;
+   * toplam modül N > 4 ise her ek 4 modül için +1 heatsink ve +1 fan.
+   */
+  computeModuleCoolingExtras(inputs, calculations, thyristorCount) {
+    const dropperDiodes = this.computeDropperModuleDiodeCount(inputs, calculations);
+    const moduleTotal = thyristorCount + 1 + dropperDiodes;
+    const extraFromModules =
+      moduleTotal > 4 ? Math.ceil((moduleTotal - 4) / 4) : 0;
+    return { dropperDiodes, moduleTotal, extraFromModules };
   }
 
   // Parçaları seç
   async selectComponents(inputs, calculations) {
     const components = [];
+    const selectionAudit = {
+      branches: {},
+      selectedNames: [],
+    };
 
     try {
       // Excel verilerinin yüklenip yüklenmediğini kontrol et
@@ -1774,6 +2665,11 @@ class RectifierPricing {
       }
 
       const projectConfig = this.getProjectConfig();
+      const frontPanel = String(projectConfig?.userInterface?.frontPanel || '');
+      const normalizedFrontPanel = this.normalizeSearchText(frontPanel);
+      const optionsRows = this.excelData.options || [];
+      const coolingRows = this.excelData.coolingComponents || [];
+      const terminalRows = this.excelData.terminals || [];
 
       // Debug: Excel verilerini kontrol et
       console.log('=== PARÇA SEÇİMİ BAŞLADI ===');
@@ -1787,8 +2683,8 @@ class RectifierPricing {
         terminals: this.excelData.terminals?.length || 0,
         coolingComponents: this.excelData.coolingComponents?.length || 0,
         cabinets: this.excelData.cabinets?.length || 0,
+        options: this.excelData.options?.length || 0,
       };
-      
       console.log('Excel veri durumu:', excelDataStatus);
       
       // Eksik veriler varsa notification göster
@@ -1822,15 +2718,23 @@ class RectifierPricing {
       calculations.transformerPower,
       inputs.inputVoltage,
       inputs.inputPhase,
-      calculations.secondaryVoltage,
-      this.excelData.transformers
+      inputs.outputVoltage,
+      this.excelData.transformers,
+      inputs.topology
     );
     if (transformer) {
-      console.log('✓ Giriş Trafosu seçildi:', transformer['Product Name']);
+      const transformerLabel =
+        String(transformer['Product Name'] || '').trim() ||
+        this.buildTransformerLabel(transformer, inputs.inputVoltage, inputs.outputVoltage, inputs.topology);
+      const transformerOutputVoltage = this.getColumn(
+        transformer,
+        ['Output Voltage (V)', 'Output Voltage', 'Secondary Voltage', 'Secondary Voltage (V)', 'Secondary']
+      );
+      console.log('✓ Giriş Trafosu seçildi:', transformerLabel);
       components.push({
         name: 'Giriş Trafosu',
-        productName: transformer['Product Name'],
-        specs: `${transformer['Power (kVA)']}kVA, ${transformer['Primary Voltage']} / ${transformer['Secondary Voltage']}`,
+        productName: transformerLabel,
+        specs: `${transformer['Power (kVA)']}kVA, ${transformer['Primary Voltage']} / ${transformerOutputVoltage}`,
         quantity: inputs.topology === 'B12C' ? 2 : 1, // B12C için 2x trafo
         unitPrice: transformer.Cost || 0,
         totalPrice: (transformer.Cost || 0) * (inputs.topology === 'B12C' ? 2 : 1),
@@ -1845,27 +2749,85 @@ class RectifierPricing {
     }
 
     // 2. Besleme Trafosu (1 adet)
-    const supplyTransformer = this.excelData.transformers?.find(
-      (t) => t['Product Type'] === 'Besleme Trafosu' && t.Cost
-    );
+    const supplyTransformer = this.selectSupplyTransformer(this.excelData.transformers);
+    const supplyLabel = this.getStandardSupplyTransformerName();
     if (supplyTransformer) {
-      console.log('✓ Besleme Trafosu seçildi:', supplyTransformer['Product Name']);
+      console.log('✓ Besleme Trafosu seçildi:', supplyLabel);
+      const supplyDisplayName = this.stripSupplyTransformerFrequencyText(
+        supplyTransformer['Product Name'] || supplyLabel
+      );
       components.push({
         name: 'Besleme Trafosu',
-        productName: supplyTransformer['Product Name'],
-        specs: 'Anakart beslemesi',
+        productName: supplyDisplayName,
+        specs: `${supplyDisplayName}${supplyTransformer['Stock Code'] ? `, Stok: ${supplyTransformer['Stock Code']}` : ''}`,
         quantity: 1,
-        unitPrice: supplyTransformer.Cost || 0,
-        totalPrice: supplyTransformer.Cost || 0,
+        unitPrice: Number(supplyTransformer.Cost) || 0,
+        totalPrice: Number(supplyTransformer.Cost) || 0,
         stockCode: supplyTransformer['Stock Code'] || '',
         excelData: supplyTransformer,
         category: 'Besleme Trafosu',
       });
     } else {
-      console.warn('✗ Besleme Trafosu seçilemedi! Excel\'de "Besleme Trafosu" Product Type\'ı bulunamadı.');
-      this.showNotification('warning', 'Besleme Trafosu', 
-        'Excel\'de "Besleme Trafosu" Product Type\'ı bulunamadı');
+      console.warn('✗ Besleme Trafosu seçilemedi! Transformers listesinde besleme satırı bulunamadı.');
+      this.showNotification(
+        'warning',
+        'Besleme Trafosu',
+        'Transformers sayfasında besleme trafosu satırı bulunamadı; teknik standart bilgi amaçlı listelenir.'
+      );
+      components.push({
+        name: 'Besleme Trafosu',
+        productName: supplyLabel,
+        specs: `Teknik standart: ${supplyLabel}, Akım: ${Number(inputs.outputCurrent || 0).toFixed(2)} A, Durum: Transformers sayfasında eşleşen satır yok`,
+        quantity: 1,
+        unitPrice: 0,
+        totalPrice: 0,
+        stockCode: '',
+        excelData: { __catalogMatchMissing: true, __placeholder: true },
+        category: 'Besleme Trafosu',
+      });
     }
+
+    // Standart sabit parçalar
+    this.addComponentIfFound(components, {
+      rows: optionsRows,
+      keywords: ['ntc', '10k'],
+      name: 'NTC 10K Wired',
+      specs: 'Standart sıcaklık sensörü',
+      quantity: 1,
+      category: 'Sensör',
+    });
+    this.addComponentIfFound(components, {
+      rows: optionsRows,
+      keywords: ['fuse'],
+      name: 'Fan ve Besleme Sigortası',
+      specs: 'Fuse 2A 10.38 500V',
+      quantity: 2,
+      category: 'Sigorta',
+      predicate: (row) => this.normalizeSearchText(row.Subtype || row['Subtype'] || row['Product Name'] || '').includes('2a'),
+    });
+    this.addComponentIfFound(components, {
+      rows: optionsRows,
+      keywords: ['fuse holder', '10.38'],
+      name: 'Fuse Holder',
+      specs: 'Fuse Holder 10.38',
+      quantity: 2,
+      category: 'Fuse Holder',
+    });
+    this.addComponentIfFound(components, {
+      rows: optionsRows,
+      keywords: ['yardımcı kontak'],
+      name: 'Akü Kesicisi Yardımcı Kontak',
+      specs: 'Batarya kesicisi yardımcı kontak',
+      quantity: 1,
+      category: 'Kontak',
+    }) || this.addComponentIfFound(components, {
+      rows: optionsRows,
+      keywords: ['auxiliary contact'],
+      name: 'Akü Kesicisi Yardımcı Kontak',
+      specs: 'Batarya kesicisi yardımcı kontak',
+      quantity: 1,
+      category: 'Kontak',
+    });
 
     // 3. Oto Trafo (Standart olmayan giriş gerilimleri için)
     const standardVoltages = [
@@ -1877,6 +2839,7 @@ class RectifierPricing {
     const isStandardVoltage = standardVoltages.some(
       (sv) => sv.phase === inputs.inputPhase && sv.voltage === inputs.inputVoltage
     );
+    selectionAudit.branches.standardVoltage = isStandardVoltage;
     if (!isStandardVoltage) {
       const autoTransformerPrimer = inputs.inputVoltage / Math.sqrt(inputs.inputPhase);
       const autoTransformerSekonder = 230;
@@ -1899,20 +2862,46 @@ class RectifierPricing {
     }
 
     // 4. DC Şok (B2H/B6C: 1 adet, B12C: 2 adet)
+    const requiredChokeCurrentA = this.getRequiredDCChokeCurrentA(inputs.outputCurrent);
     const dcChoke = this.selectDCChoke(
       calculations.dcChokeInductance,
-      inputs.outputCurrent,
+      requiredChokeCurrentA,
       this.excelData.dcChokes
     );
     if (dcChoke) {
-      const inductance = this.getColumn(dcChoke, ['Inductance (mH)', 'Inductance', 'L (mH)']) || dcChoke['Inductance (mH)'];
-      const currentRating = this.getColumn(dcChoke, ['Current Rating (A)', 'Current Rating', 'Current (A)', 'Rating (A)', 'Current']) || dcChoke['Current Rating (A)'];
+      const inductance =
+        this.getColumn(dcChoke, [
+          'Inductance (mH)',
+          'Inductance',
+          'L (mH)',
+          'L(mH)',
+          'Endüktans (mH)',
+          'Endüktans mH',
+        ]) || dcChoke['Inductance (mH)'];
+      const currentRating =
+        this.getColumn(dcChoke, [
+          'Current Rating (A)',
+          'Current Rating',
+          'Current (A)',
+          'Rating (A)',
+          'Current',
+          'Akım (A)',
+          'Rated Current (A)',
+        ]) || dcChoke['Current Rating (A)'];
+      const optimizationSummary = calculations.dcOptimizationSummary || (calculations.dcOptimizationSummary = {});
+      if (dcChoke.__catalogToleranceUsedMh != null) {
+        optimizationSummary.catalogToleranceMh = Number(dcChoke.__catalogToleranceUsedMh);
+      }
+      optimizationSummary.catalogMatchedChokeInductanceMh = Number(inductance || 0);
+      optimizationSummary.catalogMatchDeltaMh = Number(dcChoke.__inductanceDeltaMh || 0);
+      optimizationSummary.catalogChokeMatched = true;
+      optimizationSummary.requiredChokeCurrentA = requiredChokeCurrentA;
       console.log('✓ DC Şok seçildi:', dcChoke['Product Name'], `(${inductance}mH, ${currentRating}A)`);
       const dcChokeQuantity = inputs.topology === 'B12C' ? 2 : 1;
       components.push({
         name: 'DC Şok',
         productName: dcChoke['Product Name'],
-        specs: `DC Şok ${inductance}mH ${currentRating}A`,
+        specs: this.formatDCChokeSpecsLine(inductance, currentRating),
         quantity: dcChokeQuantity,
         unitPrice: dcChoke.Cost || 0,
         totalPrice: (dcChoke.Cost || 0) * dcChokeQuantity,
@@ -1921,9 +2910,31 @@ class RectifierPricing {
         category: 'DC Şok',
       });
     } else {
-      console.warn('✗ DC Şok seçilemedi! İstenen:', calculations.dcChokeInductance, 'mH,', inputs.outputCurrent, 'A');
+      const optimizationSummary = calculations.dcOptimizationSummary || (calculations.dcOptimizationSummary = {});
+      optimizationSummary.catalogChokeMatched = false;
+      optimizationSummary.requiredChokeCurrentA = requiredChokeCurrentA;
+      const technicalInductance = Number(optimizationSummary.technicalTargetChokeInductanceMh || calculations.dcChokeInductance || 0);
+      const toleranceMh = Number(optimizationSummary.catalogToleranceMh || 0.1);
+      const dcChokeQuantity = inputs.topology === 'B12C' ? 2 : 1;
+      const chokeLine = this.formatDCChokeSpecsLine(technicalInductance, requiredChokeCurrentA);
+      console.warn('✗ DC Şok seçilemedi! İstenen:', calculations.dcChokeInductance, 'mH, minimum', requiredChokeCurrentA, 'A');
       this.showNotification('warning', 'DC Şok', 
-        `Excel'de uygun DC Şok bulunamadı (İstenen: ${calculations.dcChokeInductance.toFixed(2)}mH, ${inputs.outputCurrent}A)`);
+        `DCComponents içinde ${calculations.dcChokeInductance.toFixed(3)}mH hedefine ±100uH yakın, minimum ${Number(requiredChokeCurrentA).toFixed(1)}A uygun DC Şok bulunamadı`);
+      components.push({
+        name: 'DC Şok',
+        productName: `Teknik Hedef DC Şok (${technicalInductance.toFixed(3)}mH)`,
+        specs: `${chokeLine}, Durum: Katalog eşleşmesi yok (±${(toleranceMh * 1000).toFixed(0)}uH)`,
+        quantity: dcChokeQuantity,
+        unitPrice: 0,
+        totalPrice: 0,
+        stockCode: '',
+        excelData: {
+          'Inductance (mH)': technicalInductance,
+          'Current Rating (A)': requiredChokeCurrentA,
+          '__catalogMatchMissing': true,
+        },
+        category: 'DC Şok',
+      });
     }
 
     // 5. Kabin (1 adet)
@@ -1978,6 +2989,11 @@ class RectifierPricing {
     // 7. Faz Kontrol Tristörleri (B2H: 2, B6C: 3, B12C: 6 adet)
     const requiredThyristorCurrent = (inputs.outputCurrent * 1.5) / inputs.inputPhase;
     const thyristorCount = inputs.topology === 'B12C' ? 6 : inputs.topology === 'B6C' ? 3 : 2;
+    const { moduleTotal, extraFromModules, dropperDiodes } = this.computeModuleCoolingExtras(
+      inputs,
+      calculations,
+      thyristorCount
+    );
     const thyristor = this.selectThyristor(requiredThyristorCurrent, this.excelData.thyristors);
     if (thyristor) {
       console.log('✓ Faz Kontrol Tristörü seçildi:', thyristor['Product Name'], `(${thyristor['Current Rating (A)']}A, ${thyristorCount} adet)`);
@@ -1993,50 +3009,103 @@ class RectifierPricing {
         category: 'Tristör',
       });
 
-      // 6. Soğutucu (Her 4 adet tristör için 1 adet Heatsink)
-      const heatsinkFanCount = Math.ceil(thyristorCount / 4);
-      const heatsink = this.selectCoolingComponent('Heatsink', this.excelData.coolingComponents);
-      if (heatsink && heatsinkFanCount > 0) {
-        console.log('✓ Soğutucu seçildi:', heatsink['Product Name'], `(${heatsinkFanCount} adet)`);
+      // 6. Soğutucu (CoolingComponents, AS99 + modül paketi revizyonlar08)
+      const outI = Number(inputs.outputCurrent) || 0;
+      const baseHeatsinkCount =
+        Math.max(Math.ceil(thyristorCount / 4), 1) + (outI > 200 ? 1 : 0);
+      const heatsinkCount = baseHeatsinkCount + extraFromModules;
+      const heatsinkSize = this.getAs99Variant(outI);
+      const vinNum = Number(inputs.inputVoltage) || 0;
+      const fanQty = 3 + extraFromModules;
+      const coolingSelectionBreakdown = {
+        topology: inputs.topology,
+        thyristorCount,
+        dropperDiodes,
+        moduleTotal,
+        extraFromModules,
+        baseHeatsinkCount,
+        heatsinkCount,
+        heatsinkSize,
+        outputCurrent: outI,
+        inputVoltage: vinNum,
+        fanQuantity: fanQty,
+      };
+      const coolingSpecNote =
+        extraFromModules > 0
+          ? `Modül ${moduleTotal} (tristör+serbest geçiş+dropper); +${extraFromModules} soğutma paketi`
+          : `Modül ${moduleTotal}`;
+      const norm = (s) => this.normalizeSearchText(s);
+      const matchAs99 = (sizeMm) =>
+        this.findFirstMatchingRow(
+          coolingRows,
+          ['as99'],
+          (row) => norm(row['Product Name'] || '').includes(norm(sizeMm))
+        );
+      const heatsink =
+        matchAs99(heatsinkSize) ||
+        (heatsinkSize === '300mm' ? matchAs99('250mm') : null) ||
+        this.findFirstMatchingRow(coolingRows, ['as99']) ||
+        this.selectCoolingComponent('Heatsink', coolingRows);
+      if (heatsink && heatsinkCount > 0) {
+        console.log('✓ Soğutucu seçildi:', heatsink['Product Name'], `(${heatsinkCount} adet)`);
         components.push({
           name: 'Soğutucu',
           productName: heatsink['Product Name'],
-          specs: `Tristör soğutucu`,
-          quantity: heatsinkFanCount,
+          specs: `AS99 ${heatsinkSize} · ${coolingSpecNote}`,
+          quantity: heatsinkCount,
           unitPrice: heatsink.Cost || 0,
-          totalPrice: (heatsink.Cost || 0) * heatsinkFanCount,
+          totalPrice: (heatsink.Cost || 0) * heatsinkCount,
           stockCode: heatsink['Stock Code'] || '',
           excelData: heatsink,
           category: 'Soğutucu',
+          coolingSelectionBreakdown,
         });
       } else {
         console.warn('✗ Soğutucu seçilemedi! Component Type: Heatsink');
       }
 
-      // 7. Fanlar (Tristör soğutucuları + akım bazlı ek fanlar)
-      const fan = this.selectCoolingComponent('Fan', this.excelData.coolingComponents);
-      let fanQuantity = heatsinkFanCount; // Temel: tristör soğutucuları için
-      // Ek kural: Çıkış akımı 100A'in üzerinde ise, her 50A için 1 adet ek fan
-      if (inputs.outputCurrent > 100) {
-        const extraFans = Math.floor((inputs.outputCurrent - 100) / 50);
-        fanQuantity += extraFans;
-      }
+      // 7. Fanlar: taban 3 (2 kabin + 1 heatsink) + modül paketi (revizyonlar08; akıma göre ek yok)
+      const vin = Number(inputs.inputVoltage) || 0;
+      const fan =
+        (vin > 0 && vin <= 150
+          ? this.findFirstMatchingRow(coolingRows, ['fan', '110v', '115v', '120v']) ||
+            this.findFirstMatchingRow(coolingRows, ['fan', '115', '110'])
+          : null) ||
+        this.findFirstMatchingRow(coolingRows, ['fan', '230v', '120']) ||
+        this.selectCoolingComponent('Fan', coolingRows);
+      const fanQuantity = fanQty;
       if (fan && fanQuantity > 0) {
         console.log('✓ Fan seçildi:', fan['Product Name'], `(${fanQuantity} adet)`);
         components.push({
           name: 'Fan',
           productName: fan['Product Name'],
-          specs: `Soğutma fanı`,
+          specs: `Fan · taban 3 (2 kabin + 1 heatsink) + modül paketi ${extraFromModules}`,
           quantity: fanQuantity,
           unitPrice: fan.Cost || 0,
           totalPrice: (fan.Cost || 0) * fanQuantity,
           stockCode: fan['Stock Code'] || '',
           excelData: fan,
           category: 'Fan',
+          coolingSelectionBreakdown,
         });
       } else {
         console.warn('✗ Fan seçilemedi! Component Type: Fan');
       }
+      this.addComponentIfFound(components, {
+        rows: optionsRows,
+        keywords: ['termostat'],
+        name: 'Termostat 90C Normally Closed',
+        specs: 'Soğutucu koruması',
+        quantity: heatsinkCount,
+        category: 'Termostat',
+      }) || this.addComponentIfFound(components, {
+        rows: optionsRows,
+        keywords: ['thermostat', '90c'],
+        name: 'Termostat 90C Normally Closed',
+        specs: 'Soğutucu koruması',
+        quantity: heatsinkCount,
+        category: 'Termostat',
+      });
     } else {
       console.warn('✗ Faz Kontrol Tristörü seçilemedi! İstenen:', requiredThyristorCurrent, 'A');
       this.showNotification('warning', 'Faz Kontrol Tristörü', 
@@ -2071,11 +3140,13 @@ class RectifierPricing {
     // 10. DC Kapasitör (Hesaplanan adet kadar)
     const dcCapacitor = this.selectDCCapacitor(calculations.dcCapacitorCapacitance, this.excelData.dcCapacitors);
     if (dcCapacitor) {
-      console.log('✓ DC Kapasitör seçildi:', dcCapacitor['Product Name'], `(${dcCapacitor['Capacitance (uF)']}uF, ${calculations.dcCapacitorCount} adet)`);
+      const capacitorValueUf = this.getDCCapacitanceUf(dcCapacitor);
+      const capacitorLabel = capacitorValueUf > 0 ? `${capacitorValueUf}uF` : 'Bilinmeyen';
+      console.log('✓ DC Kapasitör seçildi:', dcCapacitor['Product Name'], `(${capacitorLabel}, ${calculations.dcCapacitorCount} adet)`);
       components.push({
-        name: `Kapasitör ${dcCapacitor['Capacitance (uF)']}uF`,
+        name: capacitorValueUf > 0 ? `Kapasitör ${capacitorValueUf}uF` : 'Kapasitör',
         productName: dcCapacitor['Product Name'],
-        specs: `${dcCapacitor['Capacitance (uF)']}uF`,
+        specs: capacitorLabel,
         quantity: calculations.dcCapacitorCount,
         unitPrice: dcCapacitor.Cost || 0,
         totalPrice: (dcCapacitor.Cost || 0) * calculations.dcCapacitorCount,
@@ -2089,24 +3160,14 @@ class RectifierPricing {
         `Excel'de uygun kapasitör bulunamadı (İstenen: ${calculations.dcCapacitorCapacitance.toFixed(0)}uF)`);
     }
 
-    // 11. Elektronik Kart (1 adet)
-    components.push({
-      name: 'Elektronik Kartlar',
-      productName: 'Kontrol ve İzleme Kartları',
-      specs: 'Standart',
-      quantity: 1,
-      unitPrice: 500,
-      totalPrice: 500,
-      stockCode: 'ELEC-CARD-001',
-      excelData: null,
-      category: 'Kart',
-    });
+    // 11. Elektronik kartlar: ControlCards (Electronic Board) + koşullu Kart satırları — appendElectronicBoardCatalogComponents (seçim sonunda)
 
-    // 12. Giriş Kesicisi (1 adet)
+    // 12. Giriş Kesicisi (1 adet) — B2H: MCCB (docs/rectifier-pricing-business-rules.md)
+    const inputBreakerType = this.getEffectiveInputBreakerType(inputs);
     const inputBreaker = this.selectBreaker(
       calculations.inputCurrent,
       inputs.inputPhase,
-      inputs.breakerType,
+      inputBreakerType,
       this.excelData.circuitBreakers
     );
     if (inputBreaker) {
@@ -2123,9 +3184,23 @@ class RectifierPricing {
         category: 'Kesici',
       });
     } else {
-      console.warn('✗ Giriş Kesicisi seçilemedi! İstenen:', calculations.inputCurrent, 'A,', inputs.inputPhase, 'poles,', inputs.breakerType);
-      this.showNotification('warning', 'Giriş Kesicisi', 
-        `Excel'de uygun kesici bulunamadı (İstenen: ${calculations.inputCurrent.toFixed(2)}A, ${inputs.inputPhase} kutuplu, ${inputs.breakerType})`);
+      console.warn(
+        '✗ Giriş Kesicisi seçilemedi! İstenen:',
+        calculations.inputCurrent,
+        'A,',
+        inputs.inputPhase,
+        'poles,',
+        inputBreakerType
+      );
+      const b2hNote =
+        String(inputs.topology || '').trim() === 'B2H'
+          ? ' B2H topolojisinde giriş için MCCB zorunludur.'
+          : '';
+      this.showNotification(
+        'warning',
+        'Giriş Kesicisi',
+        `Excel'de uygun kesici bulunamadı (İstenen: ${calculations.inputCurrent.toFixed(2)}A, ${inputs.inputPhase} kutuplu, ${inputBreakerType}).${b2hNote}`
+      );
     }
 
     // 13. Çıkış Kesicisi (1 adet)
@@ -2407,17 +3482,57 @@ class RectifierPricing {
       });
     }
 
-    // 20. Alarm Terminalleri (2.5mm, Röle sayısına göre: 4→12, 8→24, 12→36 adet)
-    if (inputs.relayAlarmOutputs && inputs.relayAlarmOutputs !== '') {
-      const relayCountMatch = inputs.relayAlarmOutputs.match(/(\d+)/);
-      if (relayCountMatch) {
-        const relayCount = parseInt(relayCountMatch[1]);
-        let alarmTerminalCount = 0;
-        if (relayCount === 4) alarmTerminalCount = 12;
-        else if (relayCount === 8) alarmTerminalCount = 24;
-        else if (relayCount === 12) alarmTerminalCount = 36;
-        
-        if (alarmTerminalCount > 0) {
+    // Akü terminali (çıkış terminali ile aynı mantık)
+    if (outputTerminalRed) {
+      components.push({
+        name: 'Akü Terminali Kırmızı',
+        productName: outputTerminalRed['Product Name'],
+        specs: `${outputTerminalRed['Current Rating (A)']}A`,
+        quantity: 1,
+        unitPrice: outputTerminalRed.Cost || 0,
+        totalPrice: outputTerminalRed.Cost || 0,
+        stockCode: outputTerminalRed['Stock Code'] || '',
+        excelData: outputTerminalRed,
+        category: 'Terminal',
+      });
+    }
+    if (outputTerminalBlack) {
+      components.push({
+        name: 'Akü Terminali Siyah',
+        productName: outputTerminalBlack['Product Name'],
+        specs: `${outputTerminalBlack['Current Rating (A)']}A`,
+        quantity: 1,
+        unitPrice: outputTerminalBlack.Cost || 0,
+        totalPrice: outputTerminalBlack.Cost || 0,
+        stockCode: outputTerminalBlack['Stock Code'] || '',
+        excelData: outputTerminalBlack,
+        category: 'Terminal',
+      });
+    }
+    const earthBar = this.findFirstMatchingRow(
+      terminalRows,
+      ['bara'],
+      (row) => Number(this.getColumn(row, ['Current Rating (A)', 'Current Rating', 'Current (A)', 'Rating (A)', 'Current']) || 0) >= Number(calculations.inputCurrent || 0)
+    ) || this.findFirstMatchingRow(terminalRows, ['busbar']);
+    if (earthBar) {
+      components.push({
+        name: 'Toprak Barası',
+        productName: earthBar['Product Name'],
+        specs: `${this.getColumn(earthBar, ['Current Rating (A)', 'Current Rating', 'Current (A)', 'Rating (A)', 'Current']) || '-'}A`,
+        quantity: 1,
+        unitPrice: earthBar.Cost || 0,
+        totalPrice: earthBar.Cost || 0,
+        stockCode: earthBar['Stock Code'] || '',
+        excelData: earthBar,
+        category: 'Terminal',
+      });
+    }
+
+    // 20. Alarm Terminalleri (2.5mm, röle sayısı: 4→12, 8→24, 12→36, 16→48)
+    const relayCountForTerminals = this.parseRelayAlarmCount(inputs.relayAlarmOutputs);
+    if (relayCountForTerminals != null) {
+      const alarmTerminalCount = this.getAlarmTerminalCountForRelay(relayCountForTerminals);
+      if (alarmTerminalCount > 0) {
           // 2.5mm terminal seçimi
           const alarmTerminal = this.excelData.terminals?.find(
             (t) => (t['Product Name']?.includes('2.5') || t['Product Name']?.includes('2,5')) && 
@@ -2436,15 +3551,15 @@ class RectifierPricing {
               category: 'Terminal',
             });
           }
-        }
       }
     }
 
     // ========== KOŞULLU PARÇALAR ==========
 
     // 9. Dropper Diyotu (Hesaplanan adet kadar)
-    if (inputs.diodeDropper && inputs.diodeDropper !== '' && inputs.diodeDropper !== 'Yok') {
-      const isDCChopper = inputs.diodeDropper === 'DC-DC kıyıcılı';
+    if (inputs.diodeDropper && String(inputs.diodeDropper).trim() !== '' && !this.isDiodeDropperOff(inputs.diodeDropper)) {
+      selectionAudit.branches.diodeDropper = inputs.diodeDropper;
+      const isDCChopper = this.isDiodeDropperDcChopper(inputs.diodeDropper);
       
       if (isDCChopper) {
         // DC-DC Kıyıcılı: Sadece fiyat alınır, soğutucu eklenmez
@@ -2466,106 +3581,68 @@ class RectifierPricing {
     }
       } else {
         // Normal Diyot Dropper
-        const dropperStageCount = parseInt(inputs.diodeDropper) || 1;
-        
-        // Gerilim düşüşü hesaplama (basitleştirilmiş - kullanıcı girişi gerekebilir)
-        let voltageDrop = 0;
-        if (dropperStageCount === 1) {
-          voltageDrop = calculations.boostVoltage - calculations.floatVoltage;
-        } else if (dropperStageCount === 2) {
-          voltageDrop = calculations.boostVoltage - (inputs.outputVoltage * 1.1);
+        const dropperStageCount = this.parseDiodeDropperStageCount(inputs.diodeDropper);
+        if (dropperStageCount >= 1) {
+          const diodeCount = this.computeDropperModuleDiodeCount(inputs, calculations);
+          const requiredDiodeCurrent = inputs.outputCurrent * 1.5;
+
+          // Diyot seçimi
+          const dropperDiode = this.excelData.diodeDroppers?.find(
+            (d) => d['Product Type'] === 'Dropper Diode' &&
+              d['Current Rating (A)'] >= requiredDiodeCurrent
+          );
+          if (dropperDiode) {
+            components.push({
+              name: `Modül Diyot + Diyot ${dropperDiode['Current Rating (A)']}A`,
+              productName: dropperDiode['Product Name'],
+              specs: `${dropperDiode['Current Rating (A)']}A`,
+              quantity: diodeCount,
+              unitPrice: dropperDiode.Cost || 0,
+              totalPrice: (dropperDiode.Cost || 0) * diodeCount,
+              stockCode: dropperDiode['Stock Code'] || '',
+              excelData: dropperDiode,
+              category: 'Diyot',
+            });
+          }
+
+          // Röle seçimi (her kademe için)
+          const relayCurrent = inputs.outputCurrent;
+          const dropperRelay = this.selectRelay(relayCurrent, this.excelData.relays);
+          if (dropperRelay) {
+            components.push({
+              name: 'Diyot Dropper Rölesi',
+              productName: dropperRelay['Product Name'],
+              specs: `${dropperRelay['Current Rating (A)']}A`,
+              quantity: dropperStageCount,
+              unitPrice: dropperRelay.Cost || 0,
+              totalPrice: (dropperRelay.Cost || 0) * dropperStageCount,
+              stockCode: dropperRelay['Stock Code'] || '',
+              excelData: dropperRelay,
+              category: 'Röle',
+            });
+          }
+
+          // Röle kontrol kartı (her kademe için)
+          const relayControlCard = this.excelData.controlCards?.find(
+            (c) => c['Card Type'] === 'Relay Control'
+          );
+          if (relayControlCard) {
+            components.push({
+              name: 'Diyot Dropper Röle Kontrol Kartı',
+              productName: relayControlCard['Product Name'],
+              specs: 'Röle kontrol',
+              quantity: dropperStageCount,
+              unitPrice: relayControlCard.Cost || 0,
+              totalPrice: (relayControlCard.Cost || 0) * dropperStageCount,
+              stockCode: relayControlCard['Stock Code'] || '',
+              excelData: relayControlCard,
+              category: 'Kart',
+            });
+          }
         }
-        // 3 ve 4 kademe için kullanıcı girişi gerekir
-        
-        const diodeCount = Math.ceil(voltageDrop / 1.5);
-    const requiredDiodeCurrent = inputs.outputCurrent * 1.5;
-        
-        // Diyot seçimi
-        const dropperDiode = this.excelData.diodeDroppers?.find(
-          (d) => d['Product Type'] === 'Dropper Diode' && 
-                 d['Current Rating (A)'] >= requiredDiodeCurrent
-    );
-        if (dropperDiode) {
-      components.push({
-            name: `Modül Diyot + Diyot ${dropperDiode['Current Rating (A)']}A`,
-            productName: dropperDiode['Product Name'],
-            specs: `${dropperDiode['Current Rating (A)']}A`,
-            quantity: diodeCount,
-            unitPrice: dropperDiode.Cost || 0,
-            totalPrice: (dropperDiode.Cost || 0) * diodeCount,
-            stockCode: dropperDiode['Stock Code'] || '',
-            excelData: dropperDiode,
-            category: 'Diyot',
-          });
-        }
-        
-        // Röle seçimi (her kademe için)
-        const relayCurrent = inputs.outputCurrent;
-        const dropperRelay = this.selectRelay(relayCurrent, this.excelData.relays);
-        if (dropperRelay) {
-          components.push({
-            name: 'Diyot Dropper Rölesi',
-            productName: dropperRelay['Product Name'],
-            specs: `${dropperRelay['Current Rating (A)']}A`,
-            quantity: dropperStageCount,
-            unitPrice: dropperRelay.Cost || 0,
-            totalPrice: (dropperRelay.Cost || 0) * dropperStageCount,
-            stockCode: dropperRelay['Stock Code'] || '',
-            excelData: dropperRelay,
-            category: 'Röle',
-          });
-        }
-        
-        // Röle kontrol kartı (her kademe için)
-        const relayControlCard = this.excelData.controlCards?.find(
-          (c) => c['Card Type'] === 'Relay Control'
-        );
-        if (relayControlCard) {
-          components.push({
-            name: 'Diyot Dropper Röle Kontrol Kartı',
-            productName: relayControlCard['Product Name'],
-            specs: 'Röle kontrol',
-            quantity: dropperStageCount,
-            unitPrice: relayControlCard.Cost || 0,
-            totalPrice: (relayControlCard.Cost || 0) * dropperStageCount,
-            stockCode: relayControlCard['Stock Code'] || '',
-            excelData: relayControlCard,
-            category: 'Kart',
-          });
-        }
-        
-        // Soğutucular (DC-DC kıyıcılı değilse)
-        const heatsinkFanCount = Math.ceil(diodeCount / 4);
-        const dropperHeatsink = this.selectCoolingComponent('Heatsink', this.excelData.coolingComponents);
-        const dropperFan = this.selectCoolingComponent('Fan', this.excelData.coolingComponents);
-        
-        if (dropperHeatsink && heatsinkFanCount > 0) {
-          components.push({
-            name: 'Diyot Dropper Soğutucusu (Heatsink)',
-            productName: dropperHeatsink['Product Name'],
-            specs: 'Dropper soğutucu',
-            quantity: heatsinkFanCount,
-            unitPrice: dropperHeatsink.Cost || 0,
-            totalPrice: (dropperHeatsink.Cost || 0) * heatsinkFanCount,
-            stockCode: dropperHeatsink['Stock Code'] || '',
-            excelData: dropperHeatsink,
-            category: 'Soğutucu',
-          });
-        }
-        
-        if (dropperFan && heatsinkFanCount > 0) {
-          components.push({
-            name: 'Diyot Dropper Soğutucusu (Fan)',
-            productName: dropperFan['Product Name'],
-            specs: 'Dropper soğutucu',
-            quantity: heatsinkFanCount,
-            unitPrice: dropperFan.Cost || 0,
-            totalPrice: (dropperFan.Cost || 0) * heatsinkFanCount,
-            stockCode: dropperFan['Stock Code'] || '',
-            excelData: dropperFan,
-            category: 'Fan',
-          });
-        }
+
+        // Dropper modül diyotları için AS99 + fan adedi tristör bloğunda
+        // computeModuleCoolingExtras (moduleTotal) ile verilir; burada tekrar eklenmez (çift sayım önlenir).
       }
     }
 
@@ -2573,6 +3650,7 @@ class RectifierPricing {
 
     // Akü LVD (Low Voltage Disconnect)
     if (inputs.batteryLVD === 'Var' || inputs.batteryLVD === 'Var / Yes') {
+      selectionAudit.branches.batteryLvdEnabled = true;
       // LVD Röle Kontrol Kartı
       const lvdControlCard = this.excelData.controlCards?.find(
         (c) => c['Card Type'] === 'LVD Control'
@@ -2611,6 +3689,7 @@ class RectifierPricing {
 
     // Dahili Dağıtım Kesicileri
     if (inputs.internalDistribution === 'Var' || inputs.internalDistribution === 'Var / Yes') {
+      selectionAudit.branches.internalDistributionEnabled = Array.isArray(inputs.internalDistributions) ? inputs.internalDistributions.length : 0;
       if (inputs.internalDistributions && Array.isArray(inputs.internalDistributions)) {
         inputs.internalDistributions.forEach((dist) => {
           if (dist.breakerPoleCurrent) {
@@ -2641,28 +3720,45 @@ class RectifierPricing {
 
     // 17. Ölçü Aletleri
     if (inputs.measurementInstruments && Array.isArray(inputs.measurementInstruments) && inputs.measurementInstruments.length > 0) {
+      selectionAudit.branches.measurementInstruments = inputs.measurementInstruments.length;
       inputs.measurementInstruments.forEach((instrument) => {
         const instrumentType = instrument.type;
-        const measurementPoint = instrument.point;
-        
-        // Voltaj değeri belirleme
-        let voltageValue = 0;
-        if (measurementPoint === 'Giriş' || measurementPoint === 'Giriş gerilimler') {
-          voltageValue = inputs.inputVoltage;
-        } else if (measurementPoint === 'Çıkış' || measurementPoint === 'Yük gerilimi') {
-          voltageValue = inputs.outputVoltage;
-        } else if (measurementPoint === 'Akü' || measurementPoint === 'Akü gerilimi') {
-          voltageValue = inputs.batteryVoltage;
-        }
+
+          // UI artık token değerleri döndürüyor: Yük / Akü / Giriş
+          // (Excel'de ise daha uzun metinler olabildiği için eşleştirmeyi toleranslı yapıyoruz.)
+          const measurementPoint = instrument.point;
+          const mpToken = (() => {
+            const mp = String(measurementPoint || '').toLowerCase();
+            if (mp.includes('giriş') || mp.includes('input')) return 'Giriş';
+            if (mp.includes('akü') || mp.includes('battery')) return 'Akü';
+            if (mp.includes('yük') || mp.includes('çıkış') || mp.includes('load')) return 'Yük';
+            return String(measurementPoint || '').trim();
+          })();
+
+          // Voltaj değeri belirleme
+          let voltageValue = 0;
+          if (mpToken === 'Giriş') {
+            voltageValue = inputs.inputVoltage;
+          } else if (mpToken === 'Yük') {
+            voltageValue = inputs.outputVoltage;
+          } else if (mpToken === 'Akü') {
+            voltageValue = inputs.batteryVoltage;
+          }
         
         const voltageRange = voltageValue * 1.2;
         
         // Ölçü aleti seçimi
-        const measurementInstrument = this.excelData.measurementInstruments?.find(
-          (m) => m['Instrument Type'] === instrumentType &&
-                 m['Measurement Point'] === measurementPoint &&
-                 m['Voltage Range (V)'] >= voltageRange
-        );
+          const measurementInstrument = this.excelData.measurementInstruments?.find((m) => {
+            const cellPoint = String(m['Measurement Point'] || '');
+            const cellLower = cellPoint.toLowerCase();
+            const instOk = m['Instrument Type'] === instrumentType;
+            const pointOk =
+              (mpToken === 'Giriş' && (cellLower.includes('giriş') || cellLower.includes('input'))) ||
+              (mpToken === 'Akü' && (cellLower.includes('akü') || cellLower.includes('battery'))) ||
+              (mpToken === 'Yük' && (cellLower.includes('yük') || cellLower.includes('çıkış') || cellLower.includes('load')));
+            const voltageOk = Number(m['Voltage Range (V)'] || 0) >= voltageRange;
+            return instOk && pointOk && voltageOk;
+          });
         
         if (measurementInstrument) {
       components.push({
@@ -2682,10 +3778,13 @@ class RectifierPricing {
 
     // 18. Paralel Çalışma
     if (inputs.parallelOperation === 'Aktif') {
+      selectionAudit.branches.parallelOperation = true;
       // Paralelleme Kartı
-      const parallelCard = this.excelData.controlCards?.find(
-        (c) => c['Card Type'] === 'Parallel Operation'
-    );
+      const parallelCard =
+        this.findFirstMatchingRow(optionsRows, ['parallel kit']) ||
+        this.excelData.controlCards?.find(
+          (c) => c['Card Type'] === 'Parallel Operation'
+        );
       if (parallelCard) {
       components.push({
           name: 'Paralelleme Kartı',
@@ -2700,10 +3799,10 @@ class RectifierPricing {
       });
     }
 
-      // RJ45 Portu
-      const rj45Port = this.excelData.communicationComponents?.find(
-        (c) => c['Product Type'] === 'RJ45' || c['Product Name']?.includes('RJ45')
-    );
+      // CommunicationComponents ayrı bir sheet değil; protocol/options verisini kullan.
+      const rj45Port =
+        this.findFirstMatchingRow(optionsRows, ['communication', 'rs232']) ||
+        this.findFirstMatchingRow(optionsRows, ['communication', 'rs485']);
       if (rj45Port) {
       components.push({
           name: 'RJ45 Portu',
@@ -2721,6 +3820,7 @@ class RectifierPricing {
 
     // 19. Haberleşme Protokolü
     if (inputs.communicationProtocol && inputs.communicationProtocol !== '') {
+      selectionAudit.branches.communicationProtocol = inputs.communicationProtocol;
       const commProtocol = this.excelData.communicationProtocols?.find(
         (p) => p['Product Name'] === inputs.communicationProtocol
     );
@@ -2739,12 +3839,71 @@ class RectifierPricing {
       }
     }
 
+    // Panel seçimleri
+    if (normalizedFrontPanel.includes('led')) {
+      this.addComponentIfFound(components, {
+        rows: optionsRows,
+        keywords: ['led panel'],
+        name: 'Led Panel',
+        specs: 'Ön panel seçimine bağlı',
+        quantity: 1,
+        category: 'Panel',
+      });
+    }
+    if (normalizedFrontPanel.includes('touch') || normalizedFrontPanel.includes('dokunmatik')) {
+      this.addComponentIfFound(components, {
+        rows: optionsRows,
+        keywords: ['touch panel'],
+        name: 'Touch Panel',
+        specs: 'Ön panel seçimine bağlı',
+        quantity: 1,
+        category: 'Panel',
+      }) || this.addComponentIfFound(components, {
+        rows: optionsRows,
+        keywords: ['dokunmatik'],
+        name: 'Touch Panel',
+        specs: 'Ön panel seçimine bağlı',
+        quantity: 1,
+        category: 'Panel',
+      });
+      this.addComponentIfFound(components, {
+        rows: optionsRows,
+        keywords: ['power supply', 'touch'],
+        name: 'Touch Panel Power Supply',
+        specs: 'Touch panel beslemesi',
+        quantity: 1,
+        category: 'Power Supply',
+      }) || this.addComponentIfFound(components, {
+        rows: optionsRows,
+        keywords: ['touch power supply'],
+        name: 'Touch Panel Power Supply',
+        specs: 'Touch panel beslemesi',
+        quantity: 1,
+        category: 'Power Supply',
+      });
+      if (supplyTransformer) {
+        const btName = this.stripSupplyTransformerFrequencyText(
+          supplyTransformer['Product Name'] || 'Besleme Trafosu'
+        );
+        components.push({
+          name: 'Besleme Trafosu 2',
+          productName: btName,
+          specs: '20VA 230V / 2x18V izole',
+          quantity: 1,
+          unitPrice: supplyTransformer.Cost || 0,
+          totalPrice: supplyTransformer.Cost || 0,
+          stockCode: supplyTransformer['Stock Code'] || '',
+          excelData: supplyTransformer,
+          category: 'Besleme Trafosu',
+        });
+      }
+    }
+
     // 20. Röle Kuru Kontak Alarm Çıkışları
     if (inputs.relayAlarmOutputs && inputs.relayAlarmOutputs !== '') {
-      // "4 Adet", "8 Adet" formatından sayıyı çıkar
-      const relayCountMatch = inputs.relayAlarmOutputs.match(/(\d+)/);
-      if (relayCountMatch) {
-        const relayCount = parseInt(relayCountMatch[1]);
+      selectionAudit.branches.relayAlarmOutputs = inputs.relayAlarmOutputs;
+      const relayCount = this.parseRelayAlarmCount(inputs.relayAlarmOutputs);
+      if (relayCount != null) {
         const relayAlarmModule = this.excelData.relayAlarmOutputs?.find(
           (r) => r['Relay Count'] === relayCount
         );
@@ -2764,11 +3923,29 @@ class RectifierPricing {
       }
     }
 
-      console.log('=== PARÇA SEÇİMİ TAMAMLANDI ===');
-      console.log('Toplam', components.length, 'parça seçildi');
-      console.log('Seçilen parçalar:', components.map(c => c.name).join(', '));
+    this.appendElectronicBoardCatalogComponents(components, inputs, optionsRows, projectConfig);
+    this.applyRelayBasedControlCardAdjustments(components, inputs);
 
-      return components;
+    const kartKalemSayisi = components.filter(
+      (c) => String(c.category || '').toLowerCase() === 'kart'
+    ).length;
+    const controlCardsRows = Array.isArray(this.excelData?.controlCards)
+      ? this.excelData.controlCards
+      : [];
+    if (kartKalemSayisi === 0 && controlCardsRows.length === 0) {
+      console.warn(
+        '⚠️ ControlCards sayfası boş ve BOM’da Kart kalemi yok; elektronik kart maliyeti eksik olabilir.'
+      );
+    }
+
+    console.log('=== PARÇA SEÇİMİ TAMAMLANDI ===');
+    console.log('Toplam', components.length, 'parça seçildi');
+    console.log('Seçilen parçalar:', components.map(c => c.name).join(', '));
+    selectionAudit.selectedNames = components.map((c) => c.name);
+    return components.map((component) => ({
+      ...component,
+      selectionLogic: this.buildSelectionLogicForComponent(component, inputs, calculations),
+    }));
     } catch (error) {
       console.error('✗ selectComponents hatası:', error);
       console.error('Error stack:', error.stack);
@@ -2778,7 +3955,10 @@ class RectifierPricing {
       // En azından bazı parçalar seçildiyse onları döndür
       if (components.length > 0) {
         console.warn('⚠️ Hata oluştu ancak', components.length, 'parça seçildi, bunlar döndürülüyor');
-    return components;
+    return components.map((component) => ({
+      ...component,
+      selectionLogic: this.buildSelectionLogicForComponent(component, inputs, calculations),
+    }));
       }
       
       // Hiç parça seçilemediyse boş array döndür
@@ -2787,19 +3967,373 @@ class RectifierPricing {
     }
   }
 
+  buildSelectionLogicForComponent(component, inputs, calculations) {
+    try {
+      const name = String(component?.name || '').toLocaleLowerCase('tr-TR');
+      const category = String(component?.category || '').toLocaleLowerCase('tr-TR');
+      const productName = String(component?.productName || '');
+      const excel = component?.excelData || {};
+      const logic = [];
+
+      if (category === 'terminal' && (name.includes('çıkış') || name.includes('kırmızı') || name.includes('siyah'))) {
+        const required = Number(inputs.outputCurrent || 0);
+        const selected = Number(this.getColumn(excel, ['Current Rating (A)', 'Current Rating', 'Current (A)', 'Rating (A)', 'Current']) || 0);
+        logic.push(
+          { key: 'Gerekli Akım', formula: `Çıkış akımı = ${required.toFixed(2)} A`, value: `${required.toFixed(2)} A` },
+          { key: 'Seçim Kriteri', formula: `Terminal/Bara akımı >= ${required.toFixed(2)} A`, value: `${selected.toFixed(2)} A >= ${required.toFixed(2)} A` },
+          { key: 'Seçilen Ürün', formula: '', value: `${productName} (${component.specs || `${selected.toFixed(2)} A`})` }
+        );
+      } else if (category === 'terminal' && (name.includes('giriş') || name.includes('gri') || name.includes('mavi') || name.includes('sarı'))) {
+        const required = Number(calculations.inputCurrent || 0);
+        const selected = Number(this.getColumn(excel, ['Current Rating (A)', 'Current Rating', 'Current (A)', 'Rating (A)', 'Current']) || 0);
+        logic.push(
+          { key: 'Gerekli Akım', formula: `Giriş akımı = ${required.toFixed(2)} A`, value: `${required.toFixed(2)} A` },
+          { key: 'Seçim Kriteri', formula: `Terminal/Bara akımı >= ${required.toFixed(2)} A`, value: `${selected.toFixed(2)} A >= ${required.toFixed(2)} A` },
+          { key: 'Seçilen Ürün', formula: '', value: `${productName} (${component.specs || `${selected.toFixed(2)} A`})` }
+        );
+      } else if (category === 'terminal') {
+        const selected = Number(this.getColumn(excel, ['Current Rating (A)', 'Current Rating', 'Current (A)', 'Rating (A)', 'Current']) || 0);
+        logic.push(
+          { key: 'Terminal Tipi', formula: `Renk/nokta bazlı terminal seçimi`, value: `${component.name}` },
+          { key: 'Akım Kapasitesi', formula: `Seçilen terminal akımı`, value: `${selected.toFixed(2)} A` },
+          { key: 'Seçilen Ürün', formula: '', value: `${productName}` }
+        );
+      } else if (name.includes('giriş kesicisi')) {
+        const required = Number(calculations.inputCurrent || 0);
+        const selected = Number(this.getColumn(excel, ['Current Rating (A)', 'Current Rating', 'Current (A)', 'Rating (A)', 'Current']) || 0);
+        const poles = Number(excel.Poles || inputs.inputPhase || 0);
+        const criteriaType = this.getEffectiveInputBreakerType(inputs);
+        const displayType = excel.Type || criteriaType || '-';
+        logic.push(
+          { key: 'Gerekli Akım', formula: `I_giriş = ${required.toFixed(2)} A`, value: `${required.toFixed(2)} A` },
+          {
+            key: 'Seçim Kriteri',
+            formula: `${criteriaType} tip, ${poles} kutup, akım >= ${required.toFixed(2)} A`,
+            value: `${selected.toFixed(2)} A`,
+          },
+          {
+            key: 'Seçilen Ürün',
+            formula: '',
+            value: `${productName} (${poles}P ${displayType} ${selected.toFixed(0)}A)`,
+          }
+        );
+      } else if (name.includes('çıkış kesicisi')) {
+        const required = Number(inputs.outputCurrent || 0);
+        const poles = inputs.outputVoltage > 48 ? 3 : 2;
+        const selected = Number(this.getColumn(excel, ['Current Rating (A)', 'Current Rating', 'Current (A)', 'Rating (A)', 'Current']) || 0);
+        const breakerType = excel.Type || inputs.breakerType || '-';
+        logic.push(
+          { key: 'Gerekli Akım', formula: `I_çıkış = ${required.toFixed(2)} A`, value: `${required.toFixed(2)} A` },
+          { key: 'Seçim Kriteri', formula: `Kutup = ${poles}, tip = ${breakerType}, akım >= ${required.toFixed(2)} A`, value: `${selected.toFixed(2)} A` },
+          { key: 'Seçilen Ürün', formula: '', value: `${productName} (${poles}P ${breakerType} ${selected.toFixed(0)}A)` }
+        );
+      } else if (name.includes('tristör')) {
+        const required = (Number(inputs.outputCurrent || 0) * 1.5) / Number(inputs.inputPhase || 1);
+        const selected = Number(this.getColumn(excel, ['Current Rating (A)', 'Current Rating', 'Current (A)', 'Rating (A)', 'Current']) || 0);
+        const count = Number(component.quantity || 1);
+        logic.push(
+          { key: 'Gerekli Akım', formula: `(Çıkış Akımı × 1.5) / Faz = (${Number(inputs.outputCurrent || 0).toFixed(2)} × 1.5) / ${Number(inputs.inputPhase || 1)}`, value: `${required.toFixed(2)} A` },
+          { key: 'Seçim Kriteri', formula: `Tristör akımı >= ${required.toFixed(2)} A`, value: `${selected.toFixed(2)} A` },
+          { key: 'Seçilen Ürün', formula: '', value: `${productName} (${count} adet)` }
+        );
+      } else if (name.includes('diyot')) {
+        const required = Number(inputs.outputCurrent || 0) * 1.5;
+        const selected = Number(this.getColumn(excel, ['Current Rating (A)', 'Current Rating', 'Current (A)', 'Rating (A)', 'Current']) || 0);
+        logic.push(
+          { key: 'Gerekli Akım', formula: `Çıkış Akımı × 1.5 = ${Number(inputs.outputCurrent || 0).toFixed(2)} × 1.5`, value: `${required.toFixed(2)} A` },
+          { key: 'Seçim Kriteri', formula: `Diyot akımı >= ${required.toFixed(2)} A`, value: `${selected.toFixed(2)} A` },
+          { key: 'Seçilen Ürün', formula: '', value: `${productName}` }
+        );
+      } else if (name.includes('dc şok') || name.includes('dc chok')) {
+        const requiredL = Number(calculations.dcChokeInductance || 0);
+        const selectedL = Number(this.getColumn(excel, ['Inductance (mH)', 'Inductance', 'L (mH)']) || 0);
+        const optimizationSummary = calculations.dcOptimizationSummary || {};
+        const requiredI = Number(optimizationSummary.requiredChokeCurrentA || this.getRequiredDCChokeCurrentA(inputs.outputCurrent));
+        const selectedI = Number(this.getColumn(excel, ['Current Rating (A)', 'Current Rating', 'Current (A)', 'Rating (A)', 'Current']) || 0);
+        const technicalTargetL = Number(optimizationSummary.technicalTargetChokeInductanceMh || requiredL);
+        const toleranceMh = Number(optimizationSummary.catalogToleranceMh || 0.1);
+        const matchDeltaMh = Number(optimizationSummary.catalogMatchDeltaMh || Math.abs(selectedL - technicalTargetL));
+        const catalogMatched = optimizationSummary.catalogChokeMatched !== false && !excel.__catalogMatchMissing;
+        const technicalLabel = String(Number(technicalTargetL.toFixed(3)));
+        const requiredILabel = String(Number(requiredI.toFixed(1)));
+        const selectedChokeLine = this.formatDCChokeSpecsLine(selectedL, selectedI);
+        const technicalChokeLine = this.formatDCChokeSpecsLine(technicalTargetL, requiredI);
+        const preferredMarginHz = Number(optimizationSummary.preferredMarginHz || 5);
+        logic.push(
+          {
+            key: 'Aşama 1 — Teknik DC filtre (L, C, f_cut)',
+            formula:
+              'Şok endüktansı 0.25–2.00 mH aralığında taranır. Önce en düşük kapasitör adedi (N ≥ N_min), sonra tahmini toplam DC filtre maliyeti, ardından kesme frekansı marjının hedefe yakınlığı değerlendirilir (3 faz: f_cut < 34 Hz; 1 faz: f_cut < 20 Hz). Bu aşama akım kademesini seçmez; yalnızca L_teknik üretir.',
+            value: `L_teknik = ${technicalLabel} mH; hedef marj ≈ ${preferredMarginHz.toFixed(1)} Hz`,
+          },
+          {
+            key: 'Aşama 2a — Katalog: gerekli akım',
+            formula: `I_req = I_çıkış × 1.1 = ${Number(inputs.outputCurrent || 0).toFixed(2)} × 1.1`,
+            value: `${requiredILabel} A (yalnız I_katalog ≥ I_req satırlar dikkate alınır)`,
+          },
+          {
+            key: 'Aşama 2b — Katalog: L toleransı',
+            formula: `|L_katalog − L_teknik| ≤ ${toleranceMh.toFixed(3)} mH`,
+            value: catalogMatched
+              ? `Eşleşti; ΔL = ${matchDeltaMh.toFixed(3)} mH`
+              : `Eşleşme yok; ±${(toleranceMh * 1000).toFixed(0)} µH bandında uygun satır yok`,
+          },
+          {
+            key: 'Aşama 2c — Katalog: satır seçim sırası',
+            formula:
+              'Aynı tolerans bandındaki adaylar: (1) en küçük yeterli I_katalog, (2) en küçük |L_katalog − L_teknik|, (3) düşük maliyet, (4) L eşitliği.',
+            value: catalogMatched ? selectedChokeLine : technicalChokeLine,
+          },
+          {
+            key: 'Seçilen Ürün',
+            formula: catalogMatched ? 'Excel satırı + BOM açıklama satırı' : 'Katalog yoksa yalnızca teknik hedef bilgi amaçlı',
+            value: catalogMatched ? `${productName} (${selectedChokeLine})` : technicalChokeLine,
+          }
+        );
+      } else if (name.includes('kapasitör')) {
+        const requiredCap = Number(calculations.dcCapacitorUnitCapacitance || calculations.dcCapacitorCapacitance || 0);
+        const selectedCap = this.getDCCapacitanceUf(excel);
+        const count = Number(calculations.dcCapacitorCount || component.quantity || 1);
+        const minRaw = Number(calculations.dcCapacitorMinCountRaw || 0);
+        const minRounded = Number(calculations.dcCapacitorMinCount || count);
+        const totalCap = Number(calculations.dcCapacitorTotalCapacitance || (requiredCap * count));
+        const optimizationSummary = calculations.dcOptimizationSummary || {};
+        logic.push(
+          { key: 'Minimum Adet (Ham)', formula: `I_çıkış / (Faz × 15)`, value: `${minRaw.toFixed(3)}` },
+          { key: 'Minimum Adet (Yuvarlanmış)', formula: `Kesir > 0.2 ise bir üst tam sayıya çıkılır`, value: `${minRounded} adet` },
+          { key: 'Seçilen Kapasitör', formula: `Sadece 4700uF veya 10000uF seçeneklerinden seçilir`, value: `${selectedCap.toFixed(0)} µF` },
+          { key: 'Toplam Kapasite', formula: `Ünite değer × adet`, value: `${totalCap.toFixed(0)} µF` },
+          { key: 'Optimizasyon', formula: `Düşük adet ve düşük maliyet birlikte değerlendirilir`, value: optimizationSummary.usedMinimumCapCount ? 'Minimum adet korundu' : 'Ek adet kullanıldı' }
+        );
+      } else if (name.includes('besleme trafosu')) {
+        const supplyTopology = this.getTransformerTopology(excel, 'SUPPLY') || 'SUPPLY';
+        logic.push(
+          { key: 'Topology', formula: `Besleme trafosu topology=supply etiketi ile seçilir`, value: supplyTopology },
+          { key: 'Standart Parça', formula: `Tüm projelerde sabit besleme trafosu kullanılır`, value: this.getStandardSupplyTransformerName() },
+          { key: 'Seçilen Ürün', formula: '', value: `${productName}` }
+        );
+      } else if (category === 'giriş trafosu' || name.includes('giriş trafosu')) {
+        const selectedPower = Number(this.getColumn(excel, ['Power (kVA)', 'Power Rating (kVA)', 'Power', 'kVA']) || 0);
+        const selectedOutput = Number(this.getColumn(excel, ['Output Voltage (V)', 'Output Voltage', 'Secondary Voltage', 'Secondary Voltage (V)', 'Secondary']) || 0);
+        const requestedOutput = Number(inputs.outputVoltage || 0);
+        const roundedOutput = Number(excel.__roundedOutputVoltage || selectedOutput || requestedOutput);
+        const selectedTopology = this.getTransformerTopology(excel, inputs.topology) || this.normalizeTransformerTopology(inputs.topology);
+        logic.push(
+          { key: 'Topology', formula: `Ana trafolar önce topology havuzuna ayrılır`, value: `${this.normalizeTransformerTopology(inputs.topology) || inputs.topology} -> ${selectedTopology}` },
+          { key: 'Trafo Gücü', formula: `(I_çıkış × V_float) / (η × PF) / 1000`, value: `${Number(calculations.transformerPower || 0).toFixed(2)} kVA` },
+          { key: 'Çıkış Voltaj Eşleşmesi', formula: `Trafo listesinde çıkış voltajı en yakın değere yuvarlanır`, value: `${requestedOutput.toFixed(2)} V -> ${roundedOutput.toFixed(2)} V` },
+          { key: 'Seçim Kriteri', formula: `Yuvarlanan çıkış voltajı + topoloji içinde güç >= hedef`, value: `${selectedPower ? `${selectedPower.toFixed(2)} kVA` : productName}` },
+          { key: 'Seçilen Ürün', formula: '', value: `${productName}` }
+        );
+      } else if (name.includes('akım okuma kartı') || name.includes('akim okuma karti')) {
+        const current = Number(inputs.outputCurrent || 0);
+        logic.push(
+          { key: 'Çıkış Akımı', formula: `I_çıkış = ${current.toFixed(2)} A`, value: `${current.toFixed(2)} A` },
+          { key: 'Kart Aralığı', formula: `Akım aralığına uygun model seçilir`, value: `${productName}` }
+        );
+      } else if (category === 'kart') {
+        logic.push(
+          { key: 'Kart Tipi', formula: `Fonksiyon bazlı kart seçimi`, value: `${component.name}` },
+          { key: 'Seçilen Ürün', formula: '', value: `${productName}` }
+        );
+      } else if (
+        component.coolingSelectionBreakdown &&
+        (category === 'soğutucu' || category === 'fan')
+      ) {
+        const b = component.coolingSelectionBreakdown;
+        const nT = b.thyristorCount;
+        const nD = b.dropperDiodes;
+        const nTot = b.moduleTotal;
+        const extra = b.extraFromModules;
+        const iOut = Number(b.outputCurrent) || 0;
+        const vIn = Number(b.inputVoltage) || 0;
+        logic.push(
+          {
+            key: 'Topoloji',
+            formula: 'B2H / B6C / B12C → faz tristör adedi',
+            value: `${b.topology || '-'} → ${nT} tristör`,
+          },
+          {
+            key: 'Modül toplamı (N)',
+            formula: 'N = tristör + 1 (serbest geçiş) + dropper modül diyot (revizyonlar08)',
+            value: `${nT} + 1 + ${nD} = ${nTot}`,
+          },
+          {
+            key: 'Modül paketi',
+            formula: 'N > 4 ise ceil((N − 4) / 4) → her paket +1 soğutucu ve +1 fan',
+            value: `+${extra} paket`,
+          }
+        );
+        if (category === 'soğutucu') {
+          const highCurrentExtra = iOut > 200 ? 1 : 0;
+          logic.push(
+            {
+              key: 'Taban soğutucu',
+              formula: 'max(ceil(n_tristör / 4), 1) + (I_çıkış > 200 A ? 1 : 0)',
+              value: `${b.baseHeatsinkCount} adet (I_çıkış = ${iOut.toFixed(2)} A${highCurrentExtra ? `; >200 A için +${highCurrentExtra}` : ''})`,
+            },
+            {
+              key: 'Toplam soğutucu',
+              formula: 'taban + modül paketi',
+              value: `${b.baseHeatsinkCount} + ${extra} = ${b.heatsinkCount} adet`,
+            },
+            {
+              key: 'AS99 boyu',
+              formula: 'I < 70 → 150 mm; I < 150 → 200 mm; I ≥ 150 → 300 mm (katalogda yoksa 250 mm yedek)',
+              value: `${b.heatsinkSize}`,
+            }
+          );
+        } else {
+          const fanVHint =
+            vIn > 0 && vIn <= 150
+              ? `V_giriş = ${vIn.toFixed(2)} V → önce 110V/115V/120V fan satırları`
+              : `V_giriş = ${vIn.toFixed(2)} V → 230V + 120 mm eşlemesi`;
+          logic.push(
+            {
+              key: 'Taban fan',
+              formula: 'Sabit 3 adet (2 kabin + 1 heatsink); çıkış akımına göre ek fan yok',
+              value: '3 adet',
+            },
+            {
+              key: 'Toplam fan',
+              formula: '3 + modül paketi',
+              value: `3 + ${extra} = ${b.fanQuantity} adet`,
+            },
+            {
+              key: 'Fan gerilimi / katalog',
+              formula: 'CoolingComponents içinde anahtar kelime eşlemesi',
+              value: fanVHint,
+            }
+          );
+        }
+        logic.push({
+          key: 'Seçilen Ürün',
+          formula: 'Soğutma bileşeni tipi + ürün adı eşlemesi',
+          value: `${productName}`,
+        });
+      } else if (name.includes('fan') || name.includes('soğutucu') || name.includes('sogutucu')) {
+        const current = Number(inputs.outputCurrent || 0);
+        logic.push(
+          { key: 'Soğutma Kuralı', formula: `Tristör adedi ve çıkış akımı baz alınır`, value: `${current.toFixed(2)} A çıkış akımı` },
+          { key: 'Seçilen Ürün', formula: `Soğutma bileşeni tipi eşleşmesi`, value: `${productName}` }
+        );
+      } else if (name.includes('kabin')) {
+        logic.push(
+          { key: 'Kabin Boyutu', formula: `Seçilen mekanik boyut = ${inputs.cabinetSize || '-'}`, value: `${inputs.cabinetSize || '-'}` },
+          { key: 'Koruma Sınıfı', formula: `IP ve renk tercihi dikkate alınır`, value: `${inputs.protectionClass || '-'} / ${inputs.cabinetColor || '-'}` },
+          { key: 'Seçilen Ürün', formula: '', value: `${productName}` }
+        );
+      } else if (name.includes('ölçü aleti') || name.includes('olcu aleti')) {
+        logic.push(
+          { key: 'Ölçüm Tipi', formula: `Kullanıcı arayüzünde seçilen tip`, value: `${productName}` },
+          { key: 'Ölçüm Noktası', formula: `Giriş / Çıkış / Akü noktasına göre filtre`, value: `${component.name}` }
+        );
+      } else if (category === 'haberleşme' || name.includes('haberleşme') || name.includes('rj45')) {
+        logic.push(
+          { key: 'Haberleşme Tercihi', formula: `Protokol veya paralel çalışma seçimi`, value: `${inputs.communicationProtocol || inputs.parallelOperation || '-'}` },
+          { key: 'Seçilen Ürün', formula: '', value: `${productName}` }
+        );
+      } else if (name.includes('röle')) {
+        const isLvd = name.includes('lvd');
+        const required = isLvd
+          ? Number(inputs.outputCurrent || 0) * 1.2
+          : Number(inputs.outputCurrent || 0);
+        const selected = Number(this.getColumn(excel, ['Current Rating (A)', 'Current Rating', 'Current (A)', 'Rating (A)', 'Current']) || 0);
+        logic.push(
+          { key: 'Gerekli Akım', formula: isLvd ? `I_gerekli = I_çıkış × 1.2` : `I_gerekli = I_çıkış`, value: `${required.toFixed(2)} A` },
+          { key: 'Seçim Kriteri', formula: `Röle akımı >= ${required.toFixed(2)} A`, value: `${selected.toFixed(2)} A` },
+          { key: 'Seçilen Ürün', formula: '', value: `${productName}` }
+        );
+      } else if (category === 'kesici') {
+        const selected = Number(this.getColumn(excel, ['Current Rating (A)', 'Current Rating', 'Current (A)', 'Rating (A)', 'Current']) || 0);
+        logic.push(
+          { key: 'Kesici Tipi', formula: `MCB/MCCB ve kutup sayısı filtrelenir`, value: `${component.specs || '-'}` },
+          { key: 'Akım Kapasitesi', formula: `Kesici akımı seçilen değere yuvarlanır`, value: `${selected.toFixed(2)} A` },
+          { key: 'Seçilen Ürün', formula: '', value: `${productName}` }
+        );
+      } else if (name.includes('ntc')) {
+        logic.push(
+          { key: 'Standart Sensör', formula: `Her projede 1 adet standart eklenir`, value: 'NTC 10K Wired' },
+          { key: 'Seçilen Ürün', formula: '', value: `${productName}` }
+        );
+      } else if (name.includes('termostat')) {
+        logic.push(
+          { key: 'Adet Kuralı', formula: `Termostat adedi = soğutucu adedi`, value: `${component.quantity || 1} adet` },
+          { key: 'Seçilen Ürün', formula: '', value: `${productName}` }
+        );
+      } else if (name.includes('sigort')) {
+        logic.push(
+          { key: 'Standart Koruma', formula: `Fan ve besleme koruması için sabit 2 adet`, value: `${component.quantity || 2} adet` },
+          { key: 'Seçilen Ürün', formula: '', value: `${productName}` }
+        );
+      } else if (name.includes('fuse holder')) {
+        logic.push(
+          { key: 'Taşıyıcı Adedi', formula: `Sigorta adedi ile aynı`, value: `${component.quantity || 2} adet` },
+          { key: 'Seçilen Ürün', formula: '', value: `${productName}` }
+        );
+      } else if (name.includes('akü terminali') || name.includes('aku terminali')) {
+        const selected = Number(this.getColumn(excel, ['Current Rating (A)', 'Current Rating', 'Current (A)', 'Rating (A)', 'Current']) || 0);
+        logic.push(
+          { key: 'Seçim Kriteri', formula: `Akü terminali, çıkış terminali ile aynı akım kuralını kullanır`, value: `${selected.toFixed(2)} A` },
+          { key: 'Seçilen Ürün', formula: '', value: `${productName}` }
+        );
+      } else if (name.includes('toprak barası') || name.includes('toprak barasi')) {
+        logic.push(
+          { key: 'Seçim Kriteri', formula: `Toprak barası için busbar/terminal içinden uygun akım kapasitesi seçilir`, value: `${component.specs || '-'}` },
+          { key: 'Seçilen Ürün', formula: '', value: `${productName}` }
+        );
+      } else if (name.includes('led panel')) {
+        logic.push(
+          { key: 'Ön Panel Kuralı', formula: `Front panel seçimi LED içerdiği için eklenir`, value: `${inputs.frontPanel || 'LED panel seçimi'}` },
+          { key: 'Seçilen Ürün', formula: '', value: `${productName}` }
+        );
+      } else if (name.includes('touch panel')) {
+        logic.push(
+          { key: 'Ön Panel Kuralı', formula: `Dokunmatik panel seçildiğinde eklenir`, value: `${inputs.frontPanel || 'Touch panel seçimi'}` },
+          { key: 'Seçilen Ürün', formula: '', value: `${productName}` }
+        );
+      }
+
+      if (!logic.length) return null;
+      return {
+        title: component?.name || 'Parça',
+        steps: logic,
+      };
+    } catch (error) {
+      console.warn('selectionLogic üretilemedi:', error);
+      return null;
+    }
+  }
+
   // Yardımcı fonksiyonlar - Kolon isimlerini normalize etme
   getColumn(row, possibleNames) {
-    // Verilen kolon isimlerinden ilk bulunanı döndür
     if (!row || !possibleNames || possibleNames.length === 0) {
       return undefined;
     }
-    
+
     for (const name of possibleNames) {
-      if (row.hasOwnProperty(name) && row[name] !== null && row[name] !== undefined) {
+      if (
+        Object.prototype.hasOwnProperty.call(row, name) &&
+        row[name] !== null &&
+        row[name] !== undefined
+      ) {
         return row[name];
       }
     }
-    
+
+    const norm = (s) =>
+      String(s || '')
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, ' ');
+    const targets = new Set(possibleNames.map((n) => norm(n)));
+    for (const key of Object.keys(row)) {
+      if (targets.has(norm(key))) {
+        const v = row[key];
+        if (v !== null && v !== undefined) return v;
+      }
+    }
+
     return undefined;
   }
 
@@ -2913,19 +4447,28 @@ class RectifierPricing {
       if (!breakerType || !requestedType) return false;
       const normalizedBreakerType = normalizeType(breakerType);
       const normalizedRequestedType = normalizeType(requestedType);
-      
+
+      // MCCB: MCB ile karışmasın (ör. "MCCB".includes("MCB") true olurdu)
+      if (normalizedRequestedType === 'MCCB') {
+        if (normalizedBreakerType === 'MCCB') return true;
+        return Boolean(
+          normalizedBreakerType && /\bMCCB\b/.test(String(breakerType).toUpperCase())
+        );
+      }
+
       // Tam eşleşme
       if (normalizedBreakerType === normalizedRequestedType) return true;
-      
+
       // Kısmi eşleşme - örneğin "MCB" ile "MC" içerenleri kabul et
       if (normalizedRequestedType.length >= 2) {
-        // Eğer requested type "MCB" ise, "MC" içerenleri de kabul et
-        if (normalizedBreakerType.includes(normalizedRequestedType) || 
-            normalizedRequestedType.includes(normalizedBreakerType)) {
+        if (
+          normalizedBreakerType.includes(normalizedRequestedType) ||
+          normalizedRequestedType.includes(normalizedBreakerType)
+        ) {
           return true;
         }
       }
-      
+
       return false;
     };
     
@@ -3186,7 +4729,35 @@ class RectifierPricing {
       this.showNotification('warning', 'Faz Kontrol Tristörü', 'Excel\'de tristör verisi bulunamadı');
       return null;
     }
-    
+
+    const req = Number(requiredCurrent);
+    if (Number.isFinite(req) && req < 60) {
+      const mcc = thyristors.find((t) => {
+        const code = String(
+          this.getColumn(t, ['Stock Code', 'Stockcode', 'Stok Kodu', 'Stock_Code']) || t['Stock Code'] || ''
+        ).toUpperCase();
+        const name = String(t['Product Name'] || '').toUpperCase();
+        return (
+          code.includes('MCC56-12') ||
+          code.includes('MCC56_12') ||
+          name.includes('MCC56-12') ||
+          name.includes('MCC56 12')
+        );
+      });
+      if (mcc) {
+        const normalizedSelected = { ...mcc };
+        normalizedSelected['Current Rating (A)'] = this.getColumn(mcc, [
+          'Current Rating (A)',
+          'Current Rating',
+          'Current (A)',
+          'Rating (A)',
+          'Current',
+        ]);
+        return normalizedSelected;
+      }
+      console.warn('selectThyristor: <60A için MCC56-12 satırı bulunamadı, akım sıralı seçim kullanılıyor');
+    }
+
     const sorted = thyristors
       .filter((t) => {
         const currentRating = this.getColumn(t, ['Current Rating (A)', 'Current Rating', 'Current (A)', 'Rating (A)', 'Current']);
@@ -3217,50 +4788,107 @@ class RectifierPricing {
   }
 
   selectDCChoke(requiredInductance, current, chokes) {
+    const toleranceStepsMh = [0.1, 0.25, 0.5, 1.0, 2.0];
+    const requiredCurrent = Number(current || 0);
     if (!chokes || chokes.length === 0) {
       console.warn('selectDCChoke: DC Chokes listesi boş');
       this.showNotification('warning', 'DC Şok Seçimi', 'Excel\'de DC Şok verisi bulunamadı');
       return null;
     }
-    
-    // İlk satırın kolon isimlerini kontrol et
+
     if (chokes.length > 0) {
       const firstRow = chokes[0];
       const availableColumns = Object.keys(firstRow);
       console.log('selectDCChoke: Mevcut kolonlar:', availableColumns.join(', '));
     }
-    
-    const filtered = chokes.filter((c) => {
-      const inductance = this.getColumn(c, ['Inductance (mH)', 'Inductance', 'L (mH)']);
-      const currentRating = this.getColumn(c, ['Current Rating (A)', 'Current Rating', 'Current (A)', 'Rating (A)']);
-      
-      return inductance &&
-             currentRating >= current &&
-             c.Cost;
-    });
-    
-    if (filtered.length === 0) {
-      console.warn(`selectDCChoke: Uygun DC Şok bulunamadı - İstenen: ${requiredInductance}mH, ${current}A`);
-      this.showNotification('warning', 'DC Şok Seçimi', `Excel'de uygun DC Şok bulunamadı (İstenen: ${requiredInductance}mH, ${current}A)`);
+
+    let pickResult = null;
+    let usedToleranceMh = toleranceStepsMh[0];
+    for (const toleranceMh of toleranceStepsMh) {
+      pickResult = this.findBestDCChokeCatalogRow(
+        requiredInductance,
+        requiredCurrent,
+        chokes,
+        toleranceMh
+      );
+      if (pickResult.reason === 'no-current-or-cost') {
+        break;
+      }
+      if (pickResult.row && pickResult.reason === 'ok') {
+        usedToleranceMh = toleranceMh;
+        if (toleranceMh > 0.1) {
+          console.warn(
+            `selectDCChoke: Katalog eşlemesi ±${toleranceMh}mH tolerans ile yapıldı (±0.1mH yetersizdi)`
+          );
+        }
+        break;
+      }
+    }
+
+    const { row: selected, reason, _stats } = pickResult || {
+      row: null,
+      reason: 'empty',
+      _stats: {},
+    };
+
+    if (reason === 'no-current-or-cost') {
+      console.warn(`selectDCChoke: Uygun DC Şok bulunamadı - İstenen: ${requiredInductance}mH, minimum ${current}A`);
+      this.showNotification('warning', 'DC Şok Seçimi', `Excel'de uygun DC Şok bulunamadı (İstenen: ${requiredInductance}mH, minimum ${requiredCurrent.toFixed(1)}A)`);
       return null;
     }
-    
-    const sorted = filtered.sort((a, b) => {
-      const aInd = this.getColumn(a, ['Inductance (mH)', 'Inductance', 'L (mH)']);
-      const bInd = this.getColumn(b, ['Inductance (mH)', 'Inductance', 'L (mH)']);
-      return aInd - bInd;
-    });
-    
-    const selected = sorted.find((c) => {
-      const cInd = this.getColumn(c, ['Inductance (mH)', 'Inductance', 'L (mH)']);
-      return cInd >= requiredInductance;
-    }) || sorted[sorted.length - 1];
-    
-    // Normalize edilmiş kolon isimleriyle döndür
+    if (reason === 'no-tolerance' || !selected) {
+      const lastTol = toleranceStepsMh[toleranceStepsMh.length - 1];
+      console.warn(
+        `selectDCChoke: ±${(lastTol * 1000).toFixed(0)}µH…±${lastTol}mH aralığında DC Şok bulunamadı - İstenen: ${requiredInductance}mH, minimum ${current}A`
+      );
+      this.showNotification(
+        'warning',
+        'DC Şok Seçimi',
+        `DCComponents içinde ${Number(requiredInductance || 0).toFixed(3)}mH hedefine uygun (genişletilmiş toleransla bile) minimum ${requiredCurrent.toFixed(1)}A şok bulunamadı`
+      );
+      return null;
+    }
+
     const normalizedSelected = { ...selected };
-    normalizedSelected['Inductance (mH)'] = this.getColumn(selected, ['Inductance (mH)', 'Inductance', 'L (mH)']);
-    normalizedSelected['Current Rating (A)'] = this.getColumn(selected, ['Current Rating (A)', 'Current Rating', 'Current (A)', 'Rating (A)']);
-    
+    normalizedSelected['Inductance (mH)'] = this.getColumn(selected, [
+      'Inductance (mH)',
+      'Inductance',
+      'L (mH)',
+      'L(mH)',
+      'Endüktans (mH)',
+      'Endüktans mH',
+    ]);
+    normalizedSelected['Current Rating (A)'] = this.getColumn(selected, [
+      'Current Rating (A)',
+      'Current Rating',
+      'Current (A)',
+      'Rating (A)',
+      'Current',
+      'Akım (A)',
+      'Rated Current (A)',
+    ]);
+    normalizedSelected.__inductanceDeltaMh = Math.abs(Number(normalizedSelected['Inductance (mH)'] || 0) - Number(requiredInductance || 0));
+    normalizedSelected.__targetInductanceMh = Number(requiredInductance || 0);
+    normalizedSelected.__catalogToleranceUsedMh = usedToleranceMh;
+
+    try {
+      if (typeof localStorage !== 'undefined' && localStorage.getItem('debugDcChoke') === '1') {
+        const iCat = Number(
+          this.getColumn(selected, ['Current Rating (A)', 'Current Rating', 'Current (A)', 'Rating (A)', 'Current']) || 0
+        );
+        console.log('[DC Şok seçim]', {
+          L_teknik_mH: Number(requiredInductance || 0),
+          I_req_A: requiredCurrent,
+          I_katalog_A: iCat,
+          ürün: selected['Product Name'],
+          aday_I_ve_Cost_sonrasi: _stats?.afterCurrentFilter,
+          tolerans_bandındaki_aday: _stats?.inToleranceBand,
+        });
+      }
+    } catch (_) {
+      /* localStorage yok veya erişim yok */
+    }
+
     return normalizedSelected;
   }
 
@@ -3282,33 +4910,44 @@ class RectifierPricing {
     
     // Kolon isimlerini normalize et - hem uF hem µF kontrol et
     const cap4700 = capacitors.find((c) => {
-      const cap = this.getColumn(c, ['Capacitance (uF)', 'Capacitance (µF)', 'Capacitance', 'C (uF)', 'C (µF)']);
+      const cap = this.getDCCapacitanceUf(c);
       return cap === 4700;
     });
     
     const cap10000 = capacitors.find((c) => {
-      const cap = this.getColumn(c, ['Capacitance (uF)', 'Capacitance (µF)', 'Capacitance', 'C (uF)', 'C (µF)']);
+      const cap = this.getDCCapacitanceUf(c);
       return cap === 10000;
     });
     
     if (!cap4700 && !cap10000) {
       console.warn('selectDCCapacitor: 4700µF veya 10000µF kapasitör bulunamadı');
       this.showNotification('warning', 'DC Kapasitör Seçimi', 'Excel\'de 4700µF veya 10000µF kapasitör bulunamadı');
-      return capacitors[0] || null; // Fallback
+      const firstValid = capacitors.find((row) => this.getDCCapacitanceUf(row) > 0);
+      if (!firstValid) return null;
+      const normalizedFallback = { ...firstValid };
+      normalizedFallback['Capacitance (uF)'] = this.getDCCapacitanceUf(firstValid);
+      return normalizedFallback;
     }
     
-    // Hesaplanan değere en yakın olanı seç
-    const cap4700Value = cap4700 ? this.getColumn(cap4700, ['Capacitance (uF)', 'Capacitance (µF)', 'Capacitance', 'C (uF)', 'C (µF)']) : Infinity;
-    const cap10000Value = cap10000 ? this.getColumn(cap10000, ['Capacitance (uF)', 'Capacitance (µF)', 'Capacitance', 'C (uF)', 'C (µF)']) : Infinity;
-    
-    const diff4700 = Math.abs(cap4700Value - requiredCapacitance);
-    const diff10000 = Math.abs(cap10000Value - requiredCapacitance);
-    
-    const selected = diff4700 <= diff10000 ? cap4700 : cap10000;
+    // Hesaplanan ünite değerine göre birebir seçim yap; yoksa en yakın olanı seç
+    const cap4700Value = cap4700 ? this.getDCCapacitanceUf(cap4700) : Infinity;
+    const cap10000Value = cap10000 ? this.getDCCapacitanceUf(cap10000) : Infinity;
+
+    let selected = null;
+    if (Math.abs(Number(requiredCapacitance || 0) - 4700) < 0.01 && cap4700) {
+      selected = cap4700;
+    } else if (Math.abs(Number(requiredCapacitance || 0) - 10000) < 0.01 && cap10000) {
+      selected = cap10000;
+    } else {
+      const diff4700 = Math.abs(cap4700Value - requiredCapacitance);
+      const diff10000 = Math.abs(cap10000Value - requiredCapacitance);
+      selected = diff4700 <= diff10000 ? cap4700 : cap10000;
+    }
     
     // Normalize edilmiş kolon isimleriyle döndür
+    if (!selected) return null;
     const normalizedSelected = { ...selected };
-    normalizedSelected['Capacitance (uF)'] = this.getColumn(selected, ['Capacitance (uF)', 'Capacitance (µF)', 'Capacitance', 'C (uF)', 'C (µF)']);
+    normalizedSelected['Capacitance (uF)'] = this.getDCCapacitanceUf(selected);
     
     return normalizedSelected;
   }
@@ -3321,7 +4960,10 @@ class RectifierPricing {
     const filtered = coolingComponents.filter(
       (c) => c['Component Type'] === componentType && c.Cost
     );
-    return filtered.length > 0 ? filtered[0] : null;
+    const selected = filtered.length > 0 ? filtered[0] : null;
+    if (!selected) {
+    }
+    return selected;
   }
 
   selectRelay(requiredCurrent, relays) {
@@ -3361,7 +5003,7 @@ class RectifierPricing {
     return normalizedSelected;
   }
 
-  selectTransformer(power, primaryVoltage, phase, secondaryVoltage, transformers) {
+  selectTransformer(power, primaryVoltage, phase, outputVoltage, transformers, topology = '') {
     // Trafo Gücü Seçim Kriteri:
     // Hesaplanan trafo gücüne göre Excel'den uygun trafo seçilir
     // Eğer hesaplanan güce tam uygun bir trafo yoksa, bir üst standart güç değeri seçilir
@@ -3379,66 +5021,86 @@ class RectifierPricing {
       console.log('selectTransformer: Mevcut kolonlar:', availableColumns.join(', '));
     }
     
-    // Product Type kontrolü - Giriş Trafosu olmalı (Besleme Trafosu ve Oto Trafo değil)
-    const filtered = transformers.filter((t) => {
-      // Kolon isimlerini normalize et
-      const powerValue = this.getColumn(t, ['Power (kVA)', 'Power Rating (kVA)', 'Power']);
-      const primaryVolt = this.getColumn(t, ['Primary Voltage', 'Primary Voltage (V)', 'Primary']);
-      const secondaryVolt = this.getColumn(t, ['Secondary Voltage', 'Secondary Voltage (V)', 'Secondary']);
-      
-      return powerValue &&
-             primaryVolt &&
-             secondaryVolt &&
-             t.Cost &&
-             t['Product Type'] !== 'Besleme Trafosu' &&
-             t['Product Type'] !== 'Oto Trafo';
+    const num = (value) => {
+      const n = Number(value);
+      return Number.isFinite(n) ? n : null;
+    };
+    const requestedTopology = this.normalizeTransformerTopology(topology) || String(topology || '');
+    const requestedOutput = num(outputVoltage);
+    const basePool = (Array.isArray(transformers) ? transformers : []).filter((row) => {
+      if (this.isSupplyTransformerRow(row)) return false;
+      const powerValue = num(this.getTransformerPowerKva(row));
+      const rowOutput = num(this.getTransformerOutputVoltage(row));
+      return powerValue !== null && rowOutput !== null;
     });
     
-    if (filtered.length === 0) {
+    if (basePool.length === 0) {
       console.warn('selectTransformer: Uygun Giriş Trafosu bulunamadı');
       this.showNotification('warning', 'Trafo Seçimi', 'Excel\'de uygun Giriş Trafosu bulunamadı. Kolon isimlerini kontrol edin.');
       return null;
     }
-    
-    // Normalize edilmiş kolon isimlerini kullanarak sırala
-    const powerColumnName = this.getColumnName(filtered[0], ['Power (kVA)', 'Power Rating (kVA)', 'Power']);
-    if (!powerColumnName) {
-      console.error('selectTransformer: Güç kolonu bulunamadı');
-      this.showNotification('error', 'Trafo Seçimi', 'Excel\'de güç kolonu bulunamadı');
+
+    const topologyPool = requestedTopology
+      ? basePool.filter((row) => this.getTransformerTopology(row) === requestedTopology)
+      : basePool;
+    if (requestedTopology && !topologyPool.length) {
+      console.warn(`selectTransformer: ${requestedTopology} topology için uygun trafo bulunamadı`);
+      this.showNotification('warning', 'Trafo Seçimi', `${requestedTopology} topology için uygun trafo bulunamadı.`);
       return null;
     }
-    
-    const sorted = filtered.sort(
-      (a, b) => this.getColumn(a, ['Power (kVA)', 'Power Rating (kVA)', 'Power']) - 
-                this.getColumn(b, ['Power (kVA)', 'Power Rating (kVA)', 'Power'])
+
+    const sorted = [...(topologyPool.length ? topologyPool : basePool)].sort(
+      (a, b) =>
+        num(this.getTransformerPowerKva(a)) -
+        num(this.getTransformerPowerKva(b))
     );
-    
+
+    const availableOutputs = Array.from(new Set(
+      sorted.map((row) => num(this.getTransformerOutputVoltage(row))).filter((v) => v !== null)
+    )).sort((a, b) => a - b);
+    const roundedOutputVoltage = this.getNearestAvailableValue(requestedOutput, availableOutputs);
+
+    const withOutputVoltageMatch =
+      roundedOutputVoltage === null
+        ? sorted
+        : sorted.filter((t) => {
+            const v = num(this.getTransformerOutputVoltage(t));
+            return v !== null && Math.abs(v - roundedOutputVoltage) < 0.01;
+          });
+
+    const primaryTolerance = 20;
+    const withPrimaryMatch = (withOutputVoltageMatch.length ? withOutputVoltageMatch : sorted).filter((t) => {
+      const p = num(this.getColumn(t, ['Primary Voltage', 'Primary Voltage (V)', 'Primary', 'Input Voltage (V)', 'Input Voltage']));
+      return p === null || Math.abs(p - Number(primaryVoltage || 0)) <= primaryTolerance;
+    });
+    const candidatePool = withPrimaryMatch.length
+      ? withPrimaryMatch
+      : withOutputVoltageMatch.length
+        ? withOutputVoltageMatch
+        : sorted;
+
     // Hesaplanan güçten büyük veya eşit en küçük trafo seçilir (bir üst değer)
-    const selected = sorted.find((t) => {
-      const tPower = this.getColumn(t, ['Power (kVA)', 'Power Rating (kVA)', 'Power']);
-      return tPower >= power;
-    }) || sorted[sorted.length - 1];
-    
+    const selected = candidatePool.find((t) => {
+      const tPower = num(this.getTransformerPowerKva(t));
+      return tPower !== null && tPower >= Number(power || 0);
+    }) || candidatePool[candidatePool.length - 1];
+
     // Seçilen trafoyu normalize edilmiş kolon isimleriyle kullan
-    const selectedPower = this.getColumn(selected, ['Power (kVA)', 'Power Rating (kVA)', 'Power']);
-    const selectedPrimary = this.getColumn(selected, ['Primary Voltage', 'Primary Voltage (V)', 'Primary']);
-    const selectedSecondary = this.getColumn(selected, ['Secondary Voltage', 'Secondary Voltage (V)', 'Secondary']);
-    
-    // Primer ve sekonder gerilim kontrolü (yaklaşık eşleşme)
-    const voltageMatch = selectedPrimary == primaryVoltage || 
-                         Math.abs(selectedPrimary - primaryVoltage) < 10;
-    const secondaryMatch = selectedSecondary == secondaryVoltage || 
-                          Math.abs(selectedSecondary - secondaryVoltage) < 10;
-    
-    if (!voltageMatch || !secondaryMatch) {
-      console.warn(`selectTransformer: Gerilim uyumsuzluğu - Primer: ${selectedPrimary}V (istenen: ${primaryVoltage}V), Sekonder: ${selectedSecondary}V (istenen: ${secondaryVoltage}V)`);
-    }
+    const selectedPower = num(this.getTransformerPowerKva(selected));
+    const selectedPrimary = num(this.getColumn(selected, ['Primary Voltage', 'Primary Voltage (V)', 'Primary', 'Input Voltage (V)', 'Input Voltage']));
+    const selectedOutput = num(this.getTransformerOutputVoltage(selected));
     
     // Seçilen trafoyu normalize edilmiş kolon isimleriyle döndür (geçici olarak ekle)
     const normalizedSelected = { ...selected };
     normalizedSelected['Power (kVA)'] = selectedPower;
-    normalizedSelected['Primary Voltage'] = selectedPrimary;
-    normalizedSelected['Secondary Voltage'] = selectedSecondary;
+    normalizedSelected['Primary Voltage'] = selectedPrimary ?? primaryVoltage;
+    normalizedSelected['Secondary Voltage'] = selectedOutput ?? outputVoltage;
+    normalizedSelected['Output Voltage (V)'] = selectedOutput ?? outputVoltage;
+    normalizedSelected.Topology = this.getTransformerTopology(selected, requestedTopology);
+    normalizedSelected.__roundedOutputVoltage = roundedOutputVoltage ?? selectedOutput ?? outputVoltage;
+    normalizedSelected['Product Name'] =
+      String(selected['Product Name'] || '').trim() ||
+      this.buildTransformerLabel(selected, primaryVoltage, outputVoltage, requestedTopology);
     
     return normalizedSelected;
   }
@@ -4697,6 +6359,12 @@ class RectifierPricing {
                 <td class="col-english">Diode Dropper</td>
                 <td class="col-symbol">-</td>
                 <td class="col-value">${formatValue(config.deviceOutput.diodeDropper)}</td>
+            </tr>
+            <tr>
+                <td class="col-turkish">Dropper düşürülecek gerilim</td>
+                <td class="col-english">Dropper voltage drop (V)</td>
+                <td class="col-symbol">V</td>
+                <td class="col-value">${config.deviceOutput.dropperVoltageDropV != null ? formatValue(config.deviceOutput.dropperVoltageDropV) : '— (otomatik)'}</td>
             </tr>
             <tr>
                 <td class="col-turkish">Ek Yük Çıkışı</td>

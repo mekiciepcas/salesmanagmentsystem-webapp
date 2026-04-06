@@ -2,40 +2,14 @@ require('dotenv').config({
   path: require('path').join(__dirname, '../../.env'),
 });
 
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-const compression = require('compression');
-const responseTime = require('response-time');
-const apiRouter = require('./api');
+const { createHttpServer } = require('../api/httpServer');
 const db = require('../db/connection');
 const { runMigrations } = require('../db/migrations');
 const logger = require('./logger');
 const cacheAdapter = require('./cache/cacheAdapter');
 
-const app = express();
+const app = createHttpServer();
 const port = process.env.PORT || 3110;
-
-app.use(cors());
-app.use(express.json({ limit: '10mb' }));
-app.use(compression());
-app.use(
-  responseTime((req, res, time) => {
-    if (time > 1000) {
-      logger.warn(`Slow response: ${req.method} ${req.url} - ${time}ms`);
-    }
-  })
-);
-
-const srcRoot = path.join(__dirname, '..');
-app.use(express.static(srcRoot));
-
-app.use('/api', apiRouter);
-
-// Kök URL'de login'e yönlendir
-app.get('/', (req, res) => {
-  res.redirect('/pages/login.html');
-});
 
 async function startServer() {
   try {

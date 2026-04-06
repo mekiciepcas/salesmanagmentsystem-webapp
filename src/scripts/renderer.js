@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
   exitButton?.addEventListener('click', () => window.api.close());
 
   // Login form handler
-  loginForm.addEventListener('submit', (e) => {
+  loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     hideError();
 
@@ -44,22 +44,28 @@ document.addEventListener('DOMContentLoaded', () => {
     loginButton.textContent = 'Giriş Yapılıyor...';
     loginButton.disabled = true;
 
-    // Check default admin credentials
-    if (username === 'admin' && password === 'admin123') {
-      window.location.href = 'anasayfa.html';
-      return;
-    }
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
 
-    // Check registered users
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const user = users.find(
-      (u) => u.username === username && u.password === password
-    );
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.success || !result.token) {
+        throw new Error(result.error || 'Kullanıcı adı veya şifre hatalı!');
+      }
 
-    if (user) {
+      localStorage.setItem('authToken', result.token);
+      localStorage.setItem('token', result.token);
+      if (result.user) {
+        localStorage.setItem('currentUser', JSON.stringify(result.user));
+      }
       window.location.href = 'anasayfa.html';
-    } else {
-      showError('Kullanıcı adı veya şifre hatalı!');
+    } catch (error) {
+      showError(error.message || 'Giriş sırasında bir hata oluştu.');
       loginButton.textContent = 'Giriş Yap';
       loginButton.disabled = false;
     }

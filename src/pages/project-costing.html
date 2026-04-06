@@ -52,13 +52,24 @@
         margin-bottom: 8px;
         background: var(--surface, #f9fafb);
         border: 1px solid var(--border-color);
+        cursor: pointer;
+        transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+      }
+      .steps-list li:hover {
+        background: var(--epc-navy-light, #e8eef6);
+        border-color: var(--epc-blue, #2E7FC1);
+        box-shadow: 0 2px 8px rgba(46,127,193,0.10);
       }
       .steps-list li.is-current {
-        border-color: var(--accent, #ea580c);
-        background: rgba(234, 88, 12, 0.06);
+        border-color: var(--epc-blue, #2E7FC1);
+        background: rgba(46,127,193,0.08);
+        font-weight: 600;
       }
       .steps-list li.is-done {
-        opacity: 0.75;
+        opacity: 0.7;
+      }
+      .steps-list li.is-done:hover {
+        opacity: 1;
       }
       .step-badge {
         font-size: 11px;
@@ -159,26 +170,6 @@
         <div class="costing-card">
           <h2>Proje özeti</h2>
           <div class="costing-meta" id="projectSummary"></div>
-        </div>
-
-        <div class="costing-card" id="costingGridCard">
-          <h2>Maliyet satırları (düzenlenebilir)</h2>
-          <p class="costing-meta">
-            Tahmini not ve tutarları girin; kayıt oturumda saklanır ve teklif
-            kaydında <code>quote_documents</code> meta alanına eklenir.
-          </p>
-          <table class="costing-grid-table" id="costingGridTable">
-            <thead>
-              <tr>
-                <th>Kalem</th>
-                <th>Route</th>
-                <th>Adet</th>
-                <th>Not</th>
-                <th>Tahmini tutar</th>
-              </tr>
-            </thead>
-            <tbody id="costingGridBody"></tbody>
-          </table>
         </div>
 
         <div class="costing-card">

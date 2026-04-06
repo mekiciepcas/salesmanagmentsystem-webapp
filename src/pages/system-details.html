@@ -1,0 +1,1051 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EPC — Rectifier Technical Datasheet</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --navy:   #1B3A6B;
+      --navy-dark: #142d55;
+      --blue:   #2E7FC1;
+      --green:  #7DC242;
+      --border: #cdd8e8;
+      --bg:     #eef2f7;
+      --text:   #1B3A6B;
+      --text2:  #3d5278;
+      --text3:  #7189a8;
+      --card:   #ffffff;
+      --accent-light: #e8eef6;
+      --sheet:  #fafbfd;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 28px;
+      background: linear-gradient(90deg, var(--navy) 0%, var(--navy-dark) 100%);
+      border-bottom: 3px solid var(--green);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(27, 58, 107, 0.15);
+    }
+    .toolbar-left { display: flex; align-items: center; gap: 14px; }
+    .btn-back {
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 14px;
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.1);
+      color: #e8eef6;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      text-decoration: none;
+    }
+    .btn-back:hover { background: rgba(255,255,255,0.18); color: #fff; }
+    .btn-pdf {
+      display: flex; align-items: center; gap: 6px;
+      padding: 9px 20px;
+      border-radius: 8px;
+      background: var(--green);
+      color: var(--navy-dark);
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      border: none;
+    }
+    .btn-pdf:hover { filter: brightness(1.05); }
+    .toolbar-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.92);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .page-wrap {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 32px 28px 48px;
+    }
+
+    .ds-doc-sheet {
+      background: var(--sheet);
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(27,58,107,0.08), 0 12px 40px rgba(27,58,107,0.06);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .ds-header {
+      background: var(--card);
+      padding: 28px 32px 26px;
+      border-bottom: 1px solid var(--border);
+    }
+    .ds-header-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-bottom: 22px;
+    }
+    .ds-header-brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .ds-header-logo {
+      height: 48px;
+      object-fit: contain;
+    }
+    .brand-name {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--navy);
+      letter-spacing: -0.02em;
+    }
+    .brand-tagline {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-top: 4px;
+    }
+    .ds-doc-title-block {
+      flex: 1;
+      min-width: 220px;
+      text-align: right;
+    }
+    .ds-doc-title-block h1 {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--navy);
+      line-height: 1.25;
+      margin-bottom: 6px;
+    }
+    .ds-header-sub {
+      font-size: 12px;
+      color: var(--text2);
+      font-weight: 500;
+    }
+    .ds-meta-grid {
+      display: grid;
+      grid-template-columns: 140px 1fr 140px 1fr;
+      gap: 8px 12px;
+      font-size: 12px;
+      align-items: baseline;
+      padding: 16px 18px;
+      background: var(--accent-light);
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+    .ds-meta-grid > span:nth-child(odd) {
+      color: var(--text3);
+      font-weight: 600;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .ds-meta-grid > span:nth-child(even) {
+      color: var(--navy);
+      font-weight: 600;
+    }
+    @media (max-width: 720px) {
+      .ds-meta-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .ds-doc-title-block { text-align: left; }
+    }
+
+    .ds-doc-body { padding: 0 0 8px; }
+
+    .ds-section {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .ds-section:last-of-type { border-bottom: none; }
+    .ds-section-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 28px;
+      background: linear-gradient(90deg, var(--navy) 0%, #1e4580 100%);
+      color: #fff;
+    }
+    .ds-section-head h3 {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .ds-section-mark {
+      width: 3px;
+      height: 14px;
+      background: var(--green);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    /* Tek satır / tam genişlik: uzun etiketler dar sütunda kırılmaz */
+    .ds-params {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .ds-param {
+      display: grid;
+      grid-template-columns: minmax(200px, 34%) 1fr;
+      gap: 12px 28px;
+      align-items: start;
+      padding: 12px 28px;
+      border-bottom: 1px solid var(--border);
+      background: var(--card);
+    }
+    @media (max-width: 640px) {
+      .ds-param {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+      .ds-param-value { text-align: left; }
+    }
+    .ds-param-label {
+      color: var(--text3);
+      font-size: 12px;
+      line-height: 1.45;
+      min-width: 0;
+    }
+    .ds-param-value {
+      color: var(--navy);
+      font-weight: 600;
+      font-size: 12px;
+      text-align: left;
+      line-height: 1.5;
+      min-width: 0;
+      word-break: break-word;
+    }
+    .ds-param-en {
+      font-size: 10px;
+      color: var(--text3);
+      font-weight: 400;
+      display: block;
+      margin-top: 3px;
+    }
+
+    .ds-alarm-panel {
+      padding: 16px 28px 20px;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+    }
+    .ds-alarm-subhead {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--navy);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 14px 0 8px;
+    }
+    .ds-alarm-subhead:first-child { margin-top: 0; }
+    .ds-alarm-list {
+      margin: 0;
+      padding: 0 0 0 1.15em;
+      color: var(--text2);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+    .ds-alarm-list li { margin: 4px 0; padding-left: 4px; }
+    .ds-alarm-list-empty {
+      font-size: 12px;
+      color: var(--text3);
+      font-style: italic;
+      margin: 4px 0 0;
+    }
+    .ds-alarm-footer {
+      display: grid;
+      grid-template-columns: minmax(200px, 34%) 1fr;
+      gap: 12px 28px;
+      align-items: center;
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+    }
+    @media (max-width: 640px) {
+      .ds-alarm-footer { grid-template-columns: 1fr; }
+    }
+    .ds-alarm-footer-label { color: var(--text3); line-height: 1.45; }
+    .ds-alarm-footer-value { color: var(--navy); font-weight: 700; }
+
+    /* ── Hesaplama sonuçları ── */
+    .calc-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      padding: 18px 28px;
+    }
+    .calc-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 12px;
+      text-align: center;
+    }
+    .calc-card-label { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+    .calc-card-value { font-size: 18px; font-weight: 800; color: var(--navy); }
+    .calc-card-unit { font-size: 11px; color: var(--text3); }
+    .calc-log {
+      margin: 0 28px 20px;
+      background: var(--accent-light);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 16px;
+    }
+    .calc-log-title {
+      font-size: 11px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .log-line {
+      font-size: 12px;
+      line-height: 1.65;
+      padding: 3px 0;
+      border-bottom: 1px dashed #d6e2f2;
+    }
+    .log-line:last-child { border-bottom: none; }
+    .log-key { color: var(--text2); font-weight: 600; }
+    .log-val { color: var(--navy); font-weight: 700; }
+    .log-formula { color: var(--blue); }
+
+    .feature-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 14px 28px 20px;
+    }
+    .feature-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #f7fafc;
+      color: var(--text2);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* ── Parça listesi tablosu ── */
+    .parts-table-wrap { overflow-x: auto; padding: 0 28px 22px; }
+    .parts-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .parts-table thead th {
+      background: var(--accent-light);
+      color: var(--navy);
+      font-weight: 700;
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 2px solid var(--border);
+    }
+    .parts-table tbody td {
+      padding: 7px 10px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+    .parts-table tbody tr:hover td { background: #f0f6fb; }
+    .parts-table tfoot td {
+      padding: 9px 10px;
+      font-weight: 700;
+      color: var(--navy);
+      border-top: 2px solid var(--navy);
+      background: var(--accent-light);
+    }
+
+    .ds-doc-footer {
+      margin-top: 0;
+      padding: 20px 28px 24px;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--text2);
+      line-height: 1.6;
+    }
+    .ds-doc-footer strong { color: var(--navy); font-size: 12px; }
+    .ds-foot-small {
+      margin-top: 8px;
+      font-size: 10px;
+      color: var(--text3);
+      max-width: 52em;
+    }
+
+    .ds-empty {
+      padding: 48px 28px;
+      text-align: center;
+      color: var(--text3);
+    }
+    .ds-empty-icon { font-size: 28px; margin-bottom: 10px; opacity: 0.85; }
+
+    /*
+      A4 PDF: @page marjı + içerik padding’i birlikte dar alan yaratıp tabloyu kesebilir.
+      Yatay marj ve iç padding düşük tutulur; taşmayı önlemek için sheet overflow açılır.
+    */
+    @page {
+      size: A4 portrait;
+      margin: 10mm 5mm 12mm;
+    }
+
+    @media print {
+      .toolbar { display: none !important; }
+
+      html, body {
+        background: #fff !important;
+        color: #000;
+        font-size: 10pt;
+        orphans: 3;
+        widows: 3;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .page-wrap {
+        margin: 0 !important;
+        padding: 0 !important;
+        max-width: none !important;
+        width: 100% !important;
+      }
+
+      .ds-doc-sheet {
+        box-shadow: none !important;
+        border: none !important;
+        border-top: 1px solid #ccc !important;
+        border-bottom: 1px solid #ccc !important;
+        border-radius: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        overflow: visible !important;
+        box-sizing: border-box !important;
+      }
+
+      .ds-header { padding: 6mm 4mm 5mm !important; }
+      .ds-meta-grid { padding: 6px 8px !important; gap: 4px 8px !important; }
+
+      .ds-doc-body .ds-section-head,
+      .ds-section-head {
+        padding: 6px 4mm !important;
+        break-after: avoid;
+        page-break-after: avoid;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      /* Bölüm başlığı ile hemen altındaki blok mümkünse aynı sayfada kalsın */
+      .ds-section-head + .ds-params,
+      .ds-section-head + .calc-grid,
+      .ds-section-head + .ds-alarm-panel,
+      .ds-section-head + .feature-list,
+      .ds-section-head + .parts-table-wrap {
+        break-before: avoid;
+        page-break-before: avoid;
+      }
+
+      /* Hesaplama: ızgara + adım kutusu bölünmesin */
+      .calc-grid + .calc-log {
+        break-before: avoid;
+        page-break-before: avoid;
+      }
+
+      .ds-param,
+      .ds-alarm-panel,
+      .calc-grid,
+      .calc-log,
+      .feature-list,
+      .ds-doc-footer {
+        padding-left: 4mm !important;
+        padding-right: 4mm !important;
+        box-sizing: border-box !important;
+      }
+
+      .ds-param {
+        grid-template-columns: minmax(34mm, 30%) 1fr !important;
+        gap: 6px 8px !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .parts-table-wrap {
+        overflow: visible !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: 4mm !important;
+        padding-right: 4mm !important;
+        padding-bottom: 5mm !important;
+        box-sizing: border-box !important;
+      }
+
+      .parts-table {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        font-size: 8pt !important;
+        border: 1px solid #666 !important;
+        table-layout: fixed;
+        border-collapse: collapse !important;
+        box-sizing: border-box !important;
+      }
+
+      .parts-table thead {
+        display: table-header-group;
+      }
+
+      .parts-table tfoot {
+        display: table-footer-group;
+      }
+
+      .parts-table thead th,
+      .parts-table tbody td,
+      .parts-table tfoot td {
+        box-sizing: border-box !important;
+        padding: 3px 4px !important;
+        border: 1px solid #888 !important;
+        vertical-align: top;
+        word-wrap: break-word;
+        overflow-wrap: anywhere;
+      }
+
+      .parts-table tbody td:nth-child(2),
+      .parts-table tbody td:nth-child(3),
+      .parts-table tbody td:nth-child(4),
+      .parts-table thead th:nth-child(2),
+      .parts-table thead th:nth-child(3),
+      .parts-table thead th:nth-child(4) {
+        word-break: break-word;
+      }
+
+      .parts-table thead th:nth-child(1) { width: 5%; }
+      .parts-table thead th:nth-child(2) { width: 13%; }
+      .parts-table thead th:nth-child(3) { width: 15%; }
+      .parts-table thead th:nth-child(4) { width: 34%; }
+      .parts-table thead th:nth-child(5) { width: 7%; }
+      .parts-table thead th:nth-child(6) { width: 13%; }
+      .parts-table thead th:nth-child(7) { width: 13%; }
+
+      /* Tablo satırı sayfa ortasında bölünmesin (mümkünse tek sayfada) */
+      .parts-table thead tr,
+      .parts-table tbody tr,
+      .parts-table tfoot tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .parts-table tbody tr:hover td {
+        background: transparent !important;
+      }
+
+      .calc-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 6px !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        break-after: avoid;
+        page-break-after: avoid;
+      }
+
+      .calc-card {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .calc-log {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .ds-alarm-panel {
+        break-inside: auto;
+      }
+
+      .ds-alarm-list li {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .ds-doc-footer {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        margin-top: 2mm;
+      }
+
+      .feature-list {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      a[href]:after {
+        content: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Araç çubuğu -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <button class="btn-back" onclick="goBackSmart()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Geri
+      </button>
+      <span class="toolbar-title">Rectifier — Teknik Veri Sayfası</span>
+    </div>
+    <button class="btn-pdf" onclick="window.print()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+        <rect x="6" y="14" width="12" height="8"/>
+      </svg>
+      PDF / Yazdır
+    </button>
+  </div>
+
+  <div class="page-wrap" id="pageWrap">
+    <div class="ds-empty">
+      <div class="ds-empty-icon" aria-hidden="true">…</div>
+      <p>Teknik veri yükleniyor…</p>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    function safe(v, fallback) {
+      return (v != null && v !== '') ? String(v) : (fallback || '—');
+    }
+    function fmt(n, dec) {
+      const num = Number(n);
+      if (isNaN(num)) return '—';
+      return num.toFixed(dec ?? 2);
+    }
+    function esc(s) {
+      const d = document.createElement('div');
+      d.textContent = s == null ? '' : String(s);
+      return d.innerHTML;
+    }
+    function pick(...vals) {
+      for (const v of vals) {
+        if (v != null && v !== '' && !(typeof v === 'number' && Number.isNaN(v))) return v;
+      }
+      return '';
+    }
+    function toNum(v, fallback = 0) {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : fallback;
+    }
+
+    /** Eski kayıtlarda customerName yalnızca ID ise localStorage müşteri listesinden isim çöz. */
+    function resolveCustomerDisplayName(raw) {
+      if (raw == null || raw === '') return '—';
+      const s = String(raw).trim();
+      if (s === '—') return s;
+      if (!/^\d+$/.test(s)) return s;
+      try {
+        const list = JSON.parse(localStorage.getItem('customers') || '[]');
+        if (!Array.isArray(list)) return s;
+        const c = list.find((x) => String(x.id) === s || Number(x.id) === Number(s));
+        if (c) {
+          const label = String(
+            c.company_name || c.name || c.customer_name || ''
+          ).trim();
+          if (label) return label;
+        }
+      } catch (_) {}
+      return s;
+    }
+
+    // ── Veriyi localStorage'dan oku ──
+    let config = {};
+    let components = [];
+    let results = {};
+    let inputs = {};
+    let draft = {};
+    let queueCtx = {};
+
+    try { config     = JSON.parse(localStorage.getItem('rectifierConfig') || localStorage.getItem('rectifierProjectConfig') || '{}'); } catch (_) {}
+    try { components = JSON.parse(localStorage.getItem('rectifierCalculatedComponents') || '[]'); } catch (_) {}
+    try { results    = JSON.parse(localStorage.getItem('rectifierCalculationResults')  || '{}'); } catch (_) {}
+    try { inputs     = JSON.parse(localStorage.getItem('rectifierInputs')             || '{}'); } catch (_) {}
+    try { draft      = JSON.parse(sessionStorage.getItem('offerDraft')               || '{}'); } catch (_) {}
+    try { queueCtx   = JSON.parse(sessionStorage.getItem('pricingQueueContext')      || '{}'); } catch (_) {}
+
+    const wrap = document.getElementById('pageWrap');
+
+    // Hiç veri yoksa bilgi ver
+    const hasData = Object.keys(config).length > 0 || components.length > 0 || Object.keys(inputs).length > 0;
+    if (!hasData) {
+      wrap.innerHTML = `
+        <div class="ds-empty">
+          <div class="ds-empty-icon" aria-hidden="true">—</div>
+          <p><strong>Teknik veri bulunamadı.</strong><br>
+          Rectifier Konfigürasyonu sayfasında hesaplama yapıp kaydedin,<br>
+          ardından bu sayfayı açın.</p>
+        </div>`;
+      return;
+    }
+
+    // Birleşik kaynak (config.inputs / inputs / config doğrudan)
+    const I = Object.assign({}, inputs, config.inputs || {}, config);
+    const R = Object.assign({}, results, config.calculations || {});
+    const projectInfo = config.projectInfo || config.project || {};
+    const configInput = config.deviceInput || {};
+    const configOutput = config.deviceOutput || {};
+    const configBattery = config.battery || {};
+    const configMechanical = config.mechanical || {};
+    const configUi = config.userInterface || {};
+    const configComm = config.communication || {};
+    const configAlarms = config.alarms || {};
+    const configFeatures = Array.isArray(config.extraFeatures) ? config.extraFeatures : [];
+
+    const quoteNumber = pick(projectInfo.quoteRef, I.projectQuoteRef, draft.quoteNumber, queueCtx.quoteNumber, '—');
+    const customerName = resolveCustomerDisplayName(
+      pick(projectInfo.customerName, I.customerName, draft.customerName, '')
+    );
+    const preparedBy = pick(projectInfo.preparedBy, I.projectPreparedBy, '—');
+    const deviceCount = pick(projectInfo.deviceCount, I.projectDeviceCount, I.deviceCount, '—');
+    const quoteDate = pick(projectInfo.quoteDate, I.projectQuoteDate, new Date().toLocaleDateString('tr-TR'));
+
+    // ── HTML oluştur ──
+    let html = '';
+
+    html += `
+      <div class="ds-doc-sheet">
+        <header class="ds-header">
+          <div class="ds-header-top">
+            <div class="ds-header-brand">
+              <img class="ds-header-logo" src="../assets/images/EPC_logo1.png" alt="EPC" onerror="this.style.display='none'" />
+              <div>
+                <div class="brand-name">EPC</div>
+                <div class="brand-tagline">Güç elektroniği · Rectifier &amp; DC sistemler</div>
+              </div>
+            </div>
+            <div class="ds-doc-title-block">
+              <h1>Rectifier sistem teknik veri sayfası</h1>
+              <div class="ds-header-sub">Rectifier system technical datasheet</div>
+            </div>
+          </div>
+          <div class="ds-meta-grid" role="group" aria-label="Teklif bilgileri">
+            <span>Teklif no</span><span><strong>${esc(quoteNumber)}</strong></span>
+            <span>Müşteri</span><span><strong>${esc(customerName)}</strong></span>
+            <span>Tarih</span><span><strong>${esc(quoteDate)}</strong></span>
+            <span>Hazırlayan</span><span><strong>${esc(preparedBy)}</strong></span>
+            <span>Cihaz adedi</span><span><strong>${esc(deviceCount)}</strong></span>
+            <span>Doküman</span><span><strong>Teknik özet</strong></span>
+          </div>
+        </header>
+        <div class="ds-doc-body">`;
+
+    // ── Hesaplama sonuçları ──
+    const hasResults = R && (R.transformerPower || R.inputCurrent || R.floatVoltage);
+    if (hasResults) {
+      const outputVoltage = toNum(pick(I.outputVoltage, configOutput.nominalVoltage, configOutput.outputVoltage), 0);
+      const outputCurrent = toNum(pick(I.outputCurrent, configOutput.nominalCurrent, configOutput.outputCurrent), 0);
+      const batteryVoltage = toNum(pick(I.batteryVoltage, configBattery.voltage), 0);
+      const batteryCells = toNum(pick(I.batteryCellCount, configBattery.cellCount, batteryVoltage ? batteryVoltage / 2 : 0), 0);
+      const floatVoltage = toNum(pick(R.floatVoltage, configBattery.floatVoltage), 0);
+      const efficiency = toNum(R.efficiency, outputCurrent > 0 ? (toNum(I.inputPhase, 3) === 3 ? 0.9 : 0.8) : 0);
+      const powerFactor = toNum(R.powerFactor, outputCurrent > 0 ? (toNum(I.inputPhase, 3) === 3 ? 0.8 : 0.7) : 0);
+      const transformerPowerW = toNum(R.transformerPower, outputCurrent * outputVoltage);
+      const transformerPowerKva = transformerPowerW / 1000;
+      const secondaryVoltage = toNum(R.secondaryVoltage, 0);
+      const inputVoltageWithTolerance = toNum(R.inputVoltageWithTolerance, 0);
+      const inputPhase = Math.max(1, toNum(pick(I.inputPhase, configInput.phase), 3));
+      const inputCurrent = toNum(R.inputCurrent, 0);
+      const dcChokeL = toNum(R.dcChokeInductance, 0);
+      const dcCap = toNum(R.dcCapacitorCapacitance, 0);
+      const dcCapCount = toNum(R.dcCapacitorCount, 0);
+
+      const calcLog = [
+        {
+          key: 'Akü Hücre Sayısı',
+          formula: `${outputVoltage.toFixed(2)}V / 2V`,
+          value: `${batteryCells.toFixed(0)} hücre`,
+        },
+        {
+          key: 'Float Gerilimi',
+          formula: `${batteryCells.toFixed(0)} × 2.24V`,
+          value: `${floatVoltage.toFixed(2)} V`,
+        },
+        {
+          key: 'Trafo Gücü',
+          formula: `(${outputCurrent.toFixed(2)}A × ${outputVoltage.toFixed(2)}V) / (${efficiency.toFixed(2)} × ${powerFactor.toFixed(2)})`,
+          value: `${transformerPowerW.toFixed(2)} W (${transformerPowerKva.toFixed(2)} kVA)`,
+        },
+        {
+          key: 'Sekonder Gerilim',
+          formula: `3 faz -> Float, 1 faz -> Boost`,
+          value: `${secondaryVoltage.toFixed(2)} V`,
+        },
+        {
+          key: 'Giriş Akımı',
+          formula: `${transformerPowerW.toFixed(2)} / (Vmin ${inputVoltageWithTolerance.toFixed(2)} × √${inputPhase})`,
+          value: `${inputCurrent.toFixed(2)} A`,
+        },
+        {
+          key: 'DC Şok Endüktansı',
+          formula: `XL, L_trafo ve L_DC_Şok toplamı`,
+          value: `${dcChokeL.toFixed(3)} mH`,
+        },
+        {
+          key: 'DC Kapasitör',
+          formula: `f_kesme = 1 / (2π√(L×C×N))`,
+          value: `${dcCap.toFixed(0)} µF × ${dcCapCount.toFixed(0)} adet`,
+        },
+      ];
+
+      html += `
+        <div class="ds-section">
+          <div class="ds-section-head"><span class="ds-section-mark" aria-hidden="true"></span><h3>Hesaplama sonuçları / Calculation results</h3></div>
+          <div class="calc-grid">
+            ${[
+              ['Trafo Gücü', fmt(R.transformerPower, 1), 'kVA'],
+              ['Giriş Akımı', fmt(R.inputCurrent, 1), 'A'],
+              ['Float Gerilimi', fmt(R.floatVoltage, 1), 'V'],
+              ['Boost Gerilimi', fmt(R.boostVoltage, 1), 'V'],
+              ['DC Şok Endüktansı', fmt(R.dcChokeInductance, 2), 'mH'],
+              ['DC Kapasitör Adedi', safe(R.dcCapacitorCount), 'adet'],
+            ].map(([label, val, unit]) => `
+              <div class="calc-card">
+                <div class="calc-card-label">${esc(label)}</div>
+                <div class="calc-card-value">${esc(val)}</div>
+                <div class="calc-card-unit">${esc(unit)}</div>
+              </div>`).join('')}
+          </div>
+          <div class="calc-log">
+            <div class="calc-log-title">Hesaplama Adımları</div>
+            ${calcLog.map((line) => `
+              <div class="log-line">
+                <span class="log-key">${esc(line.key)}:</span>
+                <span class="log-formula">${esc(line.formula)}</span>
+                <span class="log-val"> = ${esc(line.value)}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>`;
+    }
+
+    // ── Parametre bölümleri ──
+    function section(titleTR, titleEN, pairs) {
+      const rows = pairs.filter(([,v]) => v && v !== '—').map(([tr, v, en]) => `
+        <div class="ds-param">
+          <div class="ds-param-label">${esc(tr)}${en ? `<span class="ds-param-en">${esc(en)}</span>` : ''}</div>
+          <div class="ds-param-value">${esc(v)}</div>
+        </div>`).join('');
+      if (!rows) return '';
+      return `
+        <div class="ds-section">
+          <div class="ds-section-head"><span class="ds-section-mark" aria-hidden="true"></span><h3>${esc(titleTR)} / ${esc(titleEN)}</h3></div>
+          <div class="ds-params">${rows}</div>
+        </div>`;
+    }
+
+    html += section('Giriş bilgileri', 'Input parameters', [
+      ['Nominal Giriş Gerilimi', safe(pick(I.inputVoltageNominal, I.inputVoltage, configInput.nominalVoltage)) + (pick(I.inputVoltageNominal, I.inputVoltage, configInput.nominalVoltage) ? ' V' : ''), 'Nominal Input Voltage'],
+      ['Giriş Toleransı', safe(pick(I.inputVoltageTolerance, configInput.voltageTolerance)), 'Input Voltage Tolerance'],
+      ['Faz Sayısı', safe(pick(I.inputPhase, configInput.phase)) !== '—' ? (pick(I.inputPhase, configInput.phase) + ' Faz') : '—', 'Phase'],
+      ['Nötr Bağlantısı', safe(pick(I.inputNeutral, configInput.neutral)), 'Neutral Connection'],
+      ['Frekans', safe(pick(I.systemFrequency, configInput.frequency)) !== '—' ? (pick(I.systemFrequency, configInput.frequency) + ' Hz') : '—', 'Frequency'],
+      ['AC Güç Faktörü', safe(pick(I.acPowerFactor, configInput.powerFactor)), 'AC Power Factor'],
+      ['AC Giriş Akımı THD', safe(pick(I.acInputCurrentTHD, configInput.currentTHD)) !== '—' ? (pick(I.acInputCurrentTHD, configInput.currentTHD) + ' %') : '—', 'AC Input Current THD'],
+    ]);
+
+    html += section('Çıkış bilgileri', 'Output parameters', [
+      ['Nominal Çıkış Gerilimi', safe(pick(I.outputVoltage, configOutput.nominalVoltage, configOutput.outputVoltage)) !== '—' ? (pick(I.outputVoltage, configOutput.nominalVoltage, configOutput.outputVoltage) + ' V DC') : '—', 'Nominal Output Voltage'],
+      ['Nominal Çıkış Akımı', safe(pick(I.outputCurrent, configOutput.nominalCurrent, configOutput.outputCurrent)) !== '—' ? (pick(I.outputCurrent, configOutput.nominalCurrent, configOutput.outputCurrent) + ' A DC') : '—', 'Nominal Output Current'],
+      ['Topoloji', safe(pick(I.topology, configOutput.topology)), 'Circuit Topology'],
+      ['DC Bara Dalgalılığı', safe(pick(I.dcRipple, configOutput.dcRipple)) !== '—' ? (pick(I.dcRipple, configOutput.dcRipple) + ' %') : '—', 'DC Bus Ripple (Batteryless)'],
+      ['Ek Yük Çıkışı', safe(pick(I.extraLoadOutput, configOutput.extraLoadOutput)), 'Extra Load Output'],
+      ['Diyot Dropper', safe(pick(I.diodeDropper, configOutput.diodeDropper)), 'Diode Dropper'],
+      ['Dahili DC Yük Dağıtımı', safe(pick(I.internalDistribution, configOutput.internalDistribution)), 'Internal DC Load Distribution'],
+      ['Dahili Dağıtım Detayları', Array.isArray(configOutput.internalDistributions) && configOutput.internalDistributions.length ? configOutput.internalDistributions.map((d) => `${d.quantity || '-'} adet / ${d.breakerPoleCurrent || '-'}`).join(', ') : '—', 'Internal Distribution Details'],
+      ['Akü LVD', safe(pick(I.batteryLVD, configOutput.batteryLVD)), 'Battery LVD'],
+    ]);
+
+    html += section('Akü bilgileri', 'Battery parameters', [
+      ['Akü Tipi', safe(pick(I.batteryType, configBattery.type)), 'Battery Type'],
+      ['Batarya Voltajı', safe(pick(I.batteryVoltage, configBattery.voltage)) !== '—' ? (pick(I.batteryVoltage, configBattery.voltage) + ' V') : '—', 'Battery Voltage'],
+      ['Toplam Hücre Sayısı', safe(pick(I.batteryCellCount, configBattery.cellCount)), 'Total Cell Count'],
+      ['Float Gerilimi / Hücre', safe(pick(I.floatVoltagePerCell, configBattery.floatVoltagePerCell)) !== '—' ? (pick(I.floatVoltagePerCell, configBattery.floatVoltagePerCell) + ' V') : '—', 'Float Voltage / Cell'],
+      ['Dengeleme Gerilimi / Hücre', safe(pick(I.equalizationVoltagePerCell, configBattery.equalizationVoltagePerCell)) !== '—' ? (pick(I.equalizationVoltagePerCell, configBattery.equalizationVoltagePerCell) + ' V') : '—', 'Equalization Voltage / Cell'],
+      ['Boost Gerilimi / Hücre', safe(pick(I.boostVoltagePerCell, configBattery.boostVoltagePerCell)) !== '—' ? (pick(I.boostVoltagePerCell, configBattery.boostVoltagePerCell) + ' V') : '—', 'Boost Voltage / Cell'],
+      ['Toplam Float Gerilimi', safe(pick(I.floatVoltage, configBattery.floatVoltage, R.floatVoltage)) !== '—' ? (pick(I.floatVoltage, configBattery.floatVoltage, R.floatVoltage) + ' V') : '—', 'Total Float Voltage'],
+      ['Toplam Boost Gerilimi', safe(pick(I.boostVoltage, configBattery.boostVoltage, R.boostVoltage)) !== '—' ? (pick(I.boostVoltage, configBattery.boostVoltage, R.boostVoltage) + ' V') : '—', 'Total Boost Voltage'],
+    ]);
+
+    html += section('Mekanik bilgiler', 'Mechanical data', [
+      ['Kutu Tipi', safe(pick(I.cabinetType, configMechanical.cabinetType)), 'Cabinet Type'],
+      ['Kutu Boyutları', safe(pick(I.cabinetSize, configMechanical.cabinetSize)), 'Cabinet Dimensions'],
+      ['Koruma Sınıfı', safe(pick(I.protectionClass, configMechanical.protectionClass)), 'Protection Class'],
+      ['Kutu Rengi', safe(pick(I.cabinetColor, configMechanical.cabinetColor)), 'Cabinet Color'],
+      ['Kablo Girişi', safe(pick(I.cableEntry, configMechanical.cableEntry)), 'Cable Entry'],
+      ['Sac Tipi', safe(pick(I.sheetType, configMechanical.sheetType)), 'Sheet Type'],
+      ['Soğutma', safe(pick(I.cooling, configMechanical.cooling)), 'Cooling'],
+      ['Hava Akış Yönü', safe(pick(I.airflowDirection, configMechanical.airflowDirection)), 'Airflow Direction'],
+      ['Çalışma Sıcaklığı', safe(pick(I.operatingTemperature, configMechanical.operatingTemperature)), 'Operating Temperature'],
+    ]);
+
+    html += section('Haberleşme ve alarm', 'Communication & alarms', [
+      ['Protokol', safe(pick(I.communicationProtocol, configComm.protocol)), 'Communication Protocol'],
+      ['Röle Alarm Çıkışları', safe(pick(I.relayAlarmOutputs, configComm.relayAlarmOutputs)), 'Relay Alarm Outputs'],
+      ['Paralel Çalışma', safe(pick(I.parallelOperation, configComm.parallelOperation)), 'Parallel Operation'],
+      ['Alarm Çıkış Adedi', safe(pick(I.alarmOutputCount, configComm.alarmOutputCount)), 'Alarm Output Count'],
+    ]);
+
+    const measurementList = Array.isArray(configUi.measurementInstruments)
+      ? configUi.measurementInstruments.map((m) => `${m.type || '-'} (${m.point || '-'})`)
+      : [];
+    html += section('Kullanıcı arayüzü', 'User interface', [
+      ['Ön Panel', safe(pick(I.frontPanel, configUi.frontPanel)), 'Front Panel'],
+      ['Ölçü Aleti Tipi', safe(pick(I.measurementInstrumentType, configUi.measurementInstrumentType, Array.isArray(configUi.measurementInstruments) && configUi.measurementInstruments[0]?.type)), 'Measurement Instrument Type'],
+      ['Ölçüm Noktası', safe(pick(I.measurementPoint, configUi.measurementPoint, Array.isArray(configUi.measurementInstruments) && configUi.measurementInstruments[0]?.point)), 'Measurement Point'],
+      ['Ölçü Aletleri Listesi', measurementList.length ? measurementList.join(', ') : '—', 'Measurement Instruments'],
+    ]);
+
+    const standardAlarms = Array.isArray(configAlarms.standardAlarms) ? configAlarms.standardAlarms : [];
+    const additionalAlarms = Array.isArray(configAlarms.additionalAlarms) ? configAlarms.additionalAlarms : [];
+    const emergencyStopActive = standardAlarms.some((a) => String(a).toLowerCase().includes('acil'));
+    const alarmListHtml = (arr) =>
+      arr.map((a) => `<li>${esc(String(a))}</li>`).join('');
+    html += `
+        <div class="ds-section">
+          <div class="ds-section-head"><span class="ds-section-mark" aria-hidden="true"></span><h3>Alarm ve koruma / Alarm &amp; protection</h3></div>
+          <div class="ds-alarm-panel">
+            <p class="ds-alarm-subhead">Standart alarmlar / Standard alarms</p>
+            ${
+              standardAlarms.length
+                ? `<ul class="ds-alarm-list">${alarmListHtml(standardAlarms)}</ul>`
+                : '<p class="ds-alarm-list-empty">Tanımlı standart alarm yok.</p>'
+            }
+            <p class="ds-alarm-subhead">Ek alarmlar / Additional alarms</p>
+            ${
+              additionalAlarms.length
+                ? `<ul class="ds-alarm-list">${alarmListHtml(additionalAlarms)}</ul>`
+                : '<p class="ds-alarm-list-empty">Ek alarm tanımlı değil.</p>'
+            }
+            <div class="ds-alarm-footer">
+              <div class="ds-alarm-footer-label">Acil stop<span class="ds-param-en">Emergency stop</span></div>
+              <div class="ds-alarm-footer-value">${emergencyStopActive ? 'Aktif' : 'Pasif'}</div>
+            </div>
+          </div>
+        </div>`;
+
+    if (configFeatures.length) {
+      html += `
+        <div class="ds-section">
+          <div class="ds-section-head"><span class="ds-section-mark" aria-hidden="true"></span><h3>Ek özellikler / Additional features</h3></div>
+          <div class="feature-list">
+            ${configFeatures.map((feature) => `
+              <span class="feature-pill">${esc(feature)}</span>
+            `).join('')}
+          </div>
+        </div>`;
+    }
+
+    // ── Parça listesi ──
+    if (Array.isArray(components) && components.length > 0) {
+      let total = 0;
+      const rows = components.map((c, i) => {
+        const unit = Number(c.unitPrice || c.cost || 0);
+        const qty  = Number(c.quantity || 1);
+        const tot  = unit * qty;
+        total += tot;
+        return `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${esc(c.name || c.productType || '—')}</td>
+            <td>${esc(c.productName || '—')}</td>
+            <td>${esc(c.specs || c.description || '—')}</td>
+            <td style="text-align:center">${qty}</td>
+            <td style="text-align:right">${unit ? fmt(unit) + ' ₺' : '—'}</td>
+            <td style="text-align:right;font-weight:600">${tot ? fmt(tot) + ' ₺' : '—'}</td>
+          </tr>`;
+      }).join('');
+
+      html += `
+        <div class="ds-section">
+          <div class="ds-section-head"><span class="ds-section-mark" aria-hidden="true"></span><h3>Parça listesi / Bill of materials</h3></div>
+          <div class="parts-table-wrap">
+            <table class="parts-table">
+              <thead>
+                <tr>
+                  <th style="width:36px">No</th>
+                  <th>Parça Adı</th>
+                  <th>Ürün Adı</th>
+                  <th>Özellikler</th>
+                  <th style="width:50px;text-align:center">Adet</th>
+                  <th style="width:110px;text-align:right">Birim (₺)</th>
+                  <th style="width:110px;text-align:right">Toplam (₺)</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="6" style="text-align:right">TOPLAM MALİYET:</td>
+                  <td style="text-align:right">${fmt(total)} ₺</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>`;
+    }
+
+    html += `
+        </div>
+        <footer class="ds-doc-footer">
+          <strong>EPC — teknik veri özeti</strong><br />
+          Bu doküman seçilen konfigürasyona göre otomatik üretilmiştir. Ticari ve teknik değerler bilgilendirme amaçlıdır; bağlayıcı özellikler sipariş onayı ve imalat dokümanlarında yer alan bilgilerle belirlenir.
+          <p class="ds-foot-small">Güç elektroniği ürünleri için geçerli standartlara uyum, proje kapsamında ayrıca teyit edilmelidir.</p>
+        </footer>
+      </div>`;
+
+    wrap.innerHTML = html;
+  })();
+
+  function goBackSmart() {
+    let queueCtx = {};
+    try {
+      queueCtx = JSON.parse(sessionStorage.getItem('pricingQueueContext') || '{}');
+    } catch (_) {}
+    try {
+      if (window.opener && !window.opener.closed) {
+        window.close();
+        return;
+      }
+    } catch (_) {}
+    if (document.referrer && document.referrer.includes(window.location.origin)) {
+      window.location.href = document.referrer;
+      return;
+    }
+    if (queueCtx?.pricingPage) {
+      window.location.href = queueCtx.pricingPage;
+      return;
+    }
+    window.location.href = 'rectifier-flex-pricing.html';
+  }
+  </script>
+</body>
+</html>

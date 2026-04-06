@@ -1,3 +1,20 @@
+const jwtSecret = process.env.JWT_SECRET;
+if (!jwtSecret) {
+  throw new Error(
+    'JWT_SECRET is required. Set JWT_SECRET in environment before loading config.'
+  );
+}
+const excelBasePathRaw = process.env.EXCEL_BASE_PATH;
+if (!excelBasePathRaw) {
+  throw new Error(
+    'EXCEL_BASE_PATH is required. Set EXCEL_BASE_PATH before loading config.'
+  );
+}
+const excelBasePath = String(excelBasePathRaw).replace(
+  /^EXCEL_BASE_PATH\s*=\s*/i,
+  ''
+);
+
 const config = {
   app: {
     name: 'PowerCRM',
@@ -20,9 +37,7 @@ const config = {
   },
 
   jwt: {
-    secret:
-      process.env.JWT_SECRET ||
-      'your-super-secret-jwt-key-change-in-production',
+    secret: jwtSecret,
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
   },
@@ -93,6 +108,10 @@ const config = {
       secretKey: process.env.IYZICO_SECRET_KEY,
       baseUrl: process.env.IYZICO_BASE_URL || 'https://sandbox-api.iyzipay.com',
     },
+  },
+
+  excel: {
+    basePath: excelBasePath,
   },
 };
 

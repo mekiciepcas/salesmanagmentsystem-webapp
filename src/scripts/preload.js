@@ -1,5 +1,5 @@
 const { contextBridge, ipcRenderer } = require('electron');
-const ExcelJS = require('exceljs');
+const { buildPricingExcelWorkbook } = require('./excel/buildPricingExcelWorkbook');
 const path = require('path');
 const XLSX = require('xlsx');
 const fs = require('fs-extra');
@@ -99,191 +99,14 @@ contextBridge.exposeInMainWorld('excelAPI', {
     }
   },
   createExcel: async (filePath, options) => {
-    const workbook = new ExcelJS.Workbook();
-
-    // Fiyat listesi sayfası
-    const worksheet = workbook.addWorksheet(options.sheetName);
-
-    // Şirket bilgileri ve başlık
-    worksheet.mergeCells('A1:I2');
-    const titleCell = worksheet.getCell('A1');
-    titleCell.value = 'FİYAT TEKLİF FORMU';
-    titleCell.font = {
-      name: 'Arial Black',
-      size: 16,
-      color: { argb: 'FF1A2333' },
-    };
-    titleCell.alignment = {
-      horizontal: 'center',
-      vertical: 'middle',
-    };
-
-    // Tarih ve belge bilgisi
-    worksheet.mergeCells('A3:C3');
-    const dateCell = worksheet.getCell('A3');
-    dateCell.value = `Oluşturma Tarihi: ${new Date().toLocaleDateString('tr-TR')}`;
-    dateCell.font = { bold: true };
-
-    // Ana tablo başlangıç satırı
-    const tableStartRow = 5;
-
-    // Sütun genişliklerini ayarla
-    worksheet.columns = [
-      { width: 8 }, // No
-      { width: 40 }, // Ürün
-      { width: 15 }, // Maliyet
-      { width: 10 }, // Adet
-      { width: 15 }, // Maliyet Toplamı
-      { width: 12 }, // Çarpan-1
-      { width: 12 }, // Çarpan-2
-      { width: 15 }, // Toplam-1
-      { width: 15 }, // Toplam-2
-    ];
-
-    // Başlıkları ekle
-    const headers = options.data[0];
-    worksheet.getRow(tableStartRow).values = headers;
-
-    // Verileri ekle (başlık satırını atlayarak)
-    const dataRows = options.data.slice(1);
-    worksheet.addRows(dataRows);
-
-    // Tüm hücrelere temel stil
-    worksheet.eachRow((row, rowNumber) => {
-      if (rowNumber >= tableStartRow) {
-        row.eachCell((cell) => {
-          cell.border = {
-            top: { style: 'thin', color: { argb: 'FFE5E7EB' } },
-            left: { style: 'thin', color: { argb: 'FFE5E7EB' } },
-            bottom: { style: 'thin', color: { argb: 'FFE5E7EB' } },
-            right: { style: 'thin', color: { argb: 'FFE5E7EB' } },
-          };
-          cell.font = {
-            name: 'Calibri',
-            size: 11,
-          };
-          cell.alignment = {
-            vertical: 'middle',
-          };
-        });
-        row.height = 25;
-      }
-    });
-
-    // Başlık satırı stili
-    const headerRow = worksheet.getRow(tableStartRow);
-    headerRow.height = 30;
-    headerRow.eachCell((cell) => {
-      cell.style = {
-        font: {
-          bold: true,
-          color: { argb: 'FFFFFFFF' },
-          size: 12,
-        },
-        fill: {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FF1A2333' },
-        },
-        alignment: {
-          horizontal: 'center',
-          vertical: 'middle',
-        },
-        border: {
-          top: { style: 'medium', color: { argb: 'FF1E2A3B' } },
-          left: { style: 'thin', color: { argb: 'FF1E2A3B' } },
-          bottom: { style: 'medium', color: { argb: 'FF1E2A3B' } },
-          right: { style: 'thin', color: { argb: 'FF1E2A3B' } },
-        },
-      };
-    });
-
-    // Veri satırları için alternatif renklendirme ve sayısal format
-    for (let i = tableStartRow + 1; i <= worksheet.rowCount - 1; i++) {
-      const row = worksheet.getRow(i);
-      const fillColor = i % 2 === 0 ? 'FFF8F9FA' : 'FFFFFFFF';
-
-      row.eachCell((cell, colNumber) => {
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: fillColor },
-        };
-
-        if ([3, 4, 5, 6, 7, 8, 9].includes(colNumber)) {
-          cell.style = {
-            ...cell.style,
-            alignment: { horizontal: 'right', vertical: 'middle' },
-            numFmt: '#,##0.00',
-            font: {
-              ...cell.font,
-              color: { argb: 'FF2F4F4F' },
-            },
-          };
-        }
-      });
-    }
-
-    // Özet bilgiler bölümü
-    const summaryStartRow = worksheet.rowCount + 2;
-    worksheet.mergeCells(`A${summaryStartRow}:C${summaryStartRow}`);
-    const summaryCell = worksheet.getCell(`A${summaryStartRow}`);
-    summaryCell.value = 'ÖZET BİLGİLER';
-    summaryCell.font = { bold: true, size: 12 };
-    summaryCell.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFF0F0F0' },
-    };
-
-    // Özet formüller
-    worksheet.getCell(`A${summaryStartRow + 1}`).value = 'Toplam Ürün Sayısı:';
-    worksheet.getCell(`B${summaryStartRow + 1}`).value = {
-      formula: `COUNTA(B${tableStartRow + 1}:B${worksheet.rowCount - 1})`,
-    };
-    worksheet.getCell(`A${summaryStartRow + 2}`).value = 'Ortalama Çarpan-1:';
-    worksheet.getCell(`B${summaryStartRow + 2}`).value = {
-      formula: `AVERAGE(F${tableStartRow + 1}:F${worksheet.rowCount - 1})`,
-    };
-    worksheet.getCell(`A${summaryStartRow + 3}`).value = 'Ortalama Çarpan-2:';
-    worksheet.getCell(`B${summaryStartRow + 3}`).value = {
-      formula: `AVERAGE(G${tableStartRow + 1}:G${worksheet.rowCount - 1})`,
-    };
-
-    // Sayfa yapısı ayarları
-    worksheet.pageSetup = {
-      fitToPage: true,
-      fitToWidth: 1,
-      fitToHeight: 0,
-      paperSize: 9,
-      orientation: 'landscape',
-      margins: {
-        left: 0.7,
-        right: 0.7,
-        top: 0.75,
-        bottom: 0.75,
-        header: 0.3,
-        footer: 0.3,
-      },
-    };
-
-    // Yazdırma başlıkları
-    worksheet.pageSetup.printTitlesRow = `${tableStartRow}:${tableStartRow}`;
-
-    // Altbilgi
-    worksheet.headerFooter.oddFooter = '&L&B' + 'Sayfa &P / &N' + '&R&D';
-
-    // Otomatik filtre
-    worksheet.autoFilter = {
-      from: { row: tableStartRow, column: 1 },
-      to: { row: tableStartRow, column: 9 },
-    };
-
-    // Dondurulmuş panel
-    worksheet.views = [{ state: 'frozen', xSplit: 0, ySplit: tableStartRow }];
-
-    // Dosyayı kaydet
+    const workbook = buildPricingExcelWorkbook(options);
     await workbook.xlsx.writeFile(filePath);
+  },
+
+  getExcelBuffer: async (options) => {
+    const workbook = buildPricingExcelWorkbook(options);
+    const buf = await workbook.xlsx.writeBuffer();
+    return new Uint8Array(buf);
   },
 });
 

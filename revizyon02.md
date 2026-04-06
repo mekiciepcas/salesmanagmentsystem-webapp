@@ -1,0 +1,3 @@
+Yeni teklif projesi; müşteri comboboxta aranabilir olmalı eğer müşteri yoksa dashboarda (yeni müşteri ekle seçeneği ile) yönlendirme sağlanır.
+Teklif geçmişim; tablodaki müşteri adı otomatik olarak seçilen müşteri ismi ile güncellenir. Hazırlayan bilgisi fullname olarak belirtilir eğer tamamlandıysa ve daha sonra revize edildiyse durum revizeye  döner eğer revize butonuna tıklanıldıysa kofigürasynon sayfasına yönlendirilir ve var olan özellikler korunarak düzenleme mümkün kılınılır.
+Excel oluşturma ve pdfe çevirme özelliklerinin mantığını anlaabilmek için @webapp-project-details.md dosyasını kontrol edebilirsin.

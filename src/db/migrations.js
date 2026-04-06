@@ -145,38 +145,8 @@ async function createTables() {
         `);
     console.log('Transactions table created or already exists');
 
-    // Create a default admin user if none exists
-    const userExists = await db.query(
-      'SELECT COUNT(*) FROM users WHERE username = $1',
-      ['admin']
-    );
-
-    if (parseInt(userExists.rows[0].count) === 0) {
-      // Default password: admin123
-      const hashedPassword =
-        '$2b$10$3w8r9K8X5wZF.YRlOzV1OOgRiUNVFTJM0Ixq4HEmdKe3Z7tLbI2li'; // bcrypt hash for 'admin123'
-
-      await db.query(
-        `
-                INSERT INTO users (
-                    username, 
-                    password, 
-                    full_name, 
-                    email, 
-                    department
-                ) VALUES ($1, $2, $3, $4, $5)
-            `,
-        [
-          'admin',
-          hashedPassword,
-          'Sistem Yöneticisi',
-          'admin@example.com',
-          'Yonetim',
-        ]
-      );
-
-      console.log('Default admin user created');
-    }
+    // Default admin seeding intentionally disabled for security.
+    // Create admin users through controlled registration or admin tooling.
 
     console.log('Database setup completed successfully');
   } catch (error) {

@@ -1,0 +1,40 @@
+name: Architecture Security Gates
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  security-gates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Config gate
+        run: node scripts/ci/config-gate.js
+
+      - name: Secrets gate
+        run: node scripts/ci/secrets-gate.js
+
+      - name: Dependency gate
+        run: node scripts/ci/dependency-gate.js
+
+      - name: Injection gate
+        run: node scripts/ci/injection-gate.js
+
+      - name: Upload gate artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gate-reports
+          path: reports/*.json

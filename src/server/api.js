@@ -9,8 +9,12 @@ const { generateReferenceNo } = require('../utils/helpers');
 const bcrypt = require('bcrypt');
 const { JWT_SECRET, authenticate, requireAdmin } = require('./middleware/authMiddleware');
 const webPlatform = require('./routes/webPlatform');
+const userRepository = require('../infrastructure/repositories/UserRepository');
+const authRepositoryAdapter = require('../infrastructure/adapters/AuthRepositoryAdapter');
 
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+const EXCHANGE_RATES_CACHE_MS = 15 * 60 * 1000;
+let exchangeRatesCache = null;
 
 function signAuthToken(userRow) {
   return jwt.sign(
@@ -25,6 +29,66 @@ function signAuthToken(userRow) {
 }
 
 router.use(webPlatform);
+
+// Kur endpoint'i (15dk cache)
+router.get('/exchange-rates', async (req, res) => {
+  try {
+    const now = Date.now();
+    if (
+      exchangeRatesCache &&
+      now - exchangeRatesCache.timestamp < EXCHANGE_RATES_CACHE_MS
+    ) {
+      return res.json({
+        success: true,
+        source: 'cache',
+        date: exchangeRatesCache.date,
+        rates: exchangeRatesCache.rates,
+      });
+    }
+
+    const response = await fetch('https://open.er-api.com/v6/latest/TRY');
+    if (!response.ok) {
+      throw new Error(`Kur servisi hatası: HTTP ${response.status}`);
+    }
+    const payload = await response.json();
+    if (payload?.result !== 'success' || !payload?.rates) {
+      throw new Error('Kur servisi geçersiz yanıt döndürdü');
+    }
+
+    const usdTry = payload.rates.USD ? 1 / Number(payload.rates.USD) : null;
+    const eurTry = payload.rates.EUR ? 1 / Number(payload.rates.EUR) : null;
+
+    exchangeRatesCache = {
+      timestamp: now,
+      date: payload.time_last_update_utc || new Date(now).toISOString(),
+      rates: {
+        USD_TRY: usdTry,
+        EUR_TRY: eurTry,
+      },
+    };
+
+    return res.json({
+      success: true,
+      source: 'live',
+      date: exchangeRatesCache.date,
+      rates: exchangeRatesCache.rates,
+    });
+  } catch (error) {
+    console.error('exchange-rates error:', error.message);
+    if (exchangeRatesCache) {
+      return res.json({
+        success: true,
+        source: 'stale-cache',
+        date: exchangeRatesCache.date,
+        rates: exchangeRatesCache.rates,
+      });
+    }
+    return res.status(503).json({
+      success: false,
+      error: 'Kur bilgisi alınamadı',
+    });
+  }
+});
 
 // Hesaplama kaydetme endpoint'i
 router.post('/calculations', async (req, res) => {
@@ -159,30 +223,14 @@ router.post('/auth/login', async (req, res) => {
     // Debug için önce basit bir yanıt döndürelim
     console.log('Processing login for:', username);
 
-    const result = await db.query('SELECT * FROM users WHERE username = $1', [
-      username,
-    ]);
+    const user = await authRepositoryAdapter.authenticate(username, password);
+    console.log('Database result:', user ? [user] : []);
 
-    console.log('Database result:', result.rows);
-
-    if (result.rows.length === 0) {
-      console.log('User not found');
+    if (!user) {
+      console.log('Invalid login credentials');
       return res.status(401).json({
         success: false,
-        error: 'Kullanıcı bulunamadı',
-      });
-    }
-
-    const user = result.rows[0];
-    const validPassword = await bcrypt.compare(password, user.password);
-
-    console.log('Password validation:', validPassword);
-
-    if (!validPassword) {
-      console.log('Invalid password');
-      return res.status(401).json({
-        success: false,
-        error: 'Geçersiz şifre',
+        error: 'Kullanıcı adı veya şifre hatalı',
       });
     }
 
@@ -238,7 +286,7 @@ router.get('/auth/me', authenticate, async (req, res) => {
   }
 });
 
-// Register endpoint (registrationKey: compare.md gizli kayıt — varsayılan adminadmin)
+// Register endpoint (registration key from environment)
 router.post('/auth/register', async (req, res) => {
   const {
     username,
@@ -248,7 +296,13 @@ router.post('/auth/register', async (req, res) => {
     department,
     registrationKey,
   } = req.body;
-  const expected = process.env.ADMIN_REGISTER_SECRET || 'adminadmin';
+  const expected = process.env.ADMIN_REGISTER_SECRET;
+  if (!expected) {
+    return res.status(503).json({
+      success: false,
+      error: 'ADMIN_REGISTER_SECRET yapılandırılmamış',
+    });
+  }
   if ((registrationKey || '') !== expected) {
     return res.status(403).json({
       success: false,
@@ -258,12 +312,11 @@ router.post('/auth/register', async (req, res) => {
 
   try {
     // Email ve kullanıcı adı kontrolü
-    const userCheck = await db.query(
-      'SELECT * FROM users WHERE username = $1 OR email = $2',
-      [username, email]
+    const userExists = await authRepositoryAdapter.isUsernameOrEmailTaken(
+      username,
+      email
     );
-
-    if (userCheck.rows.length > 0) {
+    if (userExists) {
       return res.status(400).json({
         success: false,
         error: 'Bu kullanıcı adı veya email zaten kullanımda',
@@ -274,16 +327,17 @@ router.post('/auth/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Yeni kullanıcı ekle
-    const result = await db.query(
-      `INSERT INTO users (username, email, password, full_name, department)
-             VALUES ($1, $2, $3, $4, $5)
-             RETURNING id, username, full_name, department`,
-      [username, email, hashedPassword, fullName, department]
-    );
+    const createdUser = await userRepository.create({
+      username,
+      email,
+      passwordHash: hashedPassword,
+      fullName,
+      department,
+    });
 
     res.json({
       success: true,
-      user: result.rows[0],
+      user: createdUser,
     });
   } catch (error) {
     console.error('Register error:', error);

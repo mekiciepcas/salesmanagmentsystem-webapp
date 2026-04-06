@@ -174,9 +174,30 @@ table td {
   }
 }
 
+/* ─── Global Scrollbar ───────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+}
+
 /* ─── Metin seçimi & Focus ───────────────────────────────────── */
-::selection      { background: var(--epc-blue); color: #fff; }
-::-moz-selection { background: var(--epc-blue); color: #fff; }
+::selection      { background: var(--epc-blue); color: #ffffff; }
+::-moz-selection { background: var(--epc-blue); color: #ffffff; }
 
 :focus-visible {
   outline:        2px solid var(--epc-blue);

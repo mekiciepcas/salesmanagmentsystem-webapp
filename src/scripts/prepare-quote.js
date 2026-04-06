@@ -260,7 +260,7 @@ class QuoteCart {
     }
   }
 
-  openQuoteDetailsModal() {
+  async openQuoteDetailsModal() {
     if (this.cartItems.length === 0) {
       this.showWarning(
         'Sepet Boş',
@@ -284,6 +284,7 @@ class QuoteCart {
       if (cur === 'EUR') document.getElementById('currencyInput').value = '€';
       if (cur === 'TRY') document.getElementById('currencyInput').value = '₺';
     } catch (_) {}
+    await this.prefillFromStoredProject();
     document.getElementById('quoteNumberInput').value = quoteNumber;
     document.getElementById('quoteDateInput').valueAsDate = date;
     document.getElementById('preparedByInput').value =
@@ -296,6 +297,24 @@ class QuoteCart {
         this.modal.classList.add('active');
       }, 10);
     }
+  }
+
+  async prefillFromStoredProject() {
+    try {
+      const currentProject =
+        JSON.parse(localStorage.getItem('currentProject') || 'null') ||
+        JSON.parse(localStorage.getItem('selectedProject') || 'null');
+      if (currentProject?.quote_number) {
+        document.getElementById('quoteNumberInput').value = currentProject.quote_number;
+      }
+      const customerId = currentProject?.customer_id || currentProject?.customerId;
+      if (!customerId || !window.httpAPI || typeof window.httpAPI.get !== 'function') return;
+      const resp = await window.httpAPI.get(`/api/customers/${customerId}`);
+      if (resp?.success && resp?.data) {
+        document.getElementById('customerNameInput').value =
+          resp.data.company_name || resp.data.name || '';
+      }
+    } catch (_) {}
   }
 
   closeQuoteDetailsModal() {

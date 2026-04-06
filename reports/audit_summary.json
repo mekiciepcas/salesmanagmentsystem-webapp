@@ -1,0 +1,8 @@
+{
+  "required": [
+    "JWT_SECRET",
+    "ADMIN_REGISTER_SECRET"
+  ],
+  "missing": [],
+  "pass": true
+}

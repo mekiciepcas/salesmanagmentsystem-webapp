@@ -1,0 +1,209 @@
+> Legacy overview diagram. For active architecture, use the split diagrams in `mermaids/README.md`.
+
+graph TD
+  %% Styles
+  classDef default fill:#1e293b,stroke:#94a3b8,stroke-width:3px,color:#f8fafc,rx:10,ry:10,font-size:24px;
+  classDef entry fill:#1e293b,stroke:#34d399,stroke-width:5px,color:#f8fafc,rx:10,ry:10,font-size:24px;
+  classDef step fill:#1e293b,stroke:#22d3ee,stroke-width:3px,color:#f8fafc,rx:10,ry:10,font-size:24px;
+  classDef terminal fill:#1e293b,stroke:#f472b6,stroke-width:5px,color:#f8fafc,rx:10,ry:10,font-size:24px;
+  classDef cluster fill:#0f172a,stroke:#334155,stroke-width:3px,color:#94a3b8,rx:4,ry:4,font-size:20px;
+  Function__agents_skills_007_scripts_scanners_dependency_scanner_py__make_finding["4. _make_finding<br/><small>dependency_scanner.py</small>"]:::step
+  Function__agents_skills_007_scripts_scanners_dependency_scanner_py_analyze_requirements_txt["3. analyze_requirements_txt<br/><small>dependency_scanner.py</small>"]:::step
+  Function__agents_skills_007_scripts_scanners_dependency_scanner_py_analyze_pyproject_toml["3. analyze_pyproject_toml<br/><small>dependency_scanner.py</small>"]:::step
+  Function__agents_skills_007_scripts_scanners_dependency_scanner_py_analyze_pipfile["3. analyze_pipfile<br/><small>dependency_scanner.py</small>"]:::step
+  Function__agents_skills_007_scripts_scanners_dependency_scanner_py_discover_dependency_files["2. discover_dependency_files<br/><small>dependency_scanner.py</small>"]:::step
+  Function__agents_skills_007_scripts_scanners_dependency_scanner_py_scan_dependency_file["2. scan_dependency_file<br/><small>dependency_scanner.py</small>"]:::step
+  Function__agents_skills_007_scripts_scanners_dependency_scanner_py_run_scan["1. run_scan<br/><small>dependency_scanner.py</small>"]:::entry
+  Function__agents_skills_007_scripts_scanners_injection_scanner_py__is_comment_line["3. _is_comment_line<br/><small>injection_scanner.py</small>"]:::step
+  Function__agents_skills_007_scripts_scanners_injection_scanner_py__is_test_file["3. _is_test_file<br/><small>injection_scanner.py</small>"]:::step
+  Function__agents_skills_007_scripts_scanners_injection_scanner_py__has_user_input["3. _has_user_input<br/><small>injection_scanner.py</small>"]:::step
+  Function__agents_skills_007_scripts_scanners_injection_scanner_py__should_scan_file["3. _should_scan_file<br/><small>injection_scanner.py</small>"]:::step
+  Function__agents_skills_007_scripts_scanners_injection_scanner_py_collect_files["2. collect_files<br/><small>injection_scanner.py</small>"]:::step
+  Function__agents_skills_007_scripts_scanners_injection_scanner_py_scan_file["2. scan_file<br/><small>injection_scanner.py</small>"]:::step
+  Function__agents_skills_007_scripts_scanners_injection_scanner_py_run_scan["1. run_scan<br/><small>injection_scanner.py</small>"]:::step
+  Function__agents_skills_007_scripts_scanners_secrets_scanner_py__is_test_file["4. _is_test_file<br/><small>secrets_scanner.py</small>"]:::step
+  Function__agents_skills_007_scripts_scanners_secrets_scanner_py__is_env_example["4. _is_env_example<br/><small>secrets_scanner.py</small>"]:::step
+  Function__agents_skills_007_scripts_scanners_secrets_scanner_py__classify_file["4. _classify_file<br/><small>secrets_scanner.py</small>"]:::step
+  Function__agents_skills_007_scripts_scanners_secrets_scanner_py__should_scan_file["4. _should_scan_file<br/><small>secrets_scanner.py</small>"]:::step
+  Function__agents_skills_007_scripts_scanners_secrets_scanner_py_collect_files["3. collect_files<br/><small>secrets_scanner.py</small>"]:::step
+  Function__agents_skills_007_scripts_scanners_secrets_scanner_py_scan_file["3. scan_file<br/><small>secrets_scanner.py</small>"]:::step
+  Function__agents_skills_007_scripts_scanners_secrets_scanner_py_aggregate_by_severity["3. aggregate_by_severity<br/><small>secrets_scanner.py</small>"]:::step
+  Function__agents_skills_007_scripts_scanners_secrets_scanner_py_run_scan["2. run_scan<br/><small>secrets_scanner.py</small>"]:::step
+  Function__agents_skills_007_scripts_config_py_ensure_directories["3. ensure_directories<br/><small>config.py</small>"]:::step
+  Function__agents_skills_007_scripts_full_audit_py_run_audit["1. run_audit<br/><small>full_audit.py</small>"]:::step
+  Function__agents_skills_007_scripts_score_calculator_py_run_score["1. run_score<br/><small>score_calculator.py</small>"]:::step
+  Function__agents_skills_007_scripts_quick_scan_py__redact["4. _redact<br/><small>quick_scan.py</small>"]:::step
+  Function__agents_skills_007_scripts_quick_scan_py__snippet["3. _snippet<br/><small>quick_scan.py</small>"]:::step
+  Function__agents_skills_007_scripts_quick_scan_py__should_skip_dir["3. _should_skip_dir<br/><small>quick_scan.py</small>"]:::step
+  Function__agents_skills_007_scripts_quick_scan_py__is_scannable["3. _is_scannable<br/><small>quick_scan.py</small>"]:::step
+  Function__agents_skills_007_scripts_quick_scan_py__check_permissions["3. _check_permissions<br/><small>quick_scan.py</small>"]:::step
+  Function__agents_skills_007_scripts_quick_scan_py_collect_files["2. collect_files<br/><small>quick_scan.py</small>"]:::step
+  Function__agents_skills_007_scripts_quick_scan_py_scan_file["2. scan_file<br/><small>quick_scan.py</small>"]:::step
+  Function__agents_skills_007_scripts_quick_scan_py_run_scan["1. run_scan<br/><small>quick_scan.py</small>"]:::step
+  Function__agents_skills_agent_orchestrator_scripts_match_skills_py_ensure_registry["6. ensure_registry<br/><small>match_skills.py</small>"]:::step
+  Function__agents_skills_agent_orchestrator_scripts_match_skills_py_load_registry["5. load_registry<br/><small>match_skills.py</small>"]:::step
+  Function__agents_skills_agent_orchestrator_scripts_match_skills_py_load_projects["6. load_projects<br/><small>match_skills.py</small>"]:::step
+  Function__agents_skills_agent_orchestrator_scripts_match_skills_py_get_project_skills["5. get_project_skills<br/><small>match_skills.py</small>"]:::step
+  Function__agents_skills_agent_orchestrator_scripts_match_skills_py_query_to_capabilities["6. query_to_capabilities<br/><small>match_skills.py</small>"]:::terminal
+  Function__agents_skills_agent_orchestrator_scripts_match_skills_py_normalize["5. normalize<br/><small>match_skills.py</small>"]:::step
+  Function__agents_skills_agent_orchestrator_scripts_match_skills_py_score_skill["5. score_skill<br/><small>match_skills.py</small>"]:::step
+  Function__agents_skills_agent_orchestrator_scripts_match_skills_py_match["4. match<br/><small>match_skills.py</small>"]:::step
+  Function__agents_skills_ai_studio_image_scripts_config_py_get_all_api_keys["3. get_all_api_keys<br/><small>config.py</small>"]:::step
+  Function__agents_skills_ai_studio_image_scripts_config_py_safety_check_model["3. safety_check_model<br/><small>config.py</small>"]:::step
+  Function__agents_skills_ai_studio_image_scripts_config_py_get_daily_usage_count["4. get_daily_usage_count<br/><small>config.py</small>"]:::step
+  Function__agents_skills_ai_studio_image_scripts_config_py_safety_check_daily_limit["3. safety_check_daily_limit<br/><small>config.py</small>"]:::step
+  Function__agents_skills_ai_studio_image_scripts_generate_py_generate["2. generate<br/><small>generate.py</small>"]:::step
+  Function__agents_skills_ai_studio_image_scripts_generate_py_main["1. main<br/><small>generate.py</small>"]:::step
+  Function__agents_skills_ai_studio_image_scripts_prompt_engine_py__detect_shot_type["3. _detect_shot_type<br/><small>prompt_engine.py</small>"]:::step
+  Function__agents_skills_ai_studio_image_scripts_prompt_engine_py_analyze_prompt["2. analyze_prompt<br/><small>prompt_engine.py</small>"]:::step
+  Function__agents_skills_ai_studio_image_scripts_prompt_engine_py_resolve_format["3. resolve_format<br/><small>prompt_engine.py</small>"]:::step
+  Function__agents_skills_app_store_optimization_competitor_analyzer_py_analyze_competitor["3. analyze_competitor<br/><small>competitor_analyzer.py</small>"]:::step
+  Function__agents_skills_app_store_optimization_competitor_analyzer_py_compare_competitors["2. compare_competitors<br/><small>competitor_analyzer.py</small>"]:::step
+  Function__agents_skills_app_store_optimization_competitor_analyzer_py_identify_gaps["1. identify_gaps<br/><small>competitor_analyzer.py</small>"]:::step
+  Function__agents_skills_app_store_optimization_competitor_analyzer_py__analyze_title["4. _analyze_title<br/><small>competitor_analyzer.py</small>"]:::step
+  Function__agents_skills_app_store_optimization_competitor_analyzer_py__analyze_description["4. _analyze_description<br/><small>competitor_analyzer.py</small>"]:::step
+  Function__agents_skills_app_store_optimization_competitor_analyzer_py__extract_keyword_strategy["3. _extract_keyword_strategy<br/><small>competitor_analyzer.py</small>"]:::step
+  Function__agents_skills_app_store_optimization_competitor_analyzer_py__assess_rating_quality["4. _assess_rating_quality<br/><small>competitor_analyzer.py</small>"]:::step
+  Function__agents_skills_app_store_optimization_competitor_analyzer_py__find_common_keywords["3. _find_common_keywords<br/><small>competitor_analyzer.py</small>"]:::step
+  Function__agents_skills_app_store_optimization_competitor_analyzer_py__identify_keyword_gaps["3. _identify_keyword_gaps<br/><small>competitor_analyzer.py</small>"]:::step
+  Function__agents_skills_app_store_optimization_competitor_analyzer_py__analyze_rating_distribution["3. _analyze_rating_distribution<br/><small>competitor_analyzer.py</small>"]:::step
+  Function__agents_skills_app_store_optimization_competitor_analyzer_py__extract_features["5. _extract_features<br/><small>competitor_analyzer.py</small>"]:::step
+  Function__agents_skills_app_store_optimization_competitor_analyzer_py__assess_keyword_focus["4. _assess_keyword_focus<br/><small>competitor_analyzer.py</small>"]:::step
+  Function__agents_skills_app_store_optimization_metadata_optimizer_py_optimize_description["2. optimize_description<br/><small>metadata_optimizer.py</small>"]:::step
+  Function__agents_skills_app_store_optimization_metadata_optimizer_py_calculate_keyword_density["4. calculate_keyword_density<br/><small>metadata_optimizer.py</small>"]:::step
+  Function__agents_skills_app_store_optimization_metadata_optimizer_py__optimize_full_description["3. _optimize_full_description<br/><small>metadata_optimizer.py</small>"]:::step
+  Function__agents_skills_app_store_optimization_metadata_optimizer_py__assess_density["5. _assess_density<br/><small>metadata_optimizer.py</small>"]:::step
+  Function__agents_skills_app_store_optimization_metadata_optimizer_py__assess_overall_density["5. _assess_overall_density<br/><small>metadata_optimizer.py</small>"]:::step
+  Function__agents_skills_app_store_optimization_metadata_optimizer_py__generate_density_recommendations["5. _generate_density_recommendati<br/><small>metadata_optimizer.py</small>"]:::step
+  Function__agents_skills_app_store_optimization_metadata_optimizer_py_optimize_app_metadata["1. optimize_app_metadata<br/><small>metadata_optimizer.py</small>"]:::step
+  Function__agents_skills_claude_monitor_scripts_config_py_classify["3. classify<br/><small>config.py</small>"]:::step
+  Function__agents_skills_claude_monitor_scripts_health_check_py_check_cpu["2. check_cpu<br/><small>health_check.py</small>"]:::step
+  Function__agents_skills_claude_monitor_scripts_health_check_py_check_ram["2. check_ram<br/><small>health_check.py</small>"]:::step
+  Function__agents_skills_claude_monitor_scripts_health_check_py_check_browsers["2. check_browsers<br/><small>health_check.py</small>"]:::step
+  Function__agents_skills_claude_monitor_scripts_health_check_py_main["1. main<br/><small>health_check.py</small>"]:::step
+  Function_src_scripts_rectifier_flex_pricing_js_setupMenu["3. setupMenu<br/><small>rectifier-flex-pricing.js</small>"]:::step
+  Method_src_scripts_rectifier_flex_pricing_js_constructor["1. constructor<br/><small>rectifier-flex-pricing.js</small>"]:::step
+  Method_src_scripts_rectifier_flex_pricing_js_initializeNotifications["5. initializeNotifications<br/><small>rectifier-flex-pricing.js</small>"]:::step
+  Method_src_scripts_rectifier_flex_pricing_js_showNotification["4. showNotification<br/><small>rectifier-flex-pricing.js</small>"]:::step
+  Method_src_scripts_rectifier_flex_pricing_js_hideNotification["5. hideNotification<br/><small>rectifier-flex-pricing.js</small>"]:::step
+  Method_src_scripts_rectifier_flex_pricing_js_showInfo["3. showInfo<br/><small>rectifier-flex-pricing.js</small>"]:::step
+  Method_src_scripts_rectifier_flex_pricing_js_setupEventListeners["2. setupEventListeners<br/><small>rectifier-flex-pricing.js</small>"]:::step
+  Method_src_scripts_rectifier_flex_pricing_js_setupMenubar["2. setupMenubar<br/><small>rectifier-flex-pricing.js</small>"]:::step
+  Method_src_scripts_rectifier_flex_pricing_js_toggleMenu["4. toggleMenu<br/><small>rectifier-flex-pricing.js</small>"]:::step
+  Method_src_scripts_rectifier_flex_pricing_js_loadExcelData["2. loadExcelData<br/><small>rectifier-flex-pricing.js</small>"]:::step
+  Method_src_scripts_rectifier_flex_pricing_js_addProductToTable["3. addProductToTable<br/><small>rectifier-flex-pricing.js</small>"]:::step
+  Method_src_scripts_rectifier_flex_pricing_js_addManualRow["3. addManualRow<br/><small>rectifier-flex-pricing.js</small>"]:::step
+  Method_src_scripts_rectifier_flex_pricing_js_calculateRowTotals["4. calculateRowTotals<br/><small>rectifier-flex-pricing.js</small>"]:::step
+  Method_src_scripts_rectifier_flex_pricing_js_updateTotals["5. updateTotals<br/><small>rectifier-flex-pricing.js</small>"]:::step
+  Method_src_scripts_rectifier_flex_pricing_js_deleteSelectedRows["3. deleteSelectedRows<br/><small>rectifier-flex-pricing.js</small>"]:::step
+  Method_src_scripts_rectifier_flex_pricing_js_renumberRows["4. renumberRows<br/><small>rectifier-flex-pricing.js</small>"]:::step
+  Method_src_scripts_rectifier_flex_pricing_js_getLocalItems["4. getLocalItems<br/><small>rectifier-flex-pricing.js</small>"]:::step
+  Method_src_scripts_rectifier_flex_pricing_js_addToQuote["3. addToQuote<br/><small>rectifier-flex-pricing.js</small>"]:::step
+  Method_src_scripts_rectifier_flex_pricing_js_renderComboboxItems["3. renderComboboxItems<br/><small>rectifier-flex-pricing.js</small>"]:::step
+  Method_src_scripts_rectifier_flex_pricing_js_clearHighlightedItems["4. clearHighlightedItems<br/><small>rectifier-flex-pricing.js</small>"]:::step
+  Function__agents_skills_007_scripts_scanners_dependency_scanner_py_analyze_requirements_txt --> Function__agents_skills_agent_orchestrator_scripts_match_skills_py_match
+  Function__agents_skills_007_scripts_scanners_dependency_scanner_py_analyze_requirements_txt --> Function__agents_skills_007_scripts_scanners_dependency_scanner_py__make_finding
+  Function__agents_skills_007_scripts_scanners_dependency_scanner_py_analyze_pyproject_toml --> Function__agents_skills_agent_orchestrator_scripts_match_skills_py_match
+  Function__agents_skills_007_scripts_scanners_dependency_scanner_py_analyze_pyproject_toml --> Function__agents_skills_007_scripts_scanners_dependency_scanner_py__make_finding
+  Function__agents_skills_007_scripts_scanners_dependency_scanner_py_analyze_pipfile --> Function__agents_skills_agent_orchestrator_scripts_match_skills_py_match
+  Function__agents_skills_007_scripts_scanners_dependency_scanner_py_analyze_pipfile --> Function__agents_skills_007_scripts_scanners_dependency_scanner_py__make_finding
+  Function__agents_skills_007_scripts_scanners_dependency_scanner_py_discover_dependency_files --> Function__agents_skills_agent_orchestrator_scripts_match_skills_py_match
+  Function__agents_skills_007_scripts_scanners_dependency_scanner_py_scan_dependency_file --> Function__agents_skills_agent_orchestrator_scripts_match_skills_py_match
+  Function__agents_skills_007_scripts_scanners_dependency_scanner_py_scan_dependency_file --> Function__agents_skills_007_scripts_scanners_dependency_scanner_py_analyze_pipfile
+  Function__agents_skills_007_scripts_scanners_dependency_scanner_py_scan_dependency_file --> Function__agents_skills_007_scripts_scanners_dependency_scanner_py_analyze_pyproject_toml
+  Function__agents_skills_007_scripts_scanners_dependency_scanner_py_scan_dependency_file --> Function__agents_skills_007_scripts_scanners_dependency_scanner_py_analyze_requirements_txt
+  Function__agents_skills_007_scripts_scanners_dependency_scanner_py_run_scan --> Function__agents_skills_007_scripts_config_py_ensure_directories
+  Function__agents_skills_007_scripts_scanners_dependency_scanner_py_run_scan --> Function__agents_skills_007_scripts_scanners_dependency_scanner_py_scan_dependency_file
+  Function__agents_skills_007_scripts_scanners_dependency_scanner_py_run_scan --> Function__agents_skills_007_scripts_scanners_dependency_scanner_py_discover_dependency_files
+  Function__agents_skills_007_scripts_scanners_injection_scanner_py__is_comment_line --> Function__agents_skills_agent_orchestrator_scripts_match_skills_py_match
+  Function__agents_skills_007_scripts_scanners_injection_scanner_py_collect_files --> Function__agents_skills_007_scripts_scanners_injection_scanner_py__should_scan_file
+  Function__agents_skills_007_scripts_scanners_injection_scanner_py_scan_file --> Function__agents_skills_agent_orchestrator_scripts_match_skills_py_match
+  Function__agents_skills_007_scripts_scanners_injection_scanner_py_scan_file --> Function__agents_skills_007_scripts_scanners_injection_scanner_py__has_user_input
+  Function__agents_skills_007_scripts_scanners_injection_scanner_py_scan_file --> Function__agents_skills_007_scripts_scanners_injection_scanner_py__is_test_file
+  Function__agents_skills_007_scripts_scanners_injection_scanner_py_scan_file --> Function__agents_skills_007_scripts_scanners_injection_scanner_py__is_comment_line
+  Function__agents_skills_007_scripts_scanners_injection_scanner_py_run_scan --> Function__agents_skills_007_scripts_config_py_ensure_directories
+  Function__agents_skills_007_scripts_scanners_injection_scanner_py_run_scan --> Function__agents_skills_007_scripts_scanners_injection_scanner_py_scan_file
+  Function__agents_skills_007_scripts_scanners_injection_scanner_py_run_scan --> Function__agents_skills_007_scripts_scanners_injection_scanner_py_collect_files
+  Function__agents_skills_007_scripts_scanners_secrets_scanner_py_collect_files --> Function__agents_skills_007_scripts_scanners_secrets_scanner_py__should_scan_file
+  Function__agents_skills_007_scripts_scanners_secrets_scanner_py_scan_file --> Function__agents_skills_agent_orchestrator_scripts_match_skills_py_match
+  Function__agents_skills_007_scripts_scanners_secrets_scanner_py_scan_file --> Function__agents_skills_007_scripts_scanners_secrets_scanner_py__classify_file
+  Function__agents_skills_007_scripts_scanners_secrets_scanner_py_scan_file --> Function__agents_skills_007_scripts_scanners_secrets_scanner_py__is_env_example
+  Function__agents_skills_007_scripts_scanners_secrets_scanner_py_scan_file --> Function__agents_skills_007_scripts_scanners_secrets_scanner_py__is_test_file
+  Function__agents_skills_007_scripts_scanners_secrets_scanner_py_run_scan --> Function__agents_skills_007_scripts_config_py_ensure_directories
+  Function__agents_skills_007_scripts_scanners_secrets_scanner_py_run_scan --> Function__agents_skills_007_scripts_scanners_secrets_scanner_py_aggregate_by_severity
+  Function__agents_skills_007_scripts_scanners_secrets_scanner_py_run_scan --> Function__agents_skills_007_scripts_scanners_secrets_scanner_py_scan_file
+  Function__agents_skills_007_scripts_scanners_secrets_scanner_py_run_scan --> Function__agents_skills_007_scripts_scanners_secrets_scanner_py_collect_files
+  Function__agents_skills_007_scripts_full_audit_py_run_audit --> Function__agents_skills_007_scripts_config_py_ensure_directories
+  Function__agents_skills_007_scripts_full_audit_py_run_audit --> Function__agents_skills_007_scripts_scanners_secrets_scanner_py_run_scan
+  Function__agents_skills_007_scripts_score_calculator_py_run_score --> Function__agents_skills_007_scripts_config_py_ensure_directories
+  Function__agents_skills_007_scripts_score_calculator_py_run_score --> Function__agents_skills_007_scripts_scanners_secrets_scanner_py_run_scan
+  Function__agents_skills_007_scripts_quick_scan_py__snippet --> Function__agents_skills_007_scripts_quick_scan_py__redact
+  Function__agents_skills_007_scripts_quick_scan_py_collect_files --> Function__agents_skills_007_scripts_quick_scan_py__is_scannable
+  Function__agents_skills_007_scripts_quick_scan_py_collect_files --> Function__agents_skills_007_scripts_quick_scan_py__should_skip_dir
+  Function__agents_skills_007_scripts_quick_scan_py_scan_file --> Function__agents_skills_007_scripts_quick_scan_py__check_permissions
+  Function__agents_skills_007_scripts_quick_scan_py_scan_file --> Function__agents_skills_007_scripts_quick_scan_py__snippet
+  Function__agents_skills_007_scripts_quick_scan_py_run_scan --> Function__agents_skills_007_scripts_quick_scan_py_scan_file
+  Function__agents_skills_007_scripts_quick_scan_py_run_scan --> Function__agents_skills_007_scripts_quick_scan_py_collect_files
+  Function__agents_skills_007_scripts_quick_scan_py_run_scan --> Function__agents_skills_007_scripts_config_py_ensure_directories
+  Function__agents_skills_agent_orchestrator_scripts_match_skills_py_load_registry --> Function__agents_skills_agent_orchestrator_scripts_match_skills_py_ensure_registry
+  Function__agents_skills_agent_orchestrator_scripts_match_skills_py_get_project_skills --> Function__agents_skills_agent_orchestrator_scripts_match_skills_py_load_projects
+  Function__agents_skills_agent_orchestrator_scripts_match_skills_py_score_skill --> Function__agents_skills_agent_orchestrator_scripts_match_skills_py_normalize
+  Function__agents_skills_agent_orchestrator_scripts_match_skills_py_score_skill --> Function__agents_skills_agent_orchestrator_scripts_match_skills_py_query_to_capabilities
+  Function__agents_skills_agent_orchestrator_scripts_match_skills_py_match --> Function__agents_skills_agent_orchestrator_scripts_match_skills_py_score_skill
+  Function__agents_skills_agent_orchestrator_scripts_match_skills_py_match --> Function__agents_skills_agent_orchestrator_scripts_match_skills_py_get_project_skills
+  Function__agents_skills_agent_orchestrator_scripts_match_skills_py_match --> Function__agents_skills_agent_orchestrator_scripts_match_skills_py_load_registry
+  Function__agents_skills_ai_studio_image_scripts_config_py_safety_check_daily_limit --> Function__agents_skills_ai_studio_image_scripts_config_py_get_daily_usage_count
+  Function__agents_skills_ai_studio_image_scripts_generate_py_generate --> Function__agents_skills_ai_studio_image_scripts_prompt_engine_py_resolve_format
+  Function__agents_skills_ai_studio_image_scripts_generate_py_generate --> Function__agents_skills_ai_studio_image_scripts_config_py_safety_check_daily_limit
+  Function__agents_skills_ai_studio_image_scripts_generate_py_generate --> Function__agents_skills_ai_studio_image_scripts_config_py_safety_check_model
+  Function__agents_skills_ai_studio_image_scripts_generate_py_generate --> Function__agents_skills_ai_studio_image_scripts_config_py_get_all_api_keys
+  Function__agents_skills_ai_studio_image_scripts_generate_py_main --> Function__agents_skills_ai_studio_image_scripts_prompt_engine_py_analyze_prompt
+  Function__agents_skills_ai_studio_image_scripts_generate_py_main --> Function__agents_skills_ai_studio_image_scripts_generate_py_generate
+  Function__agents_skills_ai_studio_image_scripts_prompt_engine_py_analyze_prompt --> Function__agents_skills_ai_studio_image_scripts_prompt_engine_py__detect_shot_type
+  Function__agents_skills_app_store_optimization_competitor_analyzer_py_analyze_competitor --> Function__agents_skills_app_store_optimization_competitor_analyzer_py__assess_rating_quality
+  Function__agents_skills_app_store_optimization_competitor_analyzer_py_analyze_competitor --> Function__agents_skills_app_store_optimization_competitor_analyzer_py__extract_keyword_strategy
+  Function__agents_skills_app_store_optimization_competitor_analyzer_py_analyze_competitor --> Function__agents_skills_app_store_optimization_competitor_analyzer_py__analyze_description
+  Function__agents_skills_app_store_optimization_competitor_analyzer_py_analyze_competitor --> Function__agents_skills_app_store_optimization_competitor_analyzer_py__analyze_title
+  Function__agents_skills_app_store_optimization_competitor_analyzer_py_compare_competitors --> Function__agents_skills_app_store_optimization_competitor_analyzer_py__analyze_rating_distribution
+  Function__agents_skills_app_store_optimization_competitor_analyzer_py_compare_competitors --> Function__agents_skills_app_store_optimization_competitor_analyzer_py__identify_keyword_gaps
+  Function__agents_skills_app_store_optimization_competitor_analyzer_py_compare_competitors --> Function__agents_skills_app_store_optimization_competitor_analyzer_py__find_common_keywords
+  Function__agents_skills_app_store_optimization_competitor_analyzer_py_compare_competitors --> Function__agents_skills_app_store_optimization_competitor_analyzer_py_analyze_competitor
+  Function__agents_skills_app_store_optimization_competitor_analyzer_py_identify_gaps --> Function__agents_skills_app_store_optimization_competitor_analyzer_py_compare_competitors
+  Function__agents_skills_app_store_optimization_competitor_analyzer_py_identify_gaps --> Function__agents_skills_app_store_optimization_competitor_analyzer_py_analyze_competitor
+  Function__agents_skills_app_store_optimization_competitor_analyzer_py__analyze_description --> Function__agents_skills_app_store_optimization_competitor_analyzer_py__extract_features
+  Function__agents_skills_app_store_optimization_competitor_analyzer_py__extract_keyword_strategy --> Function__agents_skills_app_store_optimization_competitor_analyzer_py__assess_keyword_focus
+  Function__agents_skills_app_store_optimization_metadata_optimizer_py_optimize_description --> Function__agents_skills_app_store_optimization_metadata_optimizer_py__optimize_full_description
+  Function__agents_skills_app_store_optimization_metadata_optimizer_py_calculate_keyword_density --> Function__agents_skills_app_store_optimization_metadata_optimizer_py__generate_density_recommendations
+  Function__agents_skills_app_store_optimization_metadata_optimizer_py_calculate_keyword_density --> Function__agents_skills_app_store_optimization_metadata_optimizer_py__assess_overall_density
+  Function__agents_skills_app_store_optimization_metadata_optimizer_py_calculate_keyword_density --> Function__agents_skills_app_store_optimization_metadata_optimizer_py__assess_density
+  Function__agents_skills_app_store_optimization_metadata_optimizer_py__optimize_full_description --> Function__agents_skills_app_store_optimization_metadata_optimizer_py_calculate_keyword_density
+  Function__agents_skills_app_store_optimization_metadata_optimizer_py_optimize_app_metadata --> Function__agents_skills_app_store_optimization_metadata_optimizer_py_optimize_description
+  Function__agents_skills_claude_monitor_scripts_health_check_py_check_cpu --> Function__agents_skills_claude_monitor_scripts_config_py_classify
+  Function__agents_skills_claude_monitor_scripts_health_check_py_check_ram --> Function__agents_skills_claude_monitor_scripts_config_py_classify
+  Function__agents_skills_claude_monitor_scripts_health_check_py_check_browsers --> Function__agents_skills_claude_monitor_scripts_config_py_classify
+  Function__agents_skills_claude_monitor_scripts_health_check_py_main --> Function__agents_skills_claude_monitor_scripts_health_check_py_check_browsers
+  Function__agents_skills_claude_monitor_scripts_health_check_py_main --> Function__agents_skills_claude_monitor_scripts_health_check_py_check_ram
+  Function__agents_skills_claude_monitor_scripts_health_check_py_main --> Function__agents_skills_claude_monitor_scripts_health_check_py_check_cpu
+  Function_src_scripts_rectifier_flex_pricing_js_setupMenu --> Method_src_scripts_rectifier_flex_pricing_js_toggleMenu
+  Method_src_scripts_rectifier_flex_pricing_js_constructor --> Method_src_scripts_rectifier_flex_pricing_js_loadExcelData
+  Method_src_scripts_rectifier_flex_pricing_js_constructor --> Method_src_scripts_rectifier_flex_pricing_js_setupMenubar
+  Method_src_scripts_rectifier_flex_pricing_js_constructor --> Method_src_scripts_rectifier_flex_pricing_js_setupEventListeners
+  Method_src_scripts_rectifier_flex_pricing_js_constructor --> Method_src_scripts_rectifier_flex_pricing_js_initializeNotifications
+  Method_src_scripts_rectifier_flex_pricing_js_showNotification --> Method_src_scripts_rectifier_flex_pricing_js_hideNotification
+  Method_src_scripts_rectifier_flex_pricing_js_showNotification --> Method_src_scripts_rectifier_flex_pricing_js_initializeNotifications
+  Method_src_scripts_rectifier_flex_pricing_js_showInfo --> Method_src_scripts_rectifier_flex_pricing_js_showNotification
+  Method_src_scripts_rectifier_flex_pricing_js_setupEventListeners --> Method_src_scripts_rectifier_flex_pricing_js_addToQuote
+  Method_src_scripts_rectifier_flex_pricing_js_setupEventListeners --> Method_src_scripts_rectifier_flex_pricing_js_deleteSelectedRows
+  Method_src_scripts_rectifier_flex_pricing_js_setupEventListeners --> Method_src_scripts_rectifier_flex_pricing_js_addManualRow
+  Method_src_scripts_rectifier_flex_pricing_js_setupEventListeners --> Method_src_scripts_rectifier_flex_pricing_js_addProductToTable
+  Method_src_scripts_rectifier_flex_pricing_js_setupMenubar --> Function_src_scripts_rectifier_flex_pricing_js_setupMenu
+  Method_src_scripts_rectifier_flex_pricing_js_loadExcelData --> Method_src_scripts_rectifier_flex_pricing_js_renderComboboxItems
+  Method_src_scripts_rectifier_flex_pricing_js_loadExcelData --> Method_src_scripts_rectifier_flex_pricing_js_showInfo
+  Method_src_scripts_rectifier_flex_pricing_js_addProductToTable --> Method_src_scripts_rectifier_flex_pricing_js_updateTotals
+  Method_src_scripts_rectifier_flex_pricing_js_addManualRow --> Method_src_scripts_rectifier_flex_pricing_js_calculateRowTotals
+  Method_src_scripts_rectifier_flex_pricing_js_calculateRowTotals --> Method_src_scripts_rectifier_flex_pricing_js_updateTotals
+  Method_src_scripts_rectifier_flex_pricing_js_deleteSelectedRows --> Method_src_scripts_rectifier_flex_pricing_js_renumberRows
+  Method_src_scripts_rectifier_flex_pricing_js_deleteSelectedRows --> Method_src_scripts_rectifier_flex_pricing_js_updateTotals
+  Method_src_scripts_rectifier_flex_pricing_js_addToQuote --> Method_src_scripts_rectifier_flex_pricing_js_getLocalItems
+  Method_src_scripts_rectifier_flex_pricing_js_addToQuote --> Method_src_scripts_rectifier_flex_pricing_js_updateTotals
+  Method_src_scripts_rectifier_flex_pricing_js_renderComboboxItems --> Method_src_scripts_rectifier_flex_pricing_js_clearHighlightedItems
